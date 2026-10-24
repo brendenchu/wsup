@@ -6,7 +6,9 @@ registry records project ownership; it does not create a shared build.
 
 ## Start
 
-Requires Python 3.11 or newer. From this directory:
+Requires Python 3.9 or newer. An existing macOS developer-tools Python 3.9 can
+run the CLI; no system Python replacement is needed. WSUP compatibility does
+not extend upstream Python security maintenance. From this directory:
 
 ```sh
 python3 -B tools/wsup.py validate

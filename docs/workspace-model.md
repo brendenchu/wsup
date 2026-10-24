@@ -62,7 +62,7 @@ the independent repository.
 
 ## Runtime and portability
 
-The CLI uses Python 3.11+ and the standard library. Registered project checks use
+The CLI uses Python 3.9+ and the standard library. Registered project checks use
 executables installed locally and are not translated between operating systems.
 Commands may depend on platform-specific executables. Verify the required
 checks on each target platform; portability is not a certification claim.

@@ -1,4 +1,4 @@
-"""WSUP CLI; Python 3.11+ standard library only."""
+"""WSUP CLI; Python 3.9+ standard library only."""
 from pathlib import Path
 import sys
 

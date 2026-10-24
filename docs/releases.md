@@ -48,7 +48,7 @@ actually verified.
 2. Choose the version using the policy above. Update `VERSION` and finalize the
    corresponding [changelog](../CHANGELOG.md) entry, retaining an Unreleased
    section. Describe migrations and material limitations.
-3. On Python 3.11 or newer, verify:
+3. On the minimum supported Python 3.9 and an available newer Python, verify:
 
    ```sh
    python3 --version
@@ -59,8 +59,9 @@ actually verified.
    git diff --check
    ```
 
-   A pass on an older interpreter is not a substitute. Record the OS and Python
-   version; claim platform and client support only to the extent actually tested.
+   A pass on Python older than 3.9 is not a substitute. Record the OS and Python
+   version for each run and report unavailable runtimes as missing coverage;
+   claim platform and client support only to the extent actually tested.
 4. Generate a disposable workspace outside the checkout. Run its own validation
    and guidance, and use its CLI to generate another workspace. For layout or
    update changes, exercise an actual previous-version workspace as well as

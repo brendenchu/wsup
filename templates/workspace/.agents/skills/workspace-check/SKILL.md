@@ -7,7 +7,7 @@ description: Run explicitly selected project checks and summarise failures. Use 
 
 Read the local rule index and registry first. Identify projects and inspect their
 check argument arrays; configured commands execute with the current user's access.
-Use Python 3.11+ and run from the workspace root:
+Use Python 3.9+ and run from the workspace root:
 
 ```sh
 python3 -B tools/wsup.py validate

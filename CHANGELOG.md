@@ -8,6 +8,11 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 Initial 0.1.0 development baseline; no release date or tag is assigned yet.
 
+### Changed
+
+- Lower the minimum supported Python version from 3.11 to 3.9, including macOS
+  developer-tools Python 3.9.6. The CLI still uses only the standard library.
+
 ### Added
 
 - MIT license.

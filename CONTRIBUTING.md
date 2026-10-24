@@ -11,7 +11,7 @@ Read [AI.md](AI.md), the [rule index](.ai/rules/index.md), and the
 unrelated edits. For a defect, include a reproducible example; for a feature,
 describe the intended behavior and ownership boundaries before expanding scope.
 
-Use Python 3.11 or newer. The CLI and test suite use the standard library; no
+Use Python 3.9 or newer. The CLI and test suite use the standard library; no
 package installation is required. Registered projects own their own dependencies
 and setup.
 

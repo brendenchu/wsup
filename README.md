@@ -7,8 +7,12 @@ It has no third-party runtime dependencies or required AI service.
 
 ## Requirements
 
-Python 3.11 or newer. Registered projects may use any language or toolchain; each
+Python 3.9 or newer. Registered projects may use any language or toolchain; each
 project owns its dependencies and commands.
+
+An existing macOS developer-tools Python 3.9 can run WSUP; check your installed
+version with `python3 --version`. There is no need to replace the system Python.
+WSUP compatibility does not extend upstream Python security maintenance.
 
 ## Try it
 
