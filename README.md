@@ -91,3 +91,18 @@ it does not download a new release. To disable skill use, use the client's
 controls rather than deleting canonical files and breaking rule-index links.
 See [AI guidance](docs/ai-guidance.md) for the dated compatibility matrix and
 [workspace model](docs/workspace-model.md) for safe legacy upgrades.
+
+## Contributing and releases
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development and verification,
+[CHANGELOG.md](CHANGELOG.md) for version milestones, and the
+[release guide](docs/releases.md) for versioning and annotated tags.
+These are maintainer documents, not generated starter files.
+
+## License
+
+WSUP is licensed under the [MIT License](LICENSE).
+When redistributing WSUP code or substantial template content, retain the
+copyright and permission notice. The generator does not currently copy this
+repository-level license into generated workspaces; include it when distributing
+that content. This does not choose a license for your own projects.

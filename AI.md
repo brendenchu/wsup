@@ -4,6 +4,10 @@ This repository contains the workspace CLI, its tests, and the files copied into
 generated workspaces. Keep the starter generic and functional without access to
 this checkout.
 
+Keep build-session logs, implementation plans, and local verification records
+under ignored `.work/`. Public documentation describes product behavior and use;
+the changelog records user-visible changes, not development-session history.
+
 Before changing behavior, inspect the relevant implementation and tests. For
 registry, CLI, or template changes, read [the workspace model](docs/workspace-model.md)
 and the affected files under `templates/`. Preserve project ownership boundaries
