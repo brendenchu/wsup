@@ -4,6 +4,13 @@ This repository contains the workspace CLI, its tests, and the files copied into
 generated workspaces. Keep the starter generic and functional without access to
 this checkout.
 
+This file is the repository-specific entry point. The root
+[rule index](.ai/rules/index.md) routes to focused rules; shared rule text lives
+in `templates/workspace/.ai/rules/`. Root `.agents/skills/` is canonical for
+skills, and the copies under `templates/workspace/` are generated-workspace
+bundles that must stay in sync. A generated workspace uses its own `AI.md`,
+`.ai/rules/`, and `.agents/skills/`; it must not depend on this checkout.
+
 Keep build-session logs, implementation plans, and local verification records
 under ignored `.work/`. Public documentation describes product behavior and use;
 the changelog records user-visible changes, not development-session history.
@@ -15,8 +22,7 @@ and unrelated work. Do not add framework, client, provider, machine-path, or
 organization assumptions to the generic starter.
 
 For task procedures, use the matching skill under `.agents/skills/`; the local rule
-index links each workflow. Root skills are canonical and are copied into generated
-workspaces.
+index links each workflow.
 
 Run the configured project check after behavior changes:
 
