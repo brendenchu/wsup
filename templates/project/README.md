@@ -22,3 +22,9 @@ List the exact test, lint, and validation commands and any known limitations.
 ## Ownership
 
 Name the maintainer and document dependencies on other projects or services.
+
+## Starter attribution
+
+The WSUP starter content is covered by [WSUP-LICENSE](WSUP-LICENSE). Retain this
+notice when redistributing that content. It does not choose a license for this
+project's own code; document that license separately.

@@ -107,6 +107,6 @@ These are maintainer documents, not generated starter files.
 
 WSUP is licensed under the [MIT License](LICENSE).
 When redistributing WSUP code or substantial template content, retain the
-copyright and permission notice. The generator does not currently copy this
-repository-level license into generated workspaces; include it when distributing
-that content. This does not choose a license for your own projects.
+copyright and permission notice. Both starters include a `WSUP-LICENSE` notice,
+kept in sync with this repository's license. This covers WSUP content and does
+not choose a license for your own projects.

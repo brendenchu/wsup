@@ -70,11 +70,10 @@ actually verified.
 5. Check that root and bundled skill copies agree, relative references work,
    and independent repositories remain outside parent staging. Distinguish
    structural checks from any live client-discovery tests.
-6. Review [LICENSE](../LICENSE) and distribution notices. This repository-level
-   license is not automatically copied by the current generator. If distributing
-   generated WSUP CLI, templates, or substantial WSUP content, include the full
-   MIT copyright and permission notice in the distribution. This does not
-   prescribe the license of the user's own project.
+6. Review [LICENSE](../LICENSE) and distribution notices. Both starters include
+   `WSUP-LICENSE` copies that must match the repository license. Verify generated
+   and embedded templates retain the full MIT copyright and permission notice.
+   These notices cover WSUP content, not the user's own project license.
 7. With explicit authorization, commit the release changes. From the clean,
    validated release commit, create the annotated tag. For example, only if the
    checked commit declares 0.1.0:

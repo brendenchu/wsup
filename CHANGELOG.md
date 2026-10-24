@@ -18,6 +18,10 @@ Initial development release. No release date or tag is assigned yet.
 ### Added
 
 - MIT license.
+- WSUP-specific MIT notices in both starters, retained through standalone
+  generation without setting the license of user projects.
+- Generic project ignore rules for local environment files, work records, and
+  Python caches, while keeping `.env.example` trackable.
 - Contribution instructions and a manual versioning and release checklist.
 - Local-first project registry, explicit checks, settings, and local reports.
 - Optional VS Code workspace-file generation.
@@ -43,6 +47,5 @@ Initial development release. No release date or tag is assigned yet.
   [upgrade and recovery instructions](docs/workspace-model.md#legacy-skill-layout-migration).
 - AI-client discovery and operating-system compatibility require validation in
   the actual environment; structural guidance checks do not certify either.
-- Generated workspaces do not automatically include the repository-level MIT
-  notice. Include the full notice when redistributing WSUP code or substantial
+- Retain the bundled `WSUP-LICENSE` when redistributing WSUP code or substantial
   template content; this does not set the license of user projects.

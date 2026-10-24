@@ -4,8 +4,9 @@ Keep reusable libraries independent of application internals; use public contrac
 for host-provided behaviour. Keep executable hosts separate from reusable tooling.
 Each owner keeps its tests, dependencies, runtime configuration and required guidance.
 
-Use workspace.json to describe actual project paths, owners and dependencies.
-It records intended repository topology, not proof that Git exists at each path.
+If this project belongs to a WSUP workspace, its workspace.json describes project
+paths, owners and dependencies. It records intended repository topology, not proof
+that Git exists at each path. Standalone projects need no workspace registry.
 There is no shared install, build or release unless explicitly configured.
 
 Do not edit installed dependencies or duplicate reusable implementation into

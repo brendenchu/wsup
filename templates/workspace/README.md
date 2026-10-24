@@ -62,3 +62,9 @@ disable skill use rather than deleting files linked from the rule index. See the
 [workspace model](docs/workspace-model.md) for legacy migration and recovery.
 Independent project repositories retain their own guidance; parent skills are
 not installed into them automatically.
+
+## WSUP attribution
+
+The bundled WSUP CLI, templates, and guidance are covered by
+[WSUP-LICENSE](WSUP-LICENSE). Retain this notice when redistributing WSUP content.
+It does not choose a license for your own projects.

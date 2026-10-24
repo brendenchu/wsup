@@ -70,6 +70,10 @@ class WsupTest(unittest.TestCase):
     def test_ai_kit_references_and_skill_structure(self):
         import re
         kit = SOURCE / "templates/workspace"
+        for template in (kit, SOURCE / "templates/project", kit / "templates/project"):
+            self.assertEqual(
+                (SOURCE / "LICENSE").read_bytes(),
+                (template / "WSUP-LICENSE").read_bytes())
         self.assertEqual(
             (SOURCE / "docs/workspace-model.md").read_bytes(),
             (kit / "docs/workspace-model.md").read_bytes())
@@ -119,7 +123,7 @@ class WsupTest(unittest.TestCase):
         self.assertEqual(0, self.run_cli("init", str(destination)))
         self.assertEqual(2, self.run_cli("init", str(destination)))
         required_files = [
-            "README.md", "AI.md", "AGENTS.md", ".gitignore", "workspace.json",
+            "README.md", "AI.md", "AGENTS.md", ".gitignore", "workspace.json", "WSUP-LICENSE",
             "docs/README.md", "docs/workspace-model.md", "journal/README.md",
             "journal/TEMPLATE.md", "apps/README.md", "packages/README.md",
             "infrastructure/README.md", "research/README.md",
@@ -171,10 +175,36 @@ class WsupTest(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertTrue((nested / "tools/wsup.py").is_file())
         self.assertTrue((nested / ".agents/skills/workspace-check/SKILL.md").is_file())
+        for root in (destination, nested):
+            for relative in ("WSUP-LICENSE", "templates/project/WSUP-LICENSE",
+                             "tools/wsup_templates/workspace/WSUP-LICENSE",
+                             "tools/wsup_templates/project/WSUP-LICENSE"):
+                self.assertEqual(
+                    (SOURCE / "LICENSE").read_bytes(),
+                    (root / relative).read_bytes(), relative)
 
         for path in destination.rglob("*"):
             if path.is_file():
                 self.assertNotIn(str(SOURCE).encode(), path.read_bytes(), str(path.relative_to(destination)))
+
+    @unittest.skipUnless(shutil.which("git"), "Git is required for ignore verification")
+    def test_independent_project_ignores_local_files(self):
+        target = self.root / "standalone"
+        self.assertEqual(0, self.run_cli("init", str(target), "--template", "project"))
+        subprocess.run(["git", "init", "."], cwd=target, capture_output=True, check=True)
+        ignored = [".env", ".env.local", "wsup.local.json", ".work/log",
+                   "nested/.work/log", "nested/__pycache__/module.pyc"]
+        tracked = [".env.example", "WSUP-LICENSE", "README.md"]
+        for name in ignored + tracked[:1]:
+            path = target / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("Synthetic local file")
+        for name in ignored + tracked:
+            result = subprocess.run(["git", "check-ignore", "-q", name], cwd=target)
+            self.assertEqual(0 if name in ignored else 1, result.returncode, name)
+        self.assertEqual(
+            (SOURCE / "LICENSE").read_bytes(),
+            (target / "WSUP-LICENSE").read_bytes())
 
     @unittest.skipUnless(shutil.which("git"), "Git is required for ownership verification")
     def test_generated_workspace_mixed_git_onboarding(self):
