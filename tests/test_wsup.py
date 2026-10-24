@@ -1,0 +1,170 @@
+import contextlib
+import importlib.util
+import io
+import json
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import unittest
+
+SOURCE = Path(__file__).resolve().parents[1]
+spec = importlib.util.spec_from_file_location("wsup", SOURCE / "tools/wsup.py")
+wsup = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(wsup)
+
+class WsupTest(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name).resolve()
+        (self.root / "app").mkdir()
+        (self.root / "app/README.md").write_text("Local instructions")
+        self.data = {"version": 1, "name": "Synthetic", "projects": [{
+            "id": "app", "path": "app", "kind": "app", "repository": "independent",
+            "purpose": "Fixture", "owner": "Test", "checks": {}}]}
+        self.save()
+    def save(self):
+        (self.root / "workspace.json").write_text(json.dumps(self.data))
+    def run_cli(self, *args):
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            return wsup.main(["--root", str(self.root), *args])
+    def test_editor_is_relative_and_preserves_existing_output(self):
+        self.assertEqual(0, self.run_cli("editor"))
+        output = self.root / "workspace.code-workspace"
+        self.assertEqual("app", json.loads(output.read_text())["folders"][1]["path"])
+        original = output.read_bytes()
+        self.assertEqual(2, self.run_cli("editor"))
+        self.assertEqual(original, output.read_bytes())
+    def test_dependency_cycle_and_unknown_dependency(self):
+        for dependency in ["app", "missing"]:
+            self.data["projects"][0]["dependencies"] = [dependency]
+            self.save()
+            self.assertEqual(2, self.run_cli("validate"))
+    def test_escape_and_symlink_escape_rejected(self):
+        self.data["projects"][0]["path"] = "../"
+        self.save()
+        self.assertEqual(2, self.run_cli("validate"))
+        try:
+            (self.root / "outside").symlink_to(self.root.parent, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlink creation unavailable on this OS or account")
+        self.data["projects"][0]["path"] = "outside"
+        self.save()
+        self.assertEqual(2, self.run_cli("validate"))
+    def test_checks_continue_and_arguments_are_literal(self):
+        marker = self.root / "app/result.json"
+        self.data["projects"][0]["checks"] = {
+            "fail": [sys.executable, "-c", "raise SystemExit(7)"],
+            "record": ["{python}", "-c", "import sys,json;open('result.json','w').write(json.dumps(sys.argv[1:]))", "$(touch unsafe)", "", "space value"]}
+        self.save()
+        self.assertEqual(1, self.run_cli("check", "--project", "app"))
+        self.assertEqual(["$(touch unsafe)", "", "space value"], json.loads(marker.read_text()))
+        self.assertFalse((self.root / "app/unsafe").exists())
+    def test_unknown_check_validated_before_any_execution(self):
+        self.data["projects"][0]["checks"] = {"ok": [sys.executable, "-c", "open('unexpected','w').close()"]}
+        self.save()
+        self.assertEqual(2, self.run_cli("check", "--project", "app", "--check", "ok", "--check", "missing"))
+        self.assertFalse((self.root / "app/unexpected").exists())
+    def test_ai_kit_references_and_skill_structure(self):
+        import re
+        kit = SOURCE / "templates/workspace"
+        self.assertEqual(
+            (SOURCE / "docs/workspace-model.md").read_bytes(),
+            (kit / "docs/workspace-model.md").read_bytes())
+        for guide in kit.rglob("*.md"):
+            for target in re.findall(r"\]\(([^)]+)\)", guide.read_text()):
+                linked = (guide.parent / target).resolve()
+                self.assertTrue(linked.is_relative_to(kit.resolve()), target)
+                self.assertTrue(linked.is_file(), target)
+        skills = list((kit / ".ai/skills").glob("*/SKILL.md"))
+        canonical_skills = SOURCE / ".ai/skills"
+        source_skills = list(canonical_skills.glob("*/SKILL.md"))
+        self.assertEqual(8, len(source_skills))
+        self.assertEqual(
+            {path.relative_to(canonical_skills) for path in source_skills},
+            {path.relative_to(kit / ".ai/skills") for path in skills})
+        for skill in skills:
+            source = canonical_skills / skill.relative_to(kit / ".ai/skills")
+            self.assertEqual(source.read_bytes(), skill.read_bytes())
+            content = skill.read_text()
+            self.assertTrue(content.startswith("---\n"))
+            header, body = content[4:].split("\n---\n", 1)
+            fields = dict(line.split(": ", 1) for line in header.splitlines())
+            self.assertEqual(skill.parent.name, fields["name"])
+            self.assertRegex(fields["name"], r"^[a-z0-9-]+$")
+            self.assertTrue(fields["description"].strip())
+            self.assertTrue(body.strip())
+        for guide in (SOURCE / ".ai").rglob("*.md"):
+            for target in re.findall(r"\]\(([^)]+)\)", guide.read_text()):
+                linked = (guide.parent / target).resolve()
+                self.assertTrue(linked.is_relative_to(SOURCE.resolve()), target)
+                self.assertTrue(linked.is_file(), target)
+        for path in (SOURCE / "templates/project").rglob("*"):
+            if path.is_file():
+                bundled = kit / "templates/project" / path.relative_to(SOURCE / "templates/project")
+                self.assertEqual(path.read_bytes(), bundled.read_bytes())
+
+    def test_generated_workspace_runs_independently(self):
+        destination = self.root / "second workspace"
+        self.assertEqual(0, self.run_cli("init", str(destination)))
+        self.assertEqual(2, self.run_cli("init", str(destination)))
+        required_files = [
+            "README.md", "AI.md", "AGENTS.md", ".gitignore", "workspace.json",
+            "docs/README.md", "docs/workspace-model.md", "journal/README.md",
+            "journal/TEMPLATE.md", "apps/README.md", "packages/README.md",
+            "infrastructure/README.md", "research/README.md",
+            ".ai/rules/index.md", ".ai/skills/workspace-check/SKILL.md",
+            "templates/project/README.md", "templates/project/AI.md",
+            "templates/project/AGENTS.md", "tools/wsup.py",
+            "tools/wsup_core/cli.py", "tools/wsup_templates/workspace/README.md",
+            "tools/wsup_templates/project/README.md",
+        ]
+        for relative in required_files:
+            self.assertTrue((destination / relative).is_file(), relative)
+        self.assertEqual(
+            (SOURCE / "tools/wsup.py").read_bytes(),
+            (destination / "tools/wsup.py").read_bytes())
+        for source in (SOURCE / "tools/wsup_core").rglob("*.py"):
+            bundled = destination / "tools/wsup_core" / source.relative_to(SOURCE / "tools/wsup_core")
+            self.assertEqual(source.read_bytes(), bundled.read_bytes())
+        for source in (SOURCE / ".ai/skills").rglob("SKILL.md"):
+            for bundled_root in (destination / ".ai/skills", destination / "tools/wsup_templates/workspace/.ai/skills"):
+                bundled = bundled_root / source.relative_to(SOURCE / ".ai/skills")
+                self.assertEqual(source.read_bytes(), bundled.read_bytes())
+        for command in ["validate", "guidance", "editor"]:
+            result = subprocess.run([sys.executable, "-B", "tools/wsup.py", command], cwd=destination, capture_output=True)
+            self.assertEqual(0, result.returncode, result.stderr)
+        self.assertTrue((destination / "AGENTS.md").is_file())
+        self.assertTrue((destination / "AI.md").is_file())
+        self.assertTrue((destination / ".ai/rules/index.md").is_file())
+        self.assertTrue((destination / ".ai/skills/workspace-check/SKILL.md").is_file())
+        project = destination / "templates/project"
+        self.assertTrue((project / "AGENTS.md").is_file())
+        # Independent guidance has no required paths escaping its own repository.
+        import re
+        for guide in project.rglob("*.md"):
+            for target in re.findall(r"\]\(([^)]+)\)", guide.read_text()):
+                linked = (guide.parent / target).resolve()
+                self.assertTrue(linked.is_relative_to(project.resolve()))
+                self.assertTrue(linked.exists(), target)
+        self.assertFalse((destination / ".git").exists())
+
+        nested = self.root / "nested workspace"
+        result = subprocess.run(
+            [sys.executable, "-B", "tools/wsup.py", "init", str(nested)],
+            cwd=destination, capture_output=True)
+        self.assertEqual(0, result.returncode, result.stderr)
+        result = subprocess.run(
+            [sys.executable, "-B", "tools/wsup.py", "validate"],
+            cwd=nested, capture_output=True)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertTrue((nested / "tools/wsup.py").is_file())
+        self.assertTrue((nested / ".ai/skills/workspace-check/SKILL.md").is_file())
+
+        for path in destination.rglob("*"):
+            if path.is_file():
+                self.assertNotIn(str(SOURCE).encode(), path.read_bytes(), str(path.relative_to(destination)))
+
+if __name__ == "__main__":
+    unittest.main()

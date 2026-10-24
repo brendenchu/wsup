@@ -1,0 +1,43 @@
+"""Inspect portable instructions without requiring an agent or loading remote text."""
+from pathlib import Path
+import re
+from .registry import relative_target
+
+def inspect(root):
+    errors, files, skills = [], [], []
+    for name in ("AI.md", ".ai/rules/index.md"):
+        if not (root / name).is_file():
+            errors.append(f"Missing {name}")
+    candidates = [root / "AI.md", root / "AGENTS.md"]
+    ai = root / ".ai"
+    if ai.exists():
+        candidates.extend(ai.rglob("*.md"))
+    for path in candidates:
+        if not path.is_file():
+            continue
+        if not path.resolve().is_relative_to(root.resolve()):
+            errors.append("Guidance symlink escapes owner")
+            continue
+        rel = path.relative_to(root).as_posix()
+        files.append(rel)
+        text = path.read_text(encoding="utf-8")
+        for link in re.findall(r"\]\(([^)]+)\)", text):
+            if re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*:", link) or link.startswith("#"):
+                continue
+            target = (path.parent / link.split("#", 1)[0]).resolve()
+            if not target.is_relative_to(root.resolve()) or not target.is_file():
+                errors.append(f"{rel}: unresolved/nonlocal reference")
+        if path.name == "SKILL.md":
+            try:
+                if not text.startswith("---\n"):
+                    raise ValueError()
+                header, body = text[4:].split("\n---\n", 1)
+                fields = dict(line.split(": ", 1) for line in header.splitlines())
+                if fields.get("name") != path.parent.name or not re.fullmatch(r"[a-z0-9-]{1,63}", fields["name"]):
+                    raise ValueError()
+                if not fields.get("description", "").strip() or not body.strip():
+                    raise ValueError()
+                skills.append({"name": fields["name"], "path": rel})
+            except (ValueError, KeyError):
+                errors.append(f"{rel}: expected simple name/description frontmatter and body")
+    return {"files": sorted(set(files)), "skills": sorted(skills, key=lambda x: x["name"]), "errors": errors}

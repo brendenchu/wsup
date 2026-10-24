@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "name": "WSUP",
+  "projects": [
+    {
+      "id": "wsup",
+      "path": ".",
+      "kind": "tool",
+      "repository": "workspace",
+      "purpose": "Portable workspace starter and CLI",
+      "owner": "Workspace maintainers",
+      "dependencies": [],
+      "checks": {
+        "test": [
+          "{python}",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests"
+        ]
+      }
+    }
+  ]
+}
