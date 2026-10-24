@@ -72,3 +72,22 @@ For independent project repositories, add each project's directory to the
 workspace `.gitignore` and mark it `independent` in the registry. Workspace-owned
 projects stay tracked normally. See [Git ownership](docs/workspace-model.md)
 for setup and existing-file precautions.
+
+## Optional AI skills
+
+Workspace initialization includes 12 portable skills in `.agents/skills/`.
+Clients supporting this shared location need no installation command. Open the
+workspace root and inspect the client's available skills; otherwise explicitly
+ask the assistant to read a skill's `SKILL.md` and follow its procedure.
+
+Run `python3 -B tools/wsup.py guidance` to check local structure and links.
+That does not prove a client loaded or invoked a skill. Read
+[AI.md](AI.md) and the rule index separately for workspace instructions.
+No client adapter, global installation, credential, or model configuration is
+created. There is no `skills install` command.
+
+Use the normal template-update preview/apply flow to refresh bundled content;
+it does not download a new release. To disable skill use, use the client's
+controls rather than deleting canonical files and breaking rule-index links.
+See [AI guidance](docs/ai-guidance.md) for the dated compatibility matrix and
+[workspace model](docs/workspace-model.md) for safe legacy upgrades.

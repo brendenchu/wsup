@@ -117,3 +117,42 @@ overwrite an existing destination. VS Code is optional.
 previews safe changes. `update --apply` applies changes only when there are no
 conflicts. User-edited or missing files are reported for manual review;
 unrecognized files are retained. The workspace registry remains user-owned.
+
+### Legacy skill layout migration
+
+New workspaces use `.agents/skills/`; `.ai/rules/` remains the rule location.
+Workspace updates can relocate unchanged, manifest-owned legacy `.ai/skills/`
+files and their embedded workspace-template copies. Preview reports each
+`relocate` action with its destination `path` and legacy `from` path. Applying
+writes the current template content, then removes only those exact legacy files.
+Empty old directories can remain. Other removed template files are still retained.
+
+Edited or missing legacy files, unrecognized files in a legacy skill tree,
+destination collisions (even identical files), and symlink paths require manual
+resolution. Conflicts block the entire apply before any planned writes. Preview
+is read-only; the registry and unrelated files remain user-owned.
+
+An old generated CLI does not download a newer release or template bundle. To
+upgrade, obtain a trusted newer WSUP checkout or generated workspace separately,
+back up the existing workspace, and run that newer CLI against the old root:
+
+```sh
+python3 -B /path/to/new-wsup/tools/wsup.py --root /path/to/existing-workspace update
+python3 -B /path/to/new-wsup/tools/wsup.py --root /path/to/existing-workspace update --apply
+```
+
+Inspect the preview before applying. After a successful apply, use the updated
+workspace's own CLI for `validate` and `guidance`, and review Git status.
+Repeated preview should report no further changes.
+
+If legacy skills were customized, preserve those edits outside the managed
+trees, restore the recorded baseline from a trusted backup or original template,
+resolve destination collisions, then preview again. Reapply desired edits to
+the canonical files after migration and validate guidance. Do not fabricate
+manifest hashes to bypass conflicts. If the baseline cannot be recovered, keep
+the old workspace intact and plan a manual transfer into a fresh workspace.
+
+Apply is not a filesystem transaction: an I/O failure can leave some new files
+written. Legacy files are removed only after the planned writes succeed, and
+the manifest is saved last. On failure, inspect the error and restore from the
+pre-upgrade backup before retrying; there is no automatic rollback command.

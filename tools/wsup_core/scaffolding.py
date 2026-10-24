@@ -90,20 +90,54 @@ def initialise(destination, kind="workspace"):
 
 def update(root, apply=False):
     state_path = relative_target(root, STATE)
+    state_before = state_path.read_bytes()
     state = read_json(state_path)
     if state.get("version") != 1 or state.get("template") not in ("workspace", "project") or not isinstance(state.get("files"), dict):
         raise ValueError("Unsupported template state")
     files = bundle(state["template"])
     old = state["files"]
     actions, conflicts = [], []
-    for name in set(files) | set(old):
+
+    def target_for(name):
         target = relative_target(root, name)
         if any(parent.is_symlink() for parent in [target, *target.parents] if parent.is_relative_to(root)):
             raise ValueError("Template update refuses symlink destinations")
+        if any(parent.exists() and not parent.is_dir() for parent in target.parents if parent.is_relative_to(root)):
+            raise ValueError(f"Template parent is not a directory: {name}")
+        return target
+
+    observed, legacy_names, relocated = {}, set(), set()
+    legacy_trees = {}
+    if state["template"] == "workspace":
+        for prefix in ("", "tools/wsup_templates/workspace/"):
+            legacy_prefix = prefix + ".ai/skills/"
+            directory = target_for(legacy_prefix)
+            tree = read_tree(directory) if directory.exists() else {}
+            legacy_trees[legacy_prefix] = tree
+            names = {name for name in old if name.startswith(legacy_prefix)}
+            names.update(legacy_prefix + name for name in tree)
+            legacy_names.update(names)
+            for name in sorted(names):
+                destination = prefix + ".agents/skills/" + name[len(legacy_prefix):]
+                source = target_for(name)
+                target = target_for(destination)
+                current = digest(source.read_bytes()) if source.is_file() else None
+                if name not in old or current is None or current != old[name] or destination not in files:
+                    conflicts.append(name)
+                elif destination in old or target.exists():
+                    conflicts.append(destination)
+                else:
+                    observed[name], observed[destination] = current, None
+                    relocated.add(destination)
+                    actions.append({"path": destination, "action": "relocate", "from": name})
+
+    for name in sorted((set(files) | set(old)) - legacy_names - relocated):
+        target = target_for(name)
         if target.exists() and not target.is_file():
             conflicts.append(name)
             continue
         current = digest(target.read_bytes()) if target.is_file() else None
+        observed[name] = current
         desired = digest(files[name]) if name in files else None
         if name == "workspace.json":
             # Registry belongs to the user once generated, even if still unchanged.
@@ -117,20 +151,33 @@ def update(root, apply=False):
         else:
             conflicts.append(name)
     result = {"from_version": state.get("template_version"), "to_version": VERSION,
-              "actions": sorted(actions, key=lambda x: x["path"]), "conflicts": sorted(conflicts), "applied": False}
+              "actions": sorted(actions, key=lambda x: x["path"]), "conflicts": sorted(set(conflicts)), "applied": False}
     if apply:
         if conflicts:
             raise ValueError("Template conflicts require manual resolution; no files updated: " + ", ".join(sorted(conflicts)))
         # Recheck the preflight inputs immediately before the first write.
+        if state_path.read_bytes() != state_before:
+            raise ValueError("Template state changed during update planning")
+        for prefix, tree in legacy_trees.items():
+            directory = target_for(prefix)
+            if (read_tree(directory) if directory.exists() else {}) != tree:
+                raise ValueError("Legacy skills changed during update planning")
+        for name, expected in observed.items():
+            target = target_for(name)
+            if target.exists() and not target.is_file():
+                raise ValueError("Template file changed during update planning")
+            current = digest(target.read_bytes()) if target.is_file() else None
+            if current != expected:
+                raise ValueError("Template file changed during update planning")
         for item in actions:
-            if item["action"] == "write":
-                target = relative_target(root, item["path"])
-                current = digest(target.read_bytes()) if target.is_file() else None
-                if current != old.get(item["path"]):
-                    raise ValueError("Template file changed during update planning")
-        for item in actions:
-            if item["action"] == "write":
+            if item["action"] in ("write", "relocate"):
                 atomic_write(root / item["path"], files[item["path"]])
+        for item in actions:
+            if item["action"] == "relocate":
+                source = target_for(item["from"])
+                if not source.is_file() or digest(source.read_bytes()) != observed[item["from"]]:
+                    raise ValueError("Legacy skill changed during migration; new files may already be written")
+                source.unlink()
         tracked = {name: body for name, body in files.items() if name != "workspace.json"}
         next_state = json.loads(state_bytes(state["template"], tracked))
         if "workspace.json" in old:

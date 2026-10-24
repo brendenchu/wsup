@@ -193,6 +193,139 @@ class ServicesTest(unittest.TestCase):
         state_path.write_text(json.dumps(state))
         with self.assertRaises(ValueError):
             scaffolding.update(target)
+    def legacy_workspace(self, name="legacy"):
+        target = self.root / name
+        scaffolding.initialise(target)
+        state_path = target / scaffolding.STATE
+        state = json.loads(state_path.read_text())
+        from wsup_core.reporting import digest
+        for prefix in ("", "tools/wsup_templates/workspace/"):
+            current = target / prefix / ".agents/skills"
+            legacy = target / prefix / ".ai/skills"
+            legacy.parent.mkdir(parents=True, exist_ok=True)
+            current.rename(legacy)
+            for path in list(state["files"]):
+                if path.startswith(prefix + ".agents/skills/"):
+                    previous = path.replace(".agents/skills/", ".ai/skills/", 1)
+                    legacy_file = target / previous
+                    legacy_file.write_text(legacy_file.read_text().replace(".agents/skills/", ".ai/skills/"))
+                    state["files"].pop(path)
+                    state["files"][previous] = digest(legacy_file.read_bytes())
+        state["template_version"] = "0.1.0"
+        state_path.write_text(json.dumps(state))
+        return target
+    def test_legacy_skills_migrate_with_preview_and_repeatable_apply(self):
+        target = self.legacy_workspace()
+        state_path = target / scaffolding.STATE
+        before = state_path.read_bytes()
+        (target / "workspace.json").write_text('{"version":1,"name":"Custom","projects":[]}')
+        preview = scaffolding.update(target)
+        self.assertFalse(preview["conflicts"])
+        moves = [item for item in preview["actions"] if item["action"] == "relocate"]
+        self.assertEqual(24, len(moves))
+        self.assertEqual(before, state_path.read_bytes())
+        self.assertTrue((target / ".ai/skills/workspace-check/SKILL.md").exists())
+        self.assertFalse((target / ".agents/skills/workspace-check/SKILL.md").exists())
+        scaffolding.update(target, apply=True)
+        self.assertFalse(list((target / ".ai/skills").rglob("*.*")))
+        self.assertTrue((target / ".agents/skills/workspace-check/SKILL.md").is_file())
+        self.assertFalse(guidance.inspect(target)["errors"])
+        self.assertFalse(scaffolding.update(target)["actions"])
+        self.assertFalse(scaffolding.update(target)["conflicts"])
+        self.assertEqual("Custom", json.loads((target / "workspace.json").read_text())["name"])
+        state = json.loads(state_path.read_text())
+        self.assertFalse(any(".ai/skills/" in name for name in state["files"]))
+    def test_legacy_migration_conflicts_preserve_all_files(self):
+        for case in ("edited", "missing", "collision", "unrecognized", "unmanaged", "embedded-edit"):
+            with self.subTest(case=case):
+                target = self.legacy_workspace(case)
+                legacy = target / ".ai/skills/workspace-check/SKILL.md"
+                if case == "edited":
+                    legacy.write_text(legacy.read_text() + "\nUser edits\n")
+                elif case == "missing":
+                    legacy.unlink()
+                elif case == "collision":
+                    destination = target / ".agents/skills/workspace-check/SKILL.md"
+                    destination.parent.mkdir(parents=True)
+                    destination.write_bytes(legacy.read_bytes())
+                elif case == "unrecognized":
+                    (legacy.parent / "notes.txt").write_text("User notes")
+                elif case == "embedded-edit":
+                    embedded = target / "tools/wsup_templates/workspace/.ai/skills/workspace-check/SKILL.md"
+                    embedded.write_text("User template edit")
+                else:
+                    state_path = target / scaffolding.STATE
+                    state = json.loads(state_path.read_text())
+                    del state["files"][".ai/skills/workspace-check/SKILL.md"]
+                    state_path.write_text(json.dumps(state))
+                before = {p.relative_to(target): p.read_bytes() for p in target.rglob("*") if p.is_file()}
+                self.assertTrue(scaffolding.update(target)["conflicts"])
+                with self.assertRaises(ValueError):
+                    scaffolding.update(target, apply=True)
+                self.assertEqual(before, {
+                    p.relative_to(target): p.read_bytes() for p in target.rglob("*") if p.is_file()})
+    def test_legacy_migration_failure_keeps_original_skills(self):
+        target = self.legacy_workspace()
+        state = (target / scaffolding.STATE).read_bytes()
+        original = {p.relative_to(target): p.read_bytes() for p in (target / ".ai/skills").rglob("SKILL.md")}
+        with patch("wsup_core.scaffolding.atomic_write", side_effect=OSError("Simulated write failure")):
+            with self.assertRaisesRegex(OSError, "Simulated write failure"):
+                scaffolding.update(target, apply=True)
+        self.assertEqual(state, (target / scaffolding.STATE).read_bytes())
+        for name, contents in original.items():
+            self.assertEqual(contents, (target / name).read_bytes())
+    def test_update_rechecks_state_before_writing(self):
+        target = self.legacy_workspace()
+        real_bundle = scaffolding.bundle
+        def change_state(kind):
+            state_path = target / scaffolding.STATE
+            state_path.write_text(state_path.read_text() + "\n")
+            return real_bundle(kind)
+        with patch("wsup_core.scaffolding.bundle", side_effect=change_state):
+            with self.assertRaisesRegex(ValueError, "state changed"):
+                scaffolding.update(target, apply=True)
+        self.assertFalse((target / ".agents/skills/workspace-check/SKILL.md").exists())
+    def test_newer_cli_upgrades_legacy_workspace_then_runs_standalone(self):
+        target = self.legacy_workspace()
+        state_path = target / scaffolding.STATE
+        before = state_path.read_bytes()
+        command = [sys.executable, "-B", str(SOURCE / "tools/wsup.py"),
+                   "--root", str(target), "update"]
+        preview = subprocess.run(command, capture_output=True, text=True)
+        self.assertEqual(0, preview.returncode, preview.stderr)
+        result = json.loads(preview.stdout)
+        self.assertEqual("0.1.0", result["from_version"])
+        self.assertEqual("0.1.0", result["to_version"])
+        self.assertFalse(result["applied"])
+        self.assertFalse(result["conflicts"])
+        self.assertEqual(24, len([item for item in result["actions"] if item["action"] == "relocate"]))
+        self.assertEqual(before, state_path.read_bytes())
+        applied = subprocess.run(command + ["--apply"], capture_output=True, text=True)
+        self.assertEqual(0, applied.returncode, applied.stderr)
+        self.assertTrue(json.loads(applied.stdout)["applied"])
+        for action in ("guidance", "validate", "update"):
+            result = subprocess.run(
+                [sys.executable, "-B", "tools/wsup.py", action],
+                cwd=target, capture_output=True, text=True)
+            self.assertEqual(0, result.returncode, result.stderr)
+            if action == "update":
+                self.assertEqual([], json.loads(result.stdout)["actions"])
+        self.assertNotIn(str(SOURCE), (target / "tools/wsup_core/scaffolding.py").read_text())
+    def test_legacy_migration_refuses_symlink_sources(self):
+        target = self.legacy_workspace()
+        legacy = target / ".ai/skills/workspace-check/SKILL.md"
+        contents = legacy.read_bytes()
+        legacy.unlink()
+        source = self.root / "source.md"
+        source.write_bytes(contents)
+        try:
+            legacy.symlink_to(source)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlink creation unavailable")
+        with self.assertRaises(ValueError):
+            scaffolding.update(target, apply=True)
+        self.assertTrue(legacy.is_symlink())
+        self.assertEqual(contents, source.read_bytes())
 
 if __name__ == "__main__":
     unittest.main()

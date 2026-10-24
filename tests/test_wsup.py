@@ -3,6 +3,7 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -174,6 +175,62 @@ class WsupTest(unittest.TestCase):
         for path in destination.rglob("*"):
             if path.is_file():
                 self.assertNotIn(str(SOURCE).encode(), path.read_bytes(), str(path.relative_to(destination)))
+
+    @unittest.skipUnless(shutil.which("git"), "Git is required for ownership verification")
+    def test_generated_workspace_mixed_git_onboarding(self):
+        destination = self.root / "mixed workspace"
+        self.assertEqual(0, self.run_cli("init", str(destination)))
+        def generated(*args):
+            result = subprocess.run(
+                [sys.executable, "-B", "tools/wsup.py", *args],
+                cwd=destination, capture_output=True, text=True)
+            self.assertEqual(0, result.returncode, result.stderr)
+            return result.stdout
+        def git(*args):
+            result = subprocess.run(
+                ["git", *args], cwd=destination, capture_output=True, text=True)
+            self.assertEqual(0, result.returncode, result.stderr)
+            return result.stdout
+
+        git("init", ".")
+        projects = []
+        for name, ownership in (("owned", "workspace"), ("independent", "independent")):
+            path = destination / "apps" / name
+            generated("init", str(path), "--template", "project")
+            projects.append({
+                "id": name, "path": f"apps/{name}", "kind": "app",
+                "repository": ownership, "purpose": "Onboarding fixture", "owner": "Test",
+                "checks": {"test": ["{python}", "-B", "-c",
+                    "from pathlib import Path; assert Path('README.md').is_file()"]},
+            })
+        with (destination / ".gitignore").open("a") as stream:
+            stream.write("\n/apps/independent/\n")
+        git("init", "apps/independent")
+        independent = destination / "apps/independent"
+        self.assertEqual(independent.resolve(), Path(git("-C", str(independent), "rev-parse", "--show-toplevel").strip()).resolve())
+        self.assertIn("/apps/independent/", git("check-ignore", "-v", "apps/independent/"))
+        (destination / "workspace.json").write_text(json.dumps({
+            "version": 1, "name": "Mixed fixture", "projects": projects}))
+        generated("validate")
+        self.assertEqual(projects, json.loads(generated("projects")))
+        generated("config")
+        result = json.loads(generated("guidance"))
+        self.assertEqual(12, len(result["skills"]))
+        generated("guidance", "--project", "independent")
+        generated("check", "--project", "owned", "--project", "independent")
+        generated("editor")
+        editor = json.loads((destination / "workspace.code-workspace").read_text())
+        self.assertEqual([".", "apps/owned", "apps/independent"], [
+            folder["path"] for folder in editor["folders"]])
+        self.assertFalse((independent / ".agents/skills").exists())
+        self.assertFalse((independent / "tools/wsup.py").exists())
+        git("add", "--all")
+        tracked = git("ls-files").splitlines()
+        for name in ("workspace.json", "apps/README.md", "apps/owned/README.md",
+                     ".agents/skills/project-onboarding/SKILL.md"):
+            self.assertIn(name, tracked)
+        self.assertFalse(any(name.startswith("apps/independent") for name in tracked))
+        self.assertFalse(any(line.startswith("160000") for line in git("ls-files", "--stage").splitlines()))
 
 if __name__ == "__main__":
     unittest.main()

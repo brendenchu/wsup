@@ -2,9 +2,10 @@
 
 The workspace starter provides optional, client-neutral rules under `.ai/` and
 skills under `.agents/skills/`. `AI.md` is the canonical entry point; `AGENTS.md`
-is a short compatibility pointer. `.ai/rules/index.md` routes tasks to focused rules, and `.agents/skills/`
-contains reusable task procedures. Each project starter carries its own
-instructions so it remains understandable outside its workspace.
+is a short compatibility pointer. `.ai/rules/index.md` routes tasks to focused
+rules, and `.agents/skills/` contains reusable task procedures. Each project
+starter carries its own instructions so it remains understandable outside its
+workspace.
 
 In this generator repository, root `.agents/skills/` is the canonical skill source.
 Workspace initialization copies those skills into the generated workspace and
@@ -44,8 +45,11 @@ The canonical skill location for fresh workspaces is `.agents/skills/`.
 It is a shared location documented by VS Code, Codex, and Gemini CLI, rather than
 a location required by the Agent Skills format itself. Existing workspaces using
 `.ai/skills/` need a deliberate migration before adopting the new layout; do not
-copy the new tree over edited legacy skills. Guidance inspection reports
-coexisting legacy and canonical trees for manual resolution.
+copy the new tree over edited legacy skills. Workspace updates preview and
+relocate only unchanged, manifest-owned files; conflicts stop apply. See the
+[workspace model](workspace-model.md) for delivery, migration, and recovery.
+Guidance inspection reports coexisting legacy and canonical trees for manual
+resolution.
 
 | Experience | Documented discovery | Precedence and refresh | WSUP evidence |
 | --- | --- | --- | --- |
@@ -88,6 +92,17 @@ with its owner and verify loading in the actual root/session being used.
 No provider selection, credentials, client installation, network installer, or
 marketplace is required. Clients supporting the shared location need no
 per-client skill installer.
+
+### Setup and client controls
+
+WSUP uses shared discovery and explicit-path invocation. It does not provide a
+client-specific adapter or installer command.
+
+For setup, open the workspace root and inspect the client's skill list. Provide
+the explicit `SKILL.md` path when discovery is unavailable. Refresh client
+discovery with its documented controls after a template update. To stop using
+skills, use client-level disabling rather than removing files referenced by the
+rule index. There is no WSUP adapter to uninstall and no global state to remove.
 
 ## Keep guidance useful
 

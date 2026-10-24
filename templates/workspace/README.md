@@ -47,3 +47,16 @@ Client integrations are optional and must use the client's supported mechanism.
 Portable skills live in `.agents/skills/`. Clients that support that shared
 location need no skill installation step; otherwise provide the skill's explicit
 `SKILL.md` path. Discovery and actual invocation must be verified separately.
+
+Initialization includes all 12 skills; no adapter or `skills install` command is
+needed or provided. Open the workspace root and inspect the client's available
+skills, or explicitly ask it to read `.agents/skills/project-onboarding/SKILL.md`
+and follow that procedure. `guidance` checks local files and links, not client
+loading. Always read AI.md and the rule index separately for instructions.
+
+Use template update preview/apply to refresh bundled content after obtaining a
+newer trusted CLI; it does not download releases. Use the client's controls to
+disable skill use rather than deleting files linked from the rule index. See the
+[workspace model](docs/workspace-model.md) for legacy migration and recovery.
+Independent project repositories retain their own guidance; parent skills are
+not installed into them automatically.
