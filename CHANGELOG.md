@@ -6,7 +6,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ## Unreleased
 
-Initial 0.1.0 development baseline; no release date or tag is assigned yet.
+## 0.1.0 (pending release)
+
+Initial development release. No release date or tag is assigned yet.
 
 ### Changed
 
@@ -31,3 +33,16 @@ Initial 0.1.0 development baseline; no release date or tag is assigned yet.
 - Previewable relocation of unchanged, manifest-owned legacy skill files.
   Conflicts, including edited or missing files and destination collisions, block
   apply. Updates do not download releases or provide transactional rollback.
+
+### Compatibility and limitations
+
+- Requires Python 3.9 or newer and locally installed tools for registered checks.
+- Existing workspaces using `.ai/skills/` must preview updates with a trusted
+  newer CLI. Only unchanged, manifest-owned legacy skills can relocate
+  automatically; customized layouts require manual resolution. See the
+  [upgrade and recovery instructions](docs/workspace-model.md#legacy-skill-layout-migration).
+- AI-client discovery and operating-system compatibility require validation in
+  the actual environment; structural guidance checks do not certify either.
+- Generated workspaces do not automatically include the repository-level MIT
+  notice. Include the full notice when redistributing WSUP code or substantial
+  template content; this does not set the license of user projects.
