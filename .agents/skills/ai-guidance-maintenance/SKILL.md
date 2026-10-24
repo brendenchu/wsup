@@ -12,7 +12,7 @@ description: Maintain AI.md entry points, rule indexes, portable skills, or opti
    constraints, or a skill for an on-demand procedure. Reuse an existing source
    where it already covers the behavior. Keep client-specific discovery separate
    from portable content.
-3. For a skill, create `.ai/skills/NAME/SKILL.md` with matching lowercase,
+3. For a skill, create `.agents/skills/NAME/SKILL.md` with matching lowercase,
    hyphenated `name` and a nonempty `description` in YAML frontmatter. Put the
    distinct invocation cases in the description, ordered actions in the body,
    and observable completion criteria at the end. Link to authoritative local

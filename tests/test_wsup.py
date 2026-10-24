@@ -77,8 +77,8 @@ class WsupTest(unittest.TestCase):
                 linked = (guide.parent / target).resolve()
                 self.assertTrue(linked.is_relative_to(kit.resolve()), target)
                 self.assertTrue(linked.is_file(), target)
-        skills = list((kit / ".ai/skills").glob("*/SKILL.md"))
-        canonical_skills = SOURCE / ".ai/skills"
+        skills = list((kit / ".agents/skills").glob("*/SKILL.md"))
+        canonical_skills = SOURCE / ".agents/skills"
         source_skills = list(canonical_skills.glob("*/SKILL.md"))
         self.assertEqual({
             "project-onboarding", "registry-checks", "template-lifecycle",
@@ -88,11 +88,11 @@ class WsupTest(unittest.TestCase):
         }, {path.parent.name for path in source_skills})
         self.assertEqual(
             {path.relative_to(canonical_skills) for path in source_skills},
-            {path.relative_to(kit / ".ai/skills") for path in skills})
+            {path.relative_to(kit / ".agents/skills") for path in skills})
         for skill in skills:
-            source = canonical_skills / skill.relative_to(kit / ".ai/skills")
+            source = canonical_skills / skill.relative_to(kit / ".agents/skills")
             self.assertEqual(source.read_bytes(), skill.read_bytes())
-            route = f"](../skills/{skill.parent.name}/SKILL.md)"
+            route = f"](../../.agents/skills/{skill.parent.name}/SKILL.md)"
             for index in (SOURCE / ".ai/rules/index.md", kit / ".ai/rules/index.md"):
                 self.assertIn(route, index.read_text())
             content = skill.read_text()
@@ -103,7 +103,7 @@ class WsupTest(unittest.TestCase):
             self.assertRegex(fields["name"], r"^[a-z0-9-]+$")
             self.assertTrue(fields["description"].strip())
             self.assertTrue(body.strip())
-        for guide in (SOURCE / ".ai").rglob("*.md"):
+        for guide in [*(SOURCE / ".ai").rglob("*.md"), *(SOURCE / ".agents").rglob("*.md")]:
             for target in re.findall(r"\]\(([^)]+)\)", guide.read_text()):
                 linked = (guide.parent / target).resolve()
                 self.assertTrue(linked.is_relative_to(SOURCE.resolve()), target)
@@ -122,7 +122,7 @@ class WsupTest(unittest.TestCase):
             "docs/README.md", "docs/workspace-model.md", "journal/README.md",
             "journal/TEMPLATE.md", "apps/README.md", "packages/README.md",
             "infrastructure/README.md", "research/README.md",
-            ".ai/rules/index.md", ".ai/skills/workspace-check/SKILL.md",
+            ".ai/rules/index.md", ".agents/skills/workspace-check/SKILL.md",
             "templates/project/README.md", "templates/project/AI.md",
             "templates/project/AGENTS.md", "tools/wsup.py",
             "tools/wsup_core/cli.py", "tools/wsup_templates/workspace/README.md",
@@ -136,9 +136,9 @@ class WsupTest(unittest.TestCase):
         for source in (SOURCE / "tools/wsup_core").rglob("*.py"):
             bundled = destination / "tools/wsup_core" / source.relative_to(SOURCE / "tools/wsup_core")
             self.assertEqual(source.read_bytes(), bundled.read_bytes())
-        for source in (SOURCE / ".ai/skills").rglob("SKILL.md"):
-            for bundled_root in (destination / ".ai/skills", destination / "tools/wsup_templates/workspace/.ai/skills"):
-                bundled = bundled_root / source.relative_to(SOURCE / ".ai/skills")
+        for source in (SOURCE / ".agents/skills").rglob("SKILL.md"):
+            for bundled_root in (destination / ".agents/skills", destination / "tools/wsup_templates/workspace/.agents/skills"):
+                bundled = bundled_root / source.relative_to(SOURCE / ".agents/skills")
                 self.assertEqual(source.read_bytes(), bundled.read_bytes())
         for command in ["validate", "guidance", "editor"]:
             result = subprocess.run([sys.executable, "-B", "tools/wsup.py", command], cwd=destination, capture_output=True)
@@ -146,7 +146,8 @@ class WsupTest(unittest.TestCase):
         self.assertTrue((destination / "AGENTS.md").is_file())
         self.assertTrue((destination / "AI.md").is_file())
         self.assertTrue((destination / ".ai/rules/index.md").is_file())
-        self.assertTrue((destination / ".ai/skills/workspace-check/SKILL.md").is_file())
+        self.assertTrue((destination / ".agents/skills/workspace-check/SKILL.md").is_file())
+        self.assertFalse(list((destination / ".ai/skills").rglob("SKILL.md")))
         project = destination / "templates/project"
         self.assertTrue((project / "AGENTS.md").is_file())
         # Independent guidance has no required paths escaping its own repository.
@@ -168,7 +169,7 @@ class WsupTest(unittest.TestCase):
             cwd=nested, capture_output=True)
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertTrue((nested / "tools/wsup.py").is_file())
-        self.assertTrue((nested / ".ai/skills/workspace-check/SKILL.md").is_file())
+        self.assertTrue((nested / ".agents/skills/workspace-check/SKILL.md").is_file())
 
         for path in destination.rglob("*"):
             if path.is_file():

@@ -44,3 +44,6 @@ Reports are local under ignored `.work/`.
 Read [AI.md](AI.md) and `.ai/rules/index.md` for local instructions. No AI client,
 model provider, credential, MCP server, or global configuration is required.
 Client integrations are optional and must use the client's supported mechanism.
+Portable skills live in `.agents/skills/`. Clients that support that shared
+location need no skill installation step; otherwise provide the skill's explicit
+`SKILL.md` path. Discovery and actual invocation must be verified separately.

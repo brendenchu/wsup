@@ -13,15 +13,15 @@ Use the task procedure that matches the request:
 
 | Task | Skill |
 | --- | --- |
-| Add a project or change Git ownership | [project-onboarding](../skills/project-onboarding/SKILL.md) |
-| Configure registry, dependencies or check settings | [registry-checks](../skills/registry-checks/SKILL.md) |
-| Generate starters, maintain templates or update a workspace | [template-lifecycle](../skills/template-lifecycle/SKILL.md) |
-| Maintain instructions, skills or client discovery | [ai-guidance-maintenance](../skills/ai-guidance-maintenance/SKILL.md) |
-| Implement or repair code | [repository-change](../skills/repository-change/SKILL.md) |
-| Diagnose a failure | [diagnose-issue](../skills/diagnose-issue/SKILL.md) |
-| Review a change | [review-change](../skills/review-change/SKILL.md) |
-| Plan work | [plan-work](../skills/plan-work/SKILL.md) |
-| Run workspace checks | [workspace-check](../skills/workspace-check/SKILL.md) |
-| Infer conventions | [infer-conventions](../skills/infer-conventions/SKILL.md) |
-| Write a work recap | [recap-work](../skills/recap-work/SKILL.md) |
-| Draft a commit message | [commit-message](../skills/commit-message/SKILL.md) |
+| Add a project or change Git ownership | [project-onboarding](../../.agents/skills/project-onboarding/SKILL.md) |
+| Configure registry, dependencies or check settings | [registry-checks](../../.agents/skills/registry-checks/SKILL.md) |
+| Generate starters, maintain templates or update a workspace | [template-lifecycle](../../.agents/skills/template-lifecycle/SKILL.md) |
+| Maintain instructions, skills or client discovery | [ai-guidance-maintenance](../../.agents/skills/ai-guidance-maintenance/SKILL.md) |
+| Implement or repair code | [repository-change](../../.agents/skills/repository-change/SKILL.md) |
+| Diagnose a failure | [diagnose-issue](../../.agents/skills/diagnose-issue/SKILL.md) |
+| Review a change | [review-change](../../.agents/skills/review-change/SKILL.md) |
+| Plan work | [plan-work](../../.agents/skills/plan-work/SKILL.md) |
+| Run workspace checks | [workspace-check](../../.agents/skills/workspace-check/SKILL.md) |
+| Infer conventions | [infer-conventions](../../.agents/skills/infer-conventions/SKILL.md) |
+| Write a work recap | [recap-work](../../.agents/skills/recap-work/SKILL.md) |
+| Draft a commit message | [commit-message](../../.agents/skills/commit-message/SKILL.md) |

@@ -15,7 +15,7 @@ description: Create workspace or project starters, maintain template content, or
    existing paths. Inspect generated guidance, registry, and local links; project
    starters must remain usable outside their original workspace.
 3. For starter maintenance, edit the owning source rather than a disposable
-   generated result. In the generator repository, root `.ai/skills/` is canonical;
+   generated result. In the generator repository, root `.agents/skills/` is canonical;
    synchronize its bundled template copies. Review both workspace and project
    surfaces if the change affects both, including embedded copies. Keep
    framework-specific setup with its project.

@@ -29,9 +29,10 @@ def read_tree(source):
 def workspace_template(base):
     files = read_tree(base / "workspace")
     tools = Path(__file__).resolve().parent.parent
-    skills = read_tree(tools.parent / ".ai" / "skills")
-    files = {name: body for name, body in files.items() if not name.startswith(".ai/skills/")}
-    files.update({".ai/skills/" + name: body for name, body in skills.items()})
+    skills = read_tree(tools.parent / ".agents" / "skills")
+    files = {name: body for name, body in files.items()
+             if not name.startswith((".ai/skills/", ".agents/skills/"))}
+    files.update({".agents/skills/" + name: body for name, body in skills.items()})
     return files
 
 def bundle(kind):

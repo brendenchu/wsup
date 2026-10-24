@@ -12,6 +12,13 @@ def inspect(root):
     ai = root / ".ai"
     if ai.exists():
         candidates.extend(ai.rglob("*.md"))
+    shared_skills = root / ".agents/skills"
+    if shared_skills.exists():
+        candidates.extend(shared_skills.rglob("*.md"))
+    legacy_skills = root / ".ai/skills"
+    coexist = any(shared_skills.rglob("SKILL.md")) and any(legacy_skills.rglob("SKILL.md"))
+    if coexist:
+        errors.append("Legacy skills in .ai/skills coexist with .agents/skills; resolve migration manually")
     for path in candidates:
         if not path.is_file():
             continue
@@ -37,7 +44,8 @@ def inspect(root):
                     raise ValueError()
                 if not fields.get("description", "").strip() or not body.strip():
                     raise ValueError()
-                skills.append({"name": fields["name"], "path": rel})
+                if not (coexist and path.is_relative_to(legacy_skills)):
+                    skills.append({"name": fields["name"], "path": rel})
             except (ValueError, KeyError):
                 errors.append(f"{rel}: expected simple name/description frontmatter and body")
     return {"files": sorted(set(files)), "skills": sorted(skills, key=lambda x: x["name"]), "errors": errors}

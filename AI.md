@@ -10,7 +10,7 @@ and the affected files under `templates/`. Preserve project ownership boundaries
 and unrelated work. Do not add framework, client, provider, machine-path, or
 organization assumptions to the generic starter.
 
-For task procedures, use the matching skill under `.ai/skills/`; the local rule
+For task procedures, use the matching skill under `.agents/skills/`; the local rule
 index links each workflow. Root skills are canonical and are copied into generated
 workspaces.
 

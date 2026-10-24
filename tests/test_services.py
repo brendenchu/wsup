@@ -116,6 +116,31 @@ class ServicesTest(unittest.TestCase):
         (self.root / ".ai/rules").mkdir(parents=True)
         (self.root / ".ai/rules/index.md").write_text("Local rules")
         self.assertTrue(guidance.inspect(self.root)["errors"])
+    def test_guidance_inspects_shared_skills_and_reports_legacy_coexistence(self):
+        scaffolding.initialise(self.root / "workspace")
+        root = self.root / "workspace"
+        skill = root / ".agents/skills/workspace-check/SKILL.md"
+        original = skill.read_text()
+        result = guidance.inspect(root)
+        self.assertFalse(result["errors"])
+        self.assertEqual(12, len(result["skills"]))
+        skill.write_text(original + "\n[missing](missing.md)\n")
+        self.assertTrue(guidance.inspect(root)["errors"])
+        skill.write_text(original.replace("name: workspace-check", "name: wrong-name"))
+        self.assertTrue(guidance.inspect(root)["errors"])
+        skill.write_text(original)
+        legacy = root / ".ai/skills/workspace-check/SKILL.md"
+        legacy.parent.mkdir(parents=True)
+        legacy.write_text(original)
+        result = guidance.inspect(root)
+        self.assertEqual(12, len(result["skills"]))
+        self.assertTrue(any("Legacy skills" in error for error in result["errors"]))
+    def test_guidance_rejects_shared_skill_link_outside_owner(self):
+        root = self.root / "workspace"
+        scaffolding.initialise(root)
+        skill = root / ".agents/skills/workspace-check/SKILL.md"
+        skill.write_text(skill.read_text() + "\n[outside](../../../../workspace.json)\n")
+        self.assertTrue(guidance.inspect(root)["errors"])
     def test_project_scaffold_is_standalone(self):
         target = self.root / "standalone"
         scaffolding.initialise(target, "project")
