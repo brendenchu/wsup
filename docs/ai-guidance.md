@@ -10,6 +10,24 @@ In this generator repository, root `.ai/skills/` is the canonical skill source.
 Workspace initialization copies those skills into the generated workspace and
 its embedded workspace template. Tests verify the bundled copies stay in sync.
 
+## Domain procedures
+
+The skill kit covers workspace responsibilities alongside general change,
+diagnosis, review, and reporting workflows:
+
+| Domain | Procedure |
+| --- | --- |
+| Project onboarding and Git ownership | [project-onboarding](../.ai/skills/project-onboarding/SKILL.md) |
+| Registry, dependencies, checks and settings | [registry-checks](../.ai/skills/registry-checks/SKILL.md) |
+| Starter generation and template updates | [template-lifecycle](../.ai/skills/template-lifecycle/SKILL.md) |
+| Instructions, skills and client discovery | [ai-guidance-maintenance](../.ai/skills/ai-guidance-maintenance/SKILL.md) |
+
+Both the development and generated workspace rule indexes route to these skills.
+Language, framework, and provider procedures belong to the project that needs
+them rather than the generic workspace kit.
+
+## Client integration
+
 No agent, model provider, credential, MCP server, or global skill is installed.
 Clients differ in how they discover instructions and skills. Configure a chosen
 client to read the local `AI.md` and relevant rule index, or provide a skill's

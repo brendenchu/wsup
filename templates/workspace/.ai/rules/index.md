@@ -19,6 +19,10 @@ Use the task procedure that matches the request:
 
 | Task | Skill |
 | --- | --- |
+| Add a project or change Git ownership | [project-onboarding](../skills/project-onboarding/SKILL.md) |
+| Configure registry, dependencies or check settings | [registry-checks](../skills/registry-checks/SKILL.md) |
+| Generate starters, maintain templates or update a workspace | [template-lifecycle](../skills/template-lifecycle/SKILL.md) |
+| Maintain instructions, skills or client discovery | [ai-guidance-maintenance](../skills/ai-guidance-maintenance/SKILL.md) |
 | Implement or repair code | [repository-change](../skills/repository-change/SKILL.md) |
 | Diagnose a failure | [diagnose-issue](../skills/diagnose-issue/SKILL.md) |
 | Review a change | [review-change](../skills/review-change/SKILL.md) |

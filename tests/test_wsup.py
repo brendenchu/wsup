@@ -80,13 +80,21 @@ class WsupTest(unittest.TestCase):
         skills = list((kit / ".ai/skills").glob("*/SKILL.md"))
         canonical_skills = SOURCE / ".ai/skills"
         source_skills = list(canonical_skills.glob("*/SKILL.md"))
-        self.assertEqual(8, len(source_skills))
+        self.assertEqual({
+            "project-onboarding", "registry-checks", "template-lifecycle",
+            "ai-guidance-maintenance", "repository-change", "diagnose-issue",
+            "review-change", "plan-work", "workspace-check", "infer-conventions",
+            "recap-work", "commit-message",
+        }, {path.parent.name for path in source_skills})
         self.assertEqual(
             {path.relative_to(canonical_skills) for path in source_skills},
             {path.relative_to(kit / ".ai/skills") for path in skills})
         for skill in skills:
             source = canonical_skills / skill.relative_to(kit / ".ai/skills")
             self.assertEqual(source.read_bytes(), skill.read_bytes())
+            route = f"](../skills/{skill.parent.name}/SKILL.md)"
+            for index in (SOURCE / ".ai/rules/index.md", kit / ".ai/rules/index.md"):
+                self.assertIn(route, index.read_text())
             content = skill.read_text()
             self.assertTrue(content.startswith("---\n"))
             header, body = content[4:].split("\n---\n", 1)
