@@ -67,3 +67,8 @@ The registry does not imply a shared Git repository, build, dependency install,
 or release process. See the [workspace model](docs/workspace-model.md) for the
 registry, settings, checks, reports and update behavior. See [AI guidance](docs/ai-guidance.md)
 for the portable instruction kit and optional client integration.
+
+For independent project repositories, add each project's directory to the
+workspace `.gitignore` and mark it `independent` in the registry. Workspace-owned
+projects stay tracked normally. See [Git ownership](docs/workspace-model.md)
+for setup and existing-file precautions.

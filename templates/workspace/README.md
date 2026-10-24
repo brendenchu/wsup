@@ -21,6 +21,11 @@ Project directories need a `README.md` and own their setup, dependencies, tests,
 and required instructions. The [workspace model](docs/workspace-model.md)
 describes the registry, checks, settings, reports, and template updates.
 
+For independent project repositories, add each project's directory to the
+workspace `.gitignore` and mark it `independent` in the registry. Workspace-owned
+projects stay tracked normally. See [Git ownership](docs/workspace-model.md)
+for setup and existing-file precautions.
+
 Run selected configured checks with:
 
 ```sh

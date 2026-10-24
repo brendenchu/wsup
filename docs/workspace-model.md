@@ -25,6 +25,41 @@ through symlinks. Project paths must be unique. Dependencies must resolve and be
 acyclic. The registry describes intent; it does not create or verify Git
 repositories, clone projects, install dependencies, or release packages.
 
+## Git ownership
+
+Keep workspace configuration, guidance, and the grouping-directory README files
+in the workspace repository. Projects can share that repository or use independent
+repositories side by side. Nothing under the standard grouping directories is
+ignored by default just because it is a project.
+
+For each independently owned project:
+
+1. Add its exact, root-relative directory to the workspace's `.gitignore`, for
+   example `/apps/my-app/`. Use the same pattern for projects under `packages/`,
+   `tools/`, `infrastructure/`, `research/`, or `templates/`; do not ignore the
+   entire grouping directory.
+2. Clone the project's repository into that directory, or create it and run
+   `git -C apps/my-app init`. WSUP does not initialize Git repositories.
+3. Register it in `workspace.json` with `"path": "apps/my-app"` and
+   `"repository": "independent"`, along with the other required project fields.
+   This metadata does not change Git's tracking or ignore rules.
+4. Run `git check-ignore -v apps/my-app/` and review `git status` from the workspace
+   root before staging workspace changes. Commit project changes from the
+   project's own repository.
+
+The ignore entry keeps the project's files and nested repository out of normal
+workspace staging, while workspace-owned sibling projects remain trackable.
+Do not force-add independent projects or add them as submodules unless you
+intentionally want a different ownership model. Ignoring only nested `.git`
+directories is not enough to exclude project contents.
+
+Ignore rules do not untrack files that the workspace repository already tracks.
+Before converting an existing project, preserve its work and history, then
+deliberately remove its paths from the workspace index (for example,
+`git rm -r --cached -- apps/my-app`) and review the staged removals. `--cached`
+leaves working files on disk; this step does not transfer their history into
+the independent repository.
+
 ## Runtime and portability
 
 The CLI uses Python 3.11+ and the standard library. Registered project checks use
