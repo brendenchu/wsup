@@ -2,7 +2,7 @@
 import os
 from .registry import read_json, relative_target
 
-DEFAULTS = {"timeout_seconds": 300, "output_limit_bytes": 65536, "report_dir": ".work/quality"}
+DEFAULTS = {"timeout_seconds": 300, "output_limit_bytes": 65536, "report_dir": ".wsup/reports"}
 ENV = {"WSUP_TIMEOUT_SECONDS": "timeout_seconds", "WSUP_OUTPUT_LIMIT_BYTES": "output_limit_bytes",
        "WSUP_REPORT_DIR": "report_dir"}
 
@@ -36,6 +36,8 @@ def load_config(root, overrides=None, environ=None):
         if type(values[key]) is not int or not 1 <= values[key] <= maximum:
             raise ValueError(f"{key} must be 1..{maximum}")
     report = relative_target(root, values["report_dir"])
-    if not report.resolve().is_relative_to((root / ".work").resolve()) or (root / ".work").is_symlink():
-        raise ValueError("report_dir must be inside the local .work directory")
+    reports = root / ".wsup/reports"
+    if (not report.resolve().is_relative_to(reports.resolve()) or
+            (root / ".wsup").is_symlink() or reports.is_symlink()):
+        raise ValueError("report_dir must be inside the local .wsup/reports directory")
     return values, sources

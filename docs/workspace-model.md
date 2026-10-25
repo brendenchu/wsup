@@ -98,13 +98,13 @@ Settings have these defaults:
 | --- | --- |
 | `timeout_seconds` | `300` (range `1`-`86400`) |
 | `output_limit_bytes` | `65536` per stream (range `1`-`10485760`) |
-| `report_dir` | `.work/quality` (must remain inside `.work/`) |
+| `report_dir` | `.wsup/reports` (must remain inside `.wsup/reports/`) |
 
 Configuration precedence, from lowest to highest: defaults, `wsup.json`,
 `wsup.local.json`, `WSUP_TIMEOUT_SECONDS` / `WSUP_OUTPUT_LIMIT_BYTES` /
 `WSUP_REPORT_DIR`, then CLI overrides.
 Configuration files use `{ "version": 1, "settings": { ... } }`. Local settings
-and `.work/` should not be committed. Reports are stored within `.work/` and
+and `.wsup/reports/` should not be committed. Reports are stored there and
 include check outcomes and hashes, not command arguments or captured output.
 `--show-output` prints captured output to the terminal.
 
