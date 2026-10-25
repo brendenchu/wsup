@@ -4,6 +4,20 @@
   "unlisted_status": "pending",
   "entries": [
     {
+      "python": "test_services.py:ServicesTest.test_large_output_is_bounded",
+      "status": "covered",
+      "tests": {"internal/execution/run_test.go": ["TestLargeOutputIsBounded"]},
+      "assertions": "A real child emits 200000 bytes per stream; retained stdout/stderr are each exactly 128 bytes, total count is 400000, truncation is explicit, and status is passed.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_timeout_is_distinct_from_failure",
+      "status": "covered",
+      "tests": {"internal/execution/run_test.go": ["TestFailureTimeoutAndCancellationAreDistinct"]},
+      "assertions": "A sleeping real child times out after 100ms and completes within three seconds; failure, signal exit, timeout, and pre-cancellation remain distinct.",
+      "remaining": ""
+    },
+    {
       "python": "test_services.py:ServicesTest.test_reports_omit_output_arguments_and_environment",
       "status": "partial",
       "tests": {"internal/reporting/write_test.go": ["TestPrivateSanitizedReportsAndExactEvidence", "TestInvalidEvidenceAndInputFailuresDoNotCreateReports"], "internal/reporting/contracts_test.go": ["TestCommandDigestMatchesPython"]},

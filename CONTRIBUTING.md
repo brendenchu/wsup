@@ -74,7 +74,7 @@ Python lookup. The original, unsubstituted argument array defines command identi
 hash bytes retain Python's default JSON spaces and ASCII escaping.
 Native reports use schema 2 and `runtime.go`, `runtime.os` (Go OS name),
 and `runtime.arch`, rather than claiming a Python CLI runtime. The report writer
-is implemented independently; process supervision and `check` remain unported.
+and Unix process runner are implemented independently; `check` remains unported.
 It stores typed status/metrics, input hashes, original-command hashes, selection,
 configuration sources, and optional Git evidence, but no raw output, environment,
 or command arguments. Missing Git is explicitly unavailable; an unknown dirty
@@ -88,6 +88,26 @@ containment is checked again at write time, and rooted filesystem handles confin
 writes to the workspace and opened report directory. These checks do not make
 the whole workspace policy atomic against concurrent directory replacement.
 Existing Python reports are unchanged; no reports are rewritten or migrated.
+
+The Unix runner executes literal argv with null stdin, captures each output
+stream up to the configured byte limit, and counts all drained bytes. Output
+decoding preserves Python's UTF-8 replacement behavior, including split retained
+characters. A check gets a new session/process group; cancellation or timeout
+kills that group and waits for the immediate process. Signal exits use negative
+signal numbers. After the parent exits, inherited pipes receive a 200ms drain
+grace before group cleanup, then another 200ms before forced pipe closure.
+Cleanup failures are explicit errors, never successful results. Descendants that
+deliberately escape the process group are not guaranteed to be terminated;
+retained pipes still cannot hang the runner. This is process supervision, not
+isolation of untrusted programs.
+
+Runner tests cover literal arguments/current directory/null stdin, exact output
+limits/counts, launch errors, nonzero/signal exits, timeout, cancellation,
+descendant heartbeat shutdown, and inherited/escaped pipe retention. Unix
+behavior is verified on macOS ARM64. Non-Unix execution refuses to launch until
+equivalent descendant cleanup is implemented; Windows is not certified by
+cross-compilation. OS-signal-to-context wiring and end-to-end reports await the
+`check` integration.
 
 The native parser intentionally validates options before help/version:
 `--help --invalid` fails with exit 2 instead of Python's immediate help success.

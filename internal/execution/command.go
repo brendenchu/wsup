@@ -1,4 +1,4 @@
-// Package execution prepares literal check arguments without a shell.
+// Package execution supervises literal checks without a shell on supported platforms.
 package execution
 
 import (
