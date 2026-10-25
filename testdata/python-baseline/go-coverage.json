@@ -142,6 +142,321 @@
       "tests": {"internal/registry/registry_test.go": ["TestChecksPreserveLiteralArgsOrderAndNullTimeout"], "internal/cli/check_test.go": ["TestCheckPreflightRejectsInvalidSelectionConfigAndReportParent"]},
       "assertions": "Valid marker-writing check followed by unknown check/project is rejected before any execution or report-directory creation; no partial selection is returned.",
       "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_init_selects_only_requested_collections_and_bundles_catalogue",
+      "status": "covered",
+      "tests": {"internal/scaffolding/collections_test.go": ["TestCollectionsInitSelectionAndAllOptionalHomes"], "internal/cli/init_test.go": ["TestStandaloneProjectInitWithoutToolchainOrCheckout"]},
+      "assertions": "Selections deduplicate and sort; only selected homes and exact hashes are installed and update settles. Approved installation change: all collections are embedded in the external binary, not copied into the workspace; later additions work with empty PATH.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_list_and_preview_are_read_only_and_apply_is_idempotent",
+      "status": "covered",
+      "tests": {"internal/scaffolding/collections_test.go": ["TestCollectionListingPreviewApplyAndIdempotence"]},
+      "assertions": "Listing needs no state; preview has exact sorted actions and no writes; repeated apply leaves the entire tree and state unchanged, including customized selected files.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_every_optional_collection_can_be_selected",
+      "status": "covered",
+      "tests": {"internal/scaffolding/collections_test.go": ["TestCollectionsInitSelectionAndAllOptionalHomes"], "internal/catalogue/collections_test.go": ["TestSelectedCollectionBundleInventoryAndExactBytes"]},
+      "assertions": "All seven optional homes and the journal template have exact embedded bytes and state hashes; freshly selected output has no pending update.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_previous_default_homes_are_preserved_and_can_be_selected",
+      "status": "covered",
+      "tests": {"internal/scaffolding/collections_compat_test.go": ["TestFormerDefaultCollectionsRetainCustomizationsAndBaselines"], "internal/scaffolding/migration_metadata_test.go": ["TestMigrationPreservesSelectionsOmissionsKeptHashesAndOrphanBytes"], "internal/scaffolding/migration_acceptance_test.go": ["TestUnselectedFormerDefaultsRetainOwnerBytesAndRetireCatalogueCopies"]},
+      "assertions": "Former default journal/learning/reference/research files can be explicitly selected without writes or adopting custom hashes. Native migration preserves selections/kept hashes, and exact legacy catalogue copies retire separately from owner homes. Python state must explicitly migrate before native collection additions.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_unselected_former_defaults_become_orphans_not_new_defaults",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_acceptance_test.go": ["TestUnselectedFormerDefaultsRetainOwnerBytesAndRetireCatalogueCopies"], "internal/cli/init_test.go": ["TestStandaloneProjectInitWithoutToolchainOrCheckout"]},
+      "assertions": "All five files in four former default homes retain customized bytes, lose managed ownership without gaining selections, and retire exact catalogue copies; child creation from a selected native workspace does not inherit optional homes.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_customized_former_catalogue_blocks_retirement_without_writes",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_test.go": ["TestMigrationRuntimeEditsMissingFilesUnknownFilesAndKeepCannotBypass"], "internal/scaffolding/migration_acceptance_test.go": ["TestLegacySkillConflictsAndSymlinksPreserveEveryFile"]},
+      "assertions": "Changed managed catalogue bytes conflict during preview, cannot be bypassed with keep, and block all migration writes/deletes; embedded skill and obsolete home catalogue changes are independently exercised.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_invalid_state_and_missing_selected_file_fail_without_writes",
+      "status": "covered",
+      "tests": {"internal/scaffolding/acceptance_test.go": ["TestInvalidPersistedSelectionsAndPathsBlockEveryOperation"], "internal/scaffolding/collections_test.go": ["TestCollectionConflictsBlockAllAdditionsEvenIdenticalUnmanagedBytes"]},
+      "assertions": "Null/string/unknown/nonstring persisted collection selections block update, migration and collection apply with exact tree preservation; a missing selected scaffold prevents all requested additions.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_existing_files_block_entire_apply_and_are_not_adopted",
+      "status": "covered",
+      "tests": {"internal/scaffolding/collections_test.go": ["TestCollectionConflictsBlockAllAdditionsEvenIdenticalUnmanagedBytes"]},
+      "assertions": "An existing unmanaged scaffold conflicts even with identical embedded bytes; preview and apply preserve every file and block the other requested home.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_existing_directory_contents_are_not_read_or_changed",
+      "status": "covered",
+      "tests": {"internal/scaffolding/acceptance_test.go": ["TestCollectionAdditionPreservesUnrelatedDirectoryContents"]},
+      "assertions": "Adding a scaffold to an existing collection directory preserves all unrelated owner file bytes and creates the README. As in the original test, byte preservation is verified; filesystem read auditing is not claimed.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_selection_survives_updates_and_customizations_use_normal_conflicts",
+      "status": "covered",
+      "tests": {"internal/scaffolding/update_test.go": ["TestEmbeddedUpdatePreservesSelectedCollectionsAndOmissions"], "internal/scaffolding/collections_test.go": ["TestCollectionListingPreviewApplyAndIdempotence"]},
+      "assertions": "Selected archive/journal metadata and template survive updates, archive edits conflict normally, explicit keep preserves old hashes, and adding an already-selected customized home leaves exact state bytes unchanged.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_collection_scaffold_updates_with_catalogue",
+      "status": "covered",
+      "tests": {"internal/scaffolding/acceptance_test.go": ["TestSelectedCollectionScaffoldUpdatesWithNewBundle"]},
+      "assertions": "A genuinely changed selected scaffold bundle yields one read-only write action, applies exact new bytes/hash without losing selection, and settles on repeated preview.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_invalid_selection_project_template_and_unmanaged_root_fail_without_writes",
+      "status": "covered",
+      "tests": {"internal/scaffolding/collections_test.go": ["TestCollectionsInitSelectionAndAllOptionalHomes", "TestCollectionsInvalidInputsAndSymlinkRefusal"], "internal/scaffolding/acceptance_test.go": ["TestCollectionFileSymlinkAndNonDirectoryParentsBlockAllWrites"], "internal/cli/init_test.go": ["TestProjectInitCLIAndRejectedArguments"]},
+      "assertions": "Unknown/traversal init selections and project collections fail before destination creation; collection apply requires selections and native workspace state. Nil Go init selection intentionally means no selections, while explicit JSON null in persisted state rejects.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_symlinks_and_non_directory_parents_are_rejected",
+      "status": "covered",
+      "tests": {"internal/scaffolding/collections_test.go": ["TestCollectionsInvalidInputsAndSymlinkRefusal"], "internal/scaffolding/acceptance_test.go": ["TestCollectionFileSymlinkAndNonDirectoryParentsBlockAllWrites"]},
+      "assertions": "Directory and file symlinks plus non-directory parents reject additions without modifying workspace state, unrelated files or external targets.",
+      "remaining": ""
+    },
+    {
+      "python": "test_collections.py:CollectionsTest.test_installed_cli_supports_opt_ins_and_second_generation",
+      "status": "covered",
+      "tests": {"internal/cli/init_test.go": ["TestStandaloneProjectInitWithoutToolchainOrCheckout"]},
+      "assertions": "A compiled external binary with empty PATH selects archive/journal, previews/adds private, updates, validates guidance, and creates an unselected child. Approved external binary replaces the copied Python entry point.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_obsolete_bundled_home_readmes_retire_without_removing_user_homes",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_acceptance_test.go": ["TestLegacyGuidanceAndSkillsMigrateForWorkspaceAndProject", "TestUnselectedFormerDefaultsRetainOwnerBytesAndRetireCatalogueCopies"]},
+      "assertions": "Explicit migration retires unchanged obsolete bundled home/catalogue files, leaves owner home/evidence bytes untouched, and settles native updates; native installation intentionally has no copied catalogue.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_customized_obsolete_catalogue_readme_blocks_retirement",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_acceptance_test.go": ["TestLegacySkillConflictsAndSymlinksPreserveEveryFile"]},
+      "assertions": "A customized manifest-owned legacy apps README produces its exact conflict path and blocks all apply writes/deletes, preserving the entire original tree.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_explicit_home_omissions_survive_updates_without_affecting_generation",
+      "status": "covered",
+      "tests": {"internal/scaffolding/acceptance_test.go": ["TestUpdateAddsUnmanagedDefaultMarkersAndKeepsOmissionsLocal"], "internal/cli/init_test.go": ["TestStandaloneProjectInitWithoutToolchainOrCheckout"]},
+      "assertions": "Omitted apps marker/home stays absent, omitted packages policy stays byte-exact, metadata persists and update settles; actual child generation from the relocated omitted workspace restores both default files without inheriting omissions.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_invalid_home_omissions_block_all_update_writes",
+      "status": "covered",
+      "tests": {"internal/scaffolding/acceptance_test.go": ["TestInvalidPersistedSelectionsAndPathsBlockEveryOperation"]},
+      "assertions": "Null/string/traversal/runtime/nonstring omission values in both legacy/native state reject operations before any file/state changes.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_development_sources_are_separate_from_generated_installation",
+      "status": "partial",
+      "tests": {"internal/catalogue/catalogue_test.go": ["TestEmbeddedCatalogueMatchesSource"], "internal/catalogue/native_test.go": ["TestNativeBundleOverridesAreExplicitAndSharedBytesUnchanged"], "internal/scaffolding/workspace_init_test.go": ["TestNativeWorkspaceInventoryStateAndGuidance"]},
+      "assertions": "Embedded catalogue bytes and explicit native overrides match development assets; generated native workspace has only state in .wsup and no copied runtime/catalogue. The approved external-binary layout differs intentionally from Python.",
+      "remaining": "Phase 6 must consolidate transitional Python/native template authorities and verify the final development/source layout; coexistence does not certify the final cutover tree."
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_clean_legacy_migration_and_second_generation",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_acceptance_test.go": ["TestLegacyGuidanceAndSkillsMigrateForWorkspaceAndProject"], "internal/scaffolding/migration_history_test.go": ["TestMigrationPreviewsRealPinnedHistoricalStarters"]},
+      "assertions": "Legacy rule/skill/runtime/report trees explicitly migrate with owner project/evidence preservation; compiled CLI migrates both pinned historical workspaces, relocates them, validates guidance/registry, settles update and generates native children without Python on PATH.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_workspace_starter_creates_opinionated_homes",
+      "status": "covered",
+      "tests": {"internal/scaffolding/workspace_init_test.go": ["TestNativeWorkspaceInventoryStateAndGuidance"]},
+      "assertions": "Every default home exists; all opt-in collection paths are absent; generated guidance has twelve skills. Approved external binary replaces .wsup/templates; .wsup contains state only.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_update_adds_new_default_home_markers",
+      "status": "covered",
+      "tests": {"internal/scaffolding/acceptance_test.go": ["TestUpdateAddsUnmanagedDefaultMarkersAndKeepsOmissionsLocal"]},
+      "assertions": "Removing five marker files and their ownership records yields exactly five sorted writes in read-only preview; native apply recreates them and later settles while respecting explicit omissions.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_old_project_guidance_migrates_without_installing_runtime",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_acceptance_test.go": ["TestLegacyGuidanceAndSkillsMigrateForWorkspaceAndProject"], "internal/scaffolding/migration_history_test.go": ["TestMigrationPreviewsRealPinnedHistoricalStarters"]},
+      "assertions": "Legacy project rules relocate, .ai disappears, no runtime/catalogue is installed, guidance passes and repeated native apply settles; both actual historical project starters are also migrated and relocated.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_installed_catalogue_is_unambiguous_and_target_root_is_explicit",
+      "status": "covered",
+      "tests": {"internal/cli/init_test.go": ["TestStandaloneProjectInitWithoutToolchainOrCheckout"]},
+      "assertions": "A compiled binary outside checkout with empty PATH honors explicit --root and cwd-relative init destinations; misleading local templates/project bytes do not override embedded project generation or parent customizations affect children.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_conflicts_are_read_only_and_cannot_be_kept_away",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_test.go": ["TestMigrationRuntimeEditsMissingFilesUnknownFilesAndKeepCannotBypass", "TestMigrationRelocationChecksAndLegacyReportPolicyBlockers"], "internal/scaffolding/migration_acceptance_test.go": ["TestLegacySkillConflictsAndSymlinksPreserveEveryFile"], "internal/scaffolding/migration_reports_test.go": ["TestMigrationReportsCollisionsNeverMergeEvenIdenticalBytes", "TestMigrationConfigLegacyPoliciesCannotBeHiddenByOverridesOrKeep"]},
+      "assertions": "Edited/missing sources, unknown files, destination/report collisions and explicit legacy report policy block read-only preview/apply; keep cannot bypass runtime retirement, guidance relocation or report policy.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_explicit_keep_preserves_custom_content_and_baseline",
+      "status": "covered",
+      "tests": {"internal/scaffolding/apply_test.go": ["TestNativeApplyPreservesOwnershipAndSettles"], "internal/scaffolding/migration_metadata_test.go": ["TestMigrationPreservesSelectionsOmissionsKeptHashesAndOrphanBytes"], "internal/cli/update_test.go": ["TestNativeUpdateCLIReadsEmbeddedCatalogueAndPreservesOwnerFiles"]},
+      "assertions": "Migration/native updates preserve explicitly kept content and original baseline hashes plus owner registry bytes; future preview still conflicts without keep rather than adopting edited bytes.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_migration_failure_preserves_old_sources_and_state",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_acceptance_test.go": ["TestLegacySkillWriteFailuresKeepOriginalSourcesAndState"], "internal/scaffolding/migration_apply_test.go": ["TestMigrationWriteFailuresNeverRetireSourcesOrCommitState"]},
+      "assertions": "Injected first, later and state-write failures retain old source/state bytes and never delete legacy files. Later failures can leave new files; explicit partial errors document this nontransactional behavior.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_symlinked_migration_destination_is_rejected",
+      "status": "covered",
+      "tests": {"internal/scaffolding/state_test.go": ["TestStateSymlinksRefusedWithoutTouchingTargets"], "internal/scaffolding/migration_acceptance_test.go": ["TestLegacySkillConflictsAndSymlinksPreserveEveryFile"]},
+      "assertions": "Symlinked .wsup/state and legacy guidance destinations are rejected; migration apply preserves every workspace byte and the external target.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_project_scaffold_is_standalone",
+      "status": "covered",
+      "tests": {"internal/scaffolding/init_test.go": ["TestNativeProjectMatchesEmbeddedCatalogueAndRelocates"], "internal/cli/init_test.go": ["TestStandaloneProjectInitWithoutToolchainOrCheckout"]},
+      "assertions": "Every embedded project asset/hash matches, no registry/runtime/catalogue appears, relocated guidance passes, and an empty-PATH external binary generates an identical child.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_generated_cli_can_generate_another_workspace",
+      "status": "covered",
+      "tests": {"internal/cli/init_test.go": ["TestStandaloneProjectInitWithoutToolchainOrCheckout"]},
+      "assertions": "Approved external native binary creates a workspace outside checkout, validates it, relocates it and generates a fresh child independent of parent settings/omissions/customizations with valid guidance.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_update_preview_and_apply_preserve_customisations",
+      "status": "covered",
+      "tests": {"internal/cli/update_test.go": ["TestNativeUpdateCLIReadsEmbeddedCatalogueAndPreservesOwnerFiles"]},
+      "assertions": "An old managed baseline previews an embedded update without writes; apply installs exact new bytes while preserving kept customization and owner registry/local/report/project bytes.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_update_conflict_prevents_all_writes",
+      "status": "covered",
+      "tests": {"internal/scaffolding/apply_test.go": ["TestApplyConflictsBlockEveryWrite"], "internal/cli/update_test.go": ["TestNativeUpdateCLIReadsEmbeddedCatalogueAndPreservesOwnerFiles"]},
+      "assertions": "A customized managed file blocks the whole plan including unrelated new writes; preview exits one and apply exits two with exact file/state preservation.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_manifest_path_escape_rejected",
+      "status": "covered",
+      "tests": {"internal/scaffolding/state_test.go": ["TestInvalidStateContracts"], "internal/scaffolding/acceptance_test.go": ["TestInvalidPersistedSelectionsAndPathsBlockEveryOperation"]},
+      "assertions": "A traversal manifest key with a valid digest rejects both native update and legacy migration with no writes; state parser also rejects absolute/noncanonical/runtime-owned paths.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_legacy_skills_migrate_with_preview_and_repeatable_apply",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_acceptance_test.go": ["TestLegacyGuidanceAndSkillsMigrateForWorkspaceAndProject"]},
+      "assertions": "All twelve live legacy skills relocate in a read-only preview; explicit apply removes legacy skill paths, validates twelve native skills and settles repeat native apply. Approved external-binary model retires bundled legacy skill copies instead of relocating them into a copied catalogue.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_legacy_migration_conflicts_preserve_all_files",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_acceptance_test.go": ["TestLegacySkillConflictsAndSymlinksPreserveEveryFile"]},
+      "assertions": "Edited, missing, colliding-identical, unknown, unmanaged and embedded-edited legacy skill cases each block preview/apply with every original file unchanged.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_legacy_migration_failure_keeps_original_skills",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_acceptance_test.go": ["TestLegacySkillWriteFailuresKeepOriginalSourcesAndState"]},
+      "assertions": "Injected first/later/state-write errors keep all original skill/source and state bytes; no retirement callback executes before successful state commit.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_update_rechecks_state_before_writing",
+      "status": "covered",
+      "tests": {"internal/scaffolding/apply_test.go": ["TestApplyRechecksStateFilesAndNewDestinationsBeforeAnyWrite"], "internal/scaffolding/migration_apply_test.go": ["TestMigrationStaleInputsBlockBeforeAnyWrite"]},
+      "assertions": "Native update and explicit migration reject exact state-byte changes between plan/apply before writing or retiring any file.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_newer_cli_upgrades_legacy_workspace_then_runs_standalone",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_history_test.go": ["TestMigrationPreviewsRealPinnedHistoricalStarters"], "internal/scaffolding/migration_acceptance_test.go": ["TestLegacyGuidanceAndSkillsMigrateForWorkspaceAndProject"]},
+      "assertions": "Compiled native CLI explicitly upgrades real pinned historical starters without Python on PATH, then validates/guidance/updates after relocation and creates children; synthetic full legacy guidance migration covers old skill layout. Separately supplied binary is the approved replacement for copied runtime.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_legacy_migration_refuses_symlink_sources",
+      "status": "covered",
+      "tests": {"internal/scaffolding/migration_acceptance_test.go": ["TestLegacySkillConflictsAndSymlinksPreserveEveryFile"], "internal/scaffolding/migration_test.go": ["TestMigrationRefusesNativeStateAndSymlinkedInstallations"]},
+      "assertions": "A symlinked manifest-owned legacy skill and symlink inside a retiring installation tree reject migration, preserve links and retain every external target byte.",
+      "remaining": ""
+    },
+    {
+      "python": "test_wsup.py:WsupTest.test_generated_workspace_runs_independently",
+      "status": "covered",
+      "tests": {"internal/scaffolding/workspace_init_test.go": ["TestNativeWorkspaceInventoryStateAndGuidance"], "internal/catalogue/native_test.go": ["TestNativeBundleOverridesAreExplicitAndSharedBytesUnchanged"], "internal/cli/init_test.go": ["TestStandaloneProjectInitWithoutToolchainOrCheckout"]},
+      "assertions": "Native starter has exact asset/hash inventory, valid guidance/default homes and no copied runtime/catalogue; a compiled empty-PATH binary runs validate/guidance/editor outside checkout, refuses existing destinations and creates fresh children after relocation. External binary dependency is intentional.",
+      "remaining": ""
+    },
+    {
+      "python": "test_wsup.py:WsupTest.test_ai_kit_references_and_skill_structure",
+      "status": "covered",
+      "tests": {"internal/scaffolding/guidance_acceptance_test.go": ["TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill"], "internal/catalogue/native_test.go": ["TestNativeBundleOverridesAreExplicitAndSharedBytesUnchanged"]},
+      "assertions": "All twelve canonical skill names have native routes and valid metadata/body; every starter Markdown link resolves locally, canonical rule bytes match and root guidance passes. Five explicit command-bearing skill body variants intentionally use the external binary while preserving exact discovery metadata.",
+      "remaining": ""
+    },
+    {
+      "python": "test_wsup.py:WsupTest.test_gitignore_baselines_match_and_preserve_trackable_content",
+      "status": "covered",
+      "tests": {"internal/cli/onboarding_test.go": ["TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles"]},
+      "assertions": "Both actual native starters share the canonical ignore baseline; Git check-ignore --no-index with global excludes disabled verifies exact ignored local/env/report/cache paths and trackable state/registry/project/private/example/license paths.",
+      "remaining": ""
+    },
+    {
+      "python": "test_wsup.py:WsupTest.test_workspace_guidance_is_self_contained_and_descendant_only",
+      "status": "covered",
+      "tests": {"internal/scaffolding/guidance_acceptance_test.go": ["TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill"]},
+      "assertions": "Source and generated AI entry points retain the descendant-only contract; both starter boundary rules retain it, every generated Markdown link resolves inside its owner, and no starter Markdown prescribes upward workspace knowledge or contains the checkout path.",
+      "remaining": ""
+    },
+    {
+      "python": "test_wsup.py:WsupTest.test_independent_project_ignores_local_files",
+      "status": "covered",
+      "tests": {"internal/cli/onboarding_test.go": ["TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles"]},
+      "assertions": "A freshly generated project does not initialize Git; after explicit Git init, real ignored local/env/nested cache/evidence/report files remain ignored while README/license/env example stay trackable and license bytes match the source.",
+      "remaining": ""
+    },
+    {
+      "python": "test_wsup.py:WsupTest.test_generated_workspace_mixed_git_onboarding",
+      "status": "covered",
+      "tests": {"internal/cli/onboarding_test.go": ["TestNativeGeneratedWorkspaceMixedGitOnboarding"]},
+      "assertions": "Native generation and CLI validate/projects/config/guidance/check/editor support workspace-owned and independent projects; both real application Python checks run in their project directories, independent repo root/ignore are verified, editor paths stay relative, and actual Git staging includes owned files but neither independent files, reports nor submodules.",
+      "remaining": ""
     }
   ]
 }

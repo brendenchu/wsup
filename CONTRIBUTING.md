@@ -69,6 +69,16 @@ Current assertion mappings live in `testdata/python-baseline/go-coverage.json`;
 the original Python test inventory remains frozen. Run both the Python migration
 tests (reference integrity) and Go tests (actual assertions) when changing mappings.
 
+The live map currently records 64 covered original contracts, one partial, and
+none unlisted. Native acceptance includes selected scaffold content upgrades,
+default-home additions/omissions, full legacy rule/skill migration and injected
+write failures, exact orphan/catalogue retirement, descendant-only guidance,
+real Git ignore behavior, and mixed workspace/independent-project onboarding.
+Approved installation differences are recorded alongside assertions rather than
+claimed as byte-identical Python behavior. The development/source-layout contract
+remains partial while Python/native template variants coexist; final authority
+consolidation and Python retirement are still cutover work, not completed gates.
+
 Native `check` requires repeatable `--project`; optional repeatable `--check`
 selects named checks, and `--timeout` overrides per-check and workspace timeouts.
 Selections are validated completely and deduplicated before any commands or

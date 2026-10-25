@@ -88,6 +88,7 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	if output := run("--root", workspace, "guidance"); !strings.Contains(string(output), `"errors": []`) {
 		t.Fatalf("workspace guidance failed: %s", output)
 	}
+	run("--root", workspace, "editor")
 	workspaceState, err := scaffolding.LoadState(workspace)
 	if err != nil || workspaceState.State.Template != "workspace" || workspaceState.State.Version != 2 {
 		t.Fatalf("workspace state: %+v %v", workspaceState.State, err)
@@ -99,6 +100,27 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(movedWorkspace, "README.md"), []byte("Local customization, not a child default"), 0600); err != nil {
 		t.Fatal(err)
 	}
+	parentState := workspaceState.State
+	parentState.OmittedHomeFiles = []string{"apps/.gitkeep", "packages/README.md"}
+	stateBody, err := scaffolding.EncodeNativeState(parentState)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(movedWorkspace, filepath.FromSlash(scaffolding.StatePath)), stateBody, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(filepath.Join(movedWorkspace, "apps/.gitkeep")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(movedWorkspace, "packages/README.md"), []byte("Owner omitted home"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(movedWorkspace, "templates/project"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(movedWorkspace, "templates/project/README.md"), []byte("Misleading local catalogue"), 0600); err != nil {
+		t.Fatal(err)
+	}
 	run("--root", movedWorkspace, "validate")
 	if output := run("--root", movedWorkspace, "guidance"); !strings.Contains(string(output), `"errors": []`) {
 		t.Fatalf("relocated workspace guidance failed: %s", output)
@@ -107,6 +129,16 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	next, err := scaffolding.LoadState(filepath.Join(directory, "child-workspace"))
 	if err != nil || !reflect.DeepEqual(workspaceState.State, next.State) {
 		t.Fatalf("child workspace inherited local modifications: %+v %v", next.State, err)
+	}
+	for _, name := range parentState.OmittedHomeFiles {
+		if _, err := os.Stat(filepath.Join(directory, "child-workspace", filepath.FromSlash(name))); err != nil {
+			t.Fatalf("child inherited omitted home: %s", name)
+		}
+	}
+	run("--root", movedWorkspace, "init", "embedded-project", "--template", "project")
+	embeddedProject, err := scaffolding.LoadState(filepath.Join(directory, "embedded-project"))
+	if err != nil || !reflect.DeepEqual(first.State, embeddedProject.State) {
+		t.Fatalf("local catalogue overrode embedded project: %+v %v", embeddedProject.State, err)
 	}
 	if output := run("--root", filepath.Join(directory, "child-workspace"), "guidance"); !strings.Contains(string(output), `"errors": []`) {
 		t.Fatalf("child workspace guidance failed: %s", output)
