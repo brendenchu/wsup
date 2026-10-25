@@ -1,28 +1,14 @@
-// Package catalogue exposes the embedded starter snapshot used during the Go port.
+// Package catalogue selects complete embedded native starters.
 package catalogue
 
 import (
-	"archive/zip"
-	"bytes"
-	"embed"
 	"fmt"
 	"io/fs"
 	"slices"
 	"strings"
+
+	"github.com/brendenchu/wsup/templates"
 )
-
-//go:generate go run ./generate -source ../../src/templates -output assets.zip
-
-// The archive is temporary migration output; src/templates remains authoritative.
-//
-//go:embed assets.zip
-var assets []byte
-
-// Native-only installation guidance coexists with the unchanged Python starter
-// until cutover. Shared rules, skills, and other assets still come from the ZIP.
-//
-//go:embed all:native
-var native embed.FS
 
 // CollectionNames returns a fresh ordered list of supported optional homes.
 func CollectionNames() []string {
@@ -42,7 +28,7 @@ func SelectCollections(names []string) ([]string, error) {
 	return selected, nil
 }
 
-// Bundle returns starter bytes, applying explicit native installation overrides.
+// Bundle returns starter bytes from the native template authority.
 // Neither workspace customizations nor checkout files are read at runtime.
 func Bundle(kind string) (map[string][]byte, error) {
 	return BundleSelected(kind, nil)
@@ -60,10 +46,7 @@ func BundleSelected(kind string, collections []string) (map[string][]byte, error
 	if err != nil {
 		return nil, err
 	}
-	tree, err := Open()
-	if err != nil {
-		return nil, err
-	}
+	tree := Open()
 	files := make(map[string][]byte)
 	read := func(tree fs.FS, base, prefix string) error {
 		return fs.WalkDir(tree, base, func(name string, entry fs.DirEntry, err error) error {
@@ -87,9 +70,6 @@ func BundleSelected(kind string, collections []string) (map[string][]byte, error
 	if err := read(tree, kind, ""); err != nil {
 		return nil, err
 	}
-	if err := read(native, "native/"+kind, ""); err != nil {
-		return nil, err
-	}
 	for _, name := range selected {
 		if err := read(tree, "collections/"+name, name+"/"); err != nil {
 			return nil, err
@@ -103,10 +83,6 @@ func BundleSelected(kind string, collections []string) (map[string][]byte, error
 
 // Open returns a read-only filesystem without accessing the checkout or extracting files.
 // Asset inventory and byte parity with authoritative sources are verified by tests.
-func Open() (fs.FS, error) {
-	reader, err := zip.NewReader(bytes.NewReader(assets), int64(len(assets)))
-	if err != nil {
-		return nil, fmt.Errorf("open embedded starter catalogue: %w", err)
-	}
-	return reader, nil
+func Open() fs.FS {
+	return templates.Files
 }

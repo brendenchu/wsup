@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
 	"github.com/brendenchu/wsup/internal/configuration"
 	"github.com/brendenchu/wsup/internal/guidance"
 	"github.com/brendenchu/wsup/internal/jsoncompat"
@@ -37,10 +36,6 @@ func Run(args []string, stdout, stderr io.Writer) int {
 
 // RunContext accepts cancellation explicitly; the executable maps Ctrl-C to it.
 func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer) int {
-	if _, err := catalogue.Open(); err != nil {
-		fmt.Fprintf(stderr, "Error: %v\n", err)
-		return 2
-	}
 	command := newCommand()
 	command.SetArgs(args)
 	command.SetOut(stdout)

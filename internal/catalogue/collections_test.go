@@ -17,10 +17,7 @@ func TestSelectedCollectionBundleInventoryAndExactBytes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	source, err := Open()
-	if err != nil {
-		t.Fatal(err)
-	}
+	source := Open()
 	count := len(plain)
 	for _, collection := range all {
 		for _, filename := range []string{"README.md", "TEMPLATE.md"} {

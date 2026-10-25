@@ -3,16 +3,15 @@ package catalogue
 import (
 	"bytes"
 	"io/fs"
+	"os"
 	"slices"
 	"strings"
 	"testing"
 )
 
 func TestNativeBundleOverridesAreExplicitAndSharedBytesUnchanged(t *testing.T) {
-	source, err := Open()
-	if err != nil {
-		t.Fatal(err)
-	}
+	source := os.DirFS("../../src/templates")
+	native := Open()
 	overrides := map[string][]string{
 		"project": {"README.md"},
 		"workspace": {
@@ -46,7 +45,7 @@ func TestNativeBundleOverridesAreExplicitAndSharedBytesUnchanged(t *testing.T) {
 					t.Fatalf("missing native asset: %s", relative)
 				}
 				if slices.Contains(overrides[kind], relative) {
-					override, err := fs.ReadFile(native, "native/"+name)
+					override, err := fs.ReadFile(native, name)
 					if err != nil || !bytes.Equal(body, override) {
 						t.Fatalf("override not embedded: %s %v", name, err)
 					}
@@ -73,13 +72,12 @@ func TestNativeBundleOverridesAreExplicitAndSharedBytesUnchanged(t *testing.T) {
 			// Each override must correspond to an existing source surface. A new
 			// native-only asset requires an intentional inventory/test change.
 			overrideCount := 0
-			err = fs.WalkDir(native, "native/"+kind, func(name string, entry fs.DirEntry, err error) error {
+			err = fs.WalkDir(native, kind, func(name string, entry fs.DirEntry, err error) error {
 				if err != nil || entry.IsDir() {
 					return err
 				}
-				overrideCount++
-				if !slices.Contains(overrides[kind], strings.TrimPrefix(name, "native/"+kind+"/")) {
-					t.Errorf("unreviewed native override: %s", name)
+				if slices.Contains(overrides[kind], strings.TrimPrefix(name, kind+"/")) {
+					overrideCount++
 				}
 				return nil
 			})

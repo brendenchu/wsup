@@ -54,6 +54,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Added
 
+- Complete native starter sources under `templates/`, embedded directly with
+  hidden assets. Native builds no longer use a generated Python catalogue ZIP
+  or installation overlays; generated starter bytes remain unchanged.
 - Native `init DESTINATION` creates an embedded workspace starter; `--template
   project` selects a project. Both use schema-v2 state and no bundled runtime or
   catalogue; projects also omit a registry. Native workspace docs and skills

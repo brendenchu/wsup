@@ -91,7 +91,9 @@ class LayoutTest(unittest.TestCase):
         self.assertTrue((SOURCE / ".wsup/template-state.json").is_file())
         self.assertFalse((SOURCE / "tools/wsup.py").exists())
         self.assertFalse((SOURCE / "tools/wsup_core").exists())
-        self.assertFalse((SOURCE / "templates").exists())
+        self.assertTrue((SOURCE / "templates/embed.go").is_file())
+        self.assertTrue((SOURCE / "templates/workspace/AI.md").is_file())
+        self.assertNotEqual(SOURCE / "templates", scaffolding.catalogue())
         self.assertTrue((SOURCE / ".wsup/wsup.py").is_file())
         for name in ("apps", "packages", "tools", "infrastructure"):
             self.assertFalse((SOURCE / name).exists(), name)

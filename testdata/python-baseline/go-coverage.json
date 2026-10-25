@@ -271,10 +271,10 @@
     },
     {
       "python": "test_layout.py:LayoutTest.test_development_sources_are_separate_from_generated_installation",
-      "status": "partial",
-      "tests": {"internal/catalogue/catalogue_test.go": ["TestEmbeddedCatalogueMatchesSource"], "internal/catalogue/native_test.go": ["TestNativeBundleOverridesAreExplicitAndSharedBytesUnchanged"], "internal/scaffolding/workspace_init_test.go": ["TestNativeWorkspaceInventoryStateAndGuidance"]},
-      "assertions": "Embedded catalogue bytes and explicit native overrides match development assets; generated native workspace has only state in .wsup and no copied runtime/catalogue. The approved external-binary layout differs intentionally from Python.",
-      "remaining": "Phase 6 must consolidate transitional Python/native template authorities and verify the final development/source layout; coexistence does not certify the final cutover tree."
+      "status": "covered",
+      "tests": {"internal/catalogue/catalogue_test.go": ["TestEmbeddedCatalogueMatchesSource"], "internal/catalogue/native_test.go": ["TestNativeBundleOverridesAreExplicitAndSharedBytesUnchanged"], "internal/scaffolding/workspace_init_test.go": ["TestNativeWorkspaceInventoryStateAndGuidance"], "internal/cli/native_source_test.go": ["TestNativeSourceBuildAndGenerationDoNotNeedPythonCatalogue"]},
+      "assertions": "Complete native sources in templates/ embed directly with exact inventory/bytes and hidden assets; nine intentional differences retain reference comparisons. An isolated offline copy of only cmd/internal/templates and module manifests builds without src, .wsup, ZIP or overlays; its binary generates, inspects, updates and creates children with empty PATH. Generated native workspace has only state in .wsup and no copied runtime/catalogue. External-binary/source-layout changes are approved; separate Python reference retention is not native runtime ownership or completed reference retirement.",
+      "remaining": ""
     },
     {
       "python": "test_layout.py:LayoutTest.test_clean_legacy_migration_and_second_generation",

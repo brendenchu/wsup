@@ -154,16 +154,19 @@ may differ, but help must be useful and truthful.
 Native installation/state changes and generated-runtime asset differences are
 intentional-change candidates, not silently ignored comparisons.
 
-The current live map records 64 covered original contracts and one partial;
-none are unlisted. Phase 5 acceptance now directly exercises collection content
+The current live map records all 65 original contracts covered, none partial
+or unlisted. Phase 5 acceptance now directly exercises collection content
 upgrades, existing-directory preservation, omissions/new default markers, invalid
 persisted state with no writes, all twelve legacy skill relocations, original
 source retention on injected write failures, former-default orphan/catalogue
 retirement, starter guidance locality, real Git ignore rules, and mixed Git
 ownership/onboarding through native CLI commands. Mapping entries explicitly
 identify approved external-binary/state-layout differences. The development/source
-layout remains partial until transitional template authorities are consolidated
-during cutover; native acceptance does not imply Python has been retired.
+layout is verified by an isolated offline native-only source build and empty-PATH
+generation/update checks. Complete native sources under `templates/` embed directly
+without a generated ZIP or runtime overlay; `src/templates/` serves only the
+separate Python reference. Native acceptance does not imply repository-guidance/
+check cutover is complete or Python reference tests have been retired.
 
 Phase 1's Python behavior-freeze gate is verified on macOS ARM64/Python 3.9.6.
 This is not Go parity, a native-runtime migration test, Windows descendant-cleanup

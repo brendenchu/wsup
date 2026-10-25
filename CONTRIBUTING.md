@@ -69,15 +69,19 @@ Current assertion mappings live in `testdata/python-baseline/go-coverage.json`;
 the original Python test inventory remains frozen. Run both the Python migration
 tests (reference integrity) and Go tests (actual assertions) when changing mappings.
 
-The live map currently records 64 covered original contracts, one partial, and
-none unlisted. Native acceptance includes selected scaffold content upgrades,
+The live map currently records all 65 original contracts covered, none partial
+or unlisted. Native acceptance includes selected scaffold content upgrades,
 default-home additions/omissions, full legacy rule/skill migration and injected
 write failures, exact orphan/catalogue retirement, descendant-only guidance,
 real Git ignore behavior, and mixed workspace/independent-project onboarding.
 Approved installation differences are recorded alongside assertions rather than
-claimed as byte-identical Python behavior. The development/source-layout contract
-remains partial while Python/native template variants coexist; final authority
-consolidation and Python retirement are still cutover work, not completed gates.
+claimed as byte-identical Python behavior. Native template authority is consolidated
+under `templates/`; it no longer depends on a Python catalogue snapshot or
+installation overlays. A native-only source copy builds offline from cached Go
+dependencies, without `src/` or generated `.wsup/`, and generates/updates valid
+starters with empty PATH. This closes the original source/install-separation
+contract, not the separate Phase 6 repository-guidance/check cutover or Python
+reference retirement. Historical reference tests still require Python and Git.
 
 Native `check` requires repeatable `--project`; optional repeatable `--check`
 selects named checks, and `--timeout` overrides per-check and workspace timeouts.
@@ -136,7 +140,8 @@ Go test covers this approved difference rather than weakening Python expectation
 
 The approved native installation target is a separately installed binary with
 embedded templates. Native-generated workspaces will retain state/reports, not a
-platform executable, Python runtime, or copied catalogue. Phase 5 is in progress:
+platform executable, Python runtime, or copied catalogue. Phase 5 acceptance is
+verified on macOS ARM64; repository cutover is in progress:
 `init DESTINATION` creates a workspace, and `--template project` creates a
 project. Native `update` previews and applies managed content from the invoked
 binary's embedded catalogue. Repeatable `init --collection NAME` and
@@ -165,8 +170,8 @@ Workspace output includes its empty registry, full default development homes,
 local guidance, all 12 skills, and native installation documentation. Optional
 collection homes are created only when selected explicitly. Its `.wsup/` initially contains only template state;
 reports are created by explicit checks later. Both starter kinds preserve license
-notices. Generated instructions explicitly distinguish current native behavior
-from pending Python migration operations.
+notices. Generated instructions distinguish native updates from explicit
+Python migration and document partial-failure recovery.
 
 An initialization I/O failure explicitly identifies the partial destination.
 Partial files/directories are retained for inspection, not recursively removed,
@@ -185,8 +190,9 @@ State validation rejects malformed paths/hashes, unknown schemas/fields,
 file/parent collisions, invalid selections/omissions, and symlinked state paths.
 It preserves exact input bytes for later concurrent-change checks and never
 replaces stored baseline hashes with current customized file hashes. Encoding
-native state does not silently convert Python ownership. No native migration
-or downgrade is implemented yet; preserve a reviewed pre-migration snapshot.
+native state does not silently convert Python ownership. Conversion requires
+explicit `update --migrate-native --apply`; no downgrade is implemented.
+Preserve a reviewed matched pre-migration snapshot.
 
 The native content-update planner is read-only and exposed by `wsup update`.
 It selects the embedded template/collection bundle using native state, checks
@@ -289,38 +295,37 @@ preserve template version, prior hashes/selections, and home omissions.
 Children never inherit parent selections; collection scaffolds set up no
 permissions, ignores, backups, or retention controls.
 
-`src/templates/` remains the authoritative starter catalogue. During coexistence,
-`internal/catalogue/assets.zip` is a generated, deterministic snapshot embedded
-in the Go binary. Refresh it after any starter change:
+`templates/` is the complete native starter authority, with `workspace/`,
+`project/`, and `collections/` embedded directly by `templates/embed.go`.
+Edit those sources for native starter changes, then rebuild/test:
 
 ```sh
-go generate ./internal/catalogue
-go test ./internal/catalogue/...
+go test ./internal/catalogue ./internal/scaffolding ./internal/cli
 ```
 
-Generation includes hidden files, excludes Python caches, rejects symlinks, and
-preserves exact asset bytes. Tests compare the complete embedded inventory to
-source; normal builds/tests never silently regenerate it. This archive is not
-another editable catalogue.
+Embedding uses `all:` for hidden assets. Tests compare the complete inventory
+and exact bytes, reject symlinks/Python assets, and verify hidden files and
+license notices. There is no generated catalogue ZIP, refresh command, runtime
+overlay, or build-time dependency on `src/templates/`.
 
-Native-only installation variants live in `internal/catalogue/native/` and are
-embedded directly. They replace exactly nine existing surfaces: workspace/project
-READMEs, workspace docs index/model, and the five skills that contain Python CLI
-or catalogue instructions. Shared rules and the remaining skills keep exact
-canonical bytes. Skill discovery metadata remains identical; only procedures
-adapt to native installation. Tests pin the override inventory and reject stale
-Python invocation/catalogue instructions in native output. Do not edit Python
-bundles or root skills to advertise unsupported native behavior during coexistence.
-These explicit temporary variants avoid modifying the frozen operational starter
-or blindly replacing command text at runtime.
+The separate `src/templates/` catalogue remains exclusively for the operational
+Python reference during cutover. Tests pin the nine intentional native differences
+against it: workspace/project READMEs, workspace docs index/model, and five
+command-bearing skills. Native skill discovery metadata and remaining shared
+assets retain exact reference bytes. Native output rejects stale Python WSUP
+commands/catalogue instructions. These comparisons are migration evidence,
+not a mechanism for composing native starters or overriding their sources.
 
-At cutover, consolidate native variants, move the authoritative templates once,
-and retire the transitional archive/generator. Do not move the Python runtime
-or tests while they remain the reference implementation.
+Template consolidation is complete; final development-guidance/check cutover and
+Python reference retirement remain. Do not remove the reference runtime/tests
+before their remaining acceptance/replacement gates are satisfied.
 
 ## Making a change
 
-- Edit authoritative implementation and templates in `src/`, not generated
+- For native changes, edit `cmd/`, `internal/`, and `templates/`; Go builds embed
+  starter edits directly. Do not edit generated `.wsup/` output or migrate this
+  development checkout as a side effect of implementation.
+- For Python reference changes, edit implementation and templates in `src/`, not generated
   `.wsup/` output. Preview `python3 -B src/wsup.py update` to refresh the local
   installation; preserve source-specific docs with explicit `--keep` decisions.
 - For CLI documentation, compare `--help` and the implementation with the

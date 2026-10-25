@@ -9,11 +9,8 @@ import (
 )
 
 func TestEmbeddedCatalogueMatchesSource(t *testing.T) {
-	embedded, err := Open()
-	if err != nil {
-		t.Fatal(err)
-	}
-	source := os.DirFS("../../src/templates")
+	embedded := Open()
+	source := os.DirFS("../../templates")
 	inventory := func(tree fs.FS) map[string][]byte {
 		t.Helper()
 		files := map[string][]byte{}
@@ -21,14 +18,17 @@ func TestEmbeddedCatalogueMatchesSource(t *testing.T) {
 			if err != nil {
 				return err
 			}
+			if entry.Type()&fs.ModeSymlink != 0 {
+				t.Fatalf("template symlink is not allowed: %s", name)
+			}
 			if entry.IsDir() {
-				if entry.Name() == "__pycache__" {
-					return fs.SkipDir
-				}
 				return nil
 			}
-			if strings.HasSuffix(name, ".pyc") {
+			if name == "embed.go" {
 				return nil
+			}
+			if !entry.Type().IsRegular() || strings.HasSuffix(name, ".pyc") || strings.HasSuffix(name, ".py") {
+				t.Fatalf("native catalogue requires regular non-Python assets: %s", name)
 			}
 			body, err := fs.ReadFile(tree, name)
 			if err != nil {
@@ -44,11 +44,11 @@ func TestEmbeddedCatalogueMatchesSource(t *testing.T) {
 	}
 	want, got := inventory(source), inventory(embedded)
 	if len(want) != len(got) {
-		t.Fatalf("embedded %d files, source %d; run go generate ./internal/catalogue", len(got), len(want))
+		t.Fatalf("embedded %d files, source %d", len(got), len(want))
 	}
 	for name, body := range want {
 		if actual, exists := got[name]; !exists || !bytes.Equal(actual, body) {
-			t.Errorf("embedded asset differs: %s; run go generate ./internal/catalogue", name)
+			t.Errorf("embedded asset differs: %s", name)
 		}
 	}
 	for _, name := range []string{

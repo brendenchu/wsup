@@ -142,10 +142,7 @@ func TestSymlinkScanRootButNotDescendant(t *testing.T) {
 
 func TestBundledSharedSkillsAndLegacyCoexistence(t *testing.T) {
 	root := t.TempDir()
-	assets, err := catalogue.Open()
-	if err != nil {
-		t.Fatal(err)
-	}
+	assets := catalogue.Open()
 	starter, err := fs.Sub(assets, "workspace")
 	if err != nil {
 		t.Fatal(err)
