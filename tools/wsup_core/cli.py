@@ -32,6 +32,8 @@ def parser():
     init.add_argument("--template", choices=("workspace", "project"), default="workspace")
     upgrade = commands.add_parser("update")
     upgrade.add_argument("--apply", action="store_true")
+    upgrade.add_argument("--keep", action="append", default=[], metavar="PATH",
+                         help="Explicitly preserve an existing same-path customization; repeat per file")
     return p
 
 def check(root, projects, args, config, sources):
@@ -78,7 +80,7 @@ def main(argv=None):
             print(f"Created {initialise(args.destination, args.template)}")
             return 0
         if args.action == "update":
-            result = update(root, args.apply)
+            result = update(root, args.apply, args.keep)
             print(json.dumps(result, indent=2))
             return int(bool(result["conflicts"]))
         if args.action == "guidance" and not args.project:

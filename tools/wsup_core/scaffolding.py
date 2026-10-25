@@ -120,7 +120,8 @@ def update(root, apply=False, keep=()):
         raise ValueError("Unsupported template state")
     files = bundle(state["template"])
     old = state["files"]
-    actions, conflicts = [], []
+    actions, conflicts, observed = [], [], {}
+    kept = set(keep)
 
     def target_for(name):
         target = relative_target(root, name)
@@ -130,50 +131,101 @@ def update(root, apply=False, keep=()):
             raise ValueError(f"Template parent is not a directory: {name}")
         return target
 
-    observed, legacy_names, relocated = {}, set(), set()
-    legacy_trees = {}
-    if state["template"] == "workspace":
-        for prefix in ("", "tools/wsup_templates/workspace/"):
-            legacy_prefix = prefix + ".ai/skills/"
-            directory = target_for(legacy_prefix)
-            tree = read_tree(directory) if directory.exists() else {}
-            legacy_trees[legacy_prefix] = tree
-            names = {name for name in old if name.startswith(legacy_prefix)}
-            names.update(legacy_prefix + name for name in tree)
-            legacy_names.update(names)
-            for name in sorted(names):
-                destination = prefix + ".agents/skills/" + name[len(legacy_prefix):]
-                source = target_for(name)
-                target = target_for(destination)
-                current = digest(source.read_bytes()) if source.is_file() else None
-                if name not in old or current is None or current != old[name] or destination not in files:
-                    conflicts.append(name)
-                elif destination in old or target.exists():
-                    conflicts.append(destination)
-                else:
-                    observed[name], observed[destination] = current, None
-                    relocated.add(destination)
-                    actions.append({"path": destination, "action": "relocate", "from": name})
-
-    for name in sorted((set(files) | set(old)) - legacy_names - relocated):
+    def observe(name):
         target = target_for(name)
         if target.exists() and not target.is_file():
             conflicts.append(name)
-            continue
+            return None
         current = digest(target.read_bytes()) if target.is_file() else None
         observed[name] = current
-        desired = digest(files[name]) if name in files else None
+        return current
+
+    target_for(STATE)
+    for name in kept:
+        target_for(name)
+        if (name not in old or
+                (migrated_name(name) != name and name not in OPTIONAL_SCAFFOLDS) or
+                not (root / name).is_file()):
+            raise ValueError("--keep requires an existing same-path managed file or optional scaffold: " + name)
+
+    # Snapshot only retired/moved tool trees, never independent projects under tools/.
+    legacy_trees = {}
+    for prefix in (".ai/rules/", ".ai/skills/",
+                   ".wsup/templates/workspace/.ai/skills/",
+                   ".wsup/templates/workspace/.ai/rules/",
+                   ".wsup/templates/project/.ai/rules/", "tools/wsup_core/",
+                   "tools/wsup_templates/", "templates/project/"):
+        directory = target_for(prefix)
+        tree = read_tree(directory) if directory.exists() else {}
+        legacy_trees[prefix] = tree
+        for relative in tree:
+            name = prefix + relative
+            if name not in old:
+                conflicts.append(name)
+
+    handled = set()
+    destinations = set()
+    for name in sorted(old):
+        destination = migrated_name(name)
+        if destination == name:
+            continue
+        handled.add(name)
+        current = observe(name)
+        if name in kept:
+            actions.append({"path": name, "action": "keep-customization"})
+            continue
+        if current is None or current != old[name]:
+            conflicts.append(name)
+            continue
+        if destination is None:
+            actions.append({"path": name, "action": "retire"})
+        elif destination not in files:
+            conflicts.append(name)
+        elif destination in destinations or destination in old or target_for(destination).exists():
+            conflicts.append(destination)
+        else:
+            observe(destination)
+            destinations.add(destination)
+            actions.append({"path": destination, "action": "relocate", "from": name})
+
+    for name in sorted((set(files) | set(old)) - handled - destinations):
+        current = observe(name)
         if name == "workspace.json":
-            # Registry belongs to the user once generated, even if still unchanged.
             continue
-        if current == desired:
-            continue
-        if name not in files:
+        if name in kept:
+            actions.append({"path": name, "action": "keep-customization"})
+        elif name not in files:
             actions.append({"path": name, "action": "retain-orphan"})
+        elif current == digest(files[name]):
+            continue
         elif current == old.get(name):
             actions.append({"path": name, "action": "write"})
         else:
             conflicts.append(name)
+
+    # Reports are evidence, not templates: relocate exact bytes without rewriting provenance.
+    report_prefix = ".work/quality/"
+    reports_dir = target_for(report_prefix)
+    reports = read_tree(reports_dir) if reports_dir.exists() else {}
+    for relative in reports:
+        name = report_prefix + relative
+        destination = ".wsup/reports/" + relative
+        observe(name)
+        observe(destination)
+        if target_for(destination).exists():
+            conflicts.append(destination)
+        else:
+            actions.append({"path": destination, "action": "move-report", "from": name})
+
+    # Old explicit report settings need an owner-reviewed change, not a silent fallback.
+    for filename in ("wsup.json", "wsup.local.json"):
+        path = target_for(filename)
+        if path.is_file():
+            observe(filename)
+            settings = read_json(path).get("settings", {})
+            if isinstance(settings, dict) and str(settings.get("report_dir", "")).startswith(".work"):
+                conflicts.append(filename)
+
     result = {"from_version": state.get("template_version"), "to_version": VERSION,
               "actions": sorted(actions, key=lambda x: x["path"]), "conflicts": sorted(set(conflicts)), "applied": False}
     if apply:
@@ -185,7 +237,9 @@ def update(root, apply=False, keep=()):
         for prefix, tree in legacy_trees.items():
             directory = target_for(prefix)
             if (read_tree(directory) if directory.exists() else {}) != tree:
-                raise ValueError("Legacy skills changed during update planning")
+                raise ValueError("Legacy files changed during update planning")
+        if (read_tree(reports_dir) if reports_dir.exists() else {}) != reports:
+            raise ValueError("Reports changed during update planning")
         for name, expected in observed.items():
             target = target_for(name)
             if target.exists() and not target.is_file():
@@ -196,16 +250,29 @@ def update(root, apply=False, keep=()):
         for item in actions:
             if item["action"] in ("write", "relocate"):
                 atomic_write(root / item["path"], files[item["path"]])
+            elif item["action"] == "move-report":
+                atomic_write(root / item["path"], reports[item["from"][len(report_prefix):]])
         for item in actions:
-            if item["action"] == "relocate":
-                source = target_for(item["from"])
-                if not source.is_file() or digest(source.read_bytes()) != observed[item["from"]]:
-                    raise ValueError("Legacy skill changed during migration; new files may already be written")
+            if item["action"] in ("relocate", "retire", "move-report"):
+                name = item.get("from", item["path"])
+                source = target_for(name)
+                if not source.is_file() or digest(source.read_bytes()) != observed[name]:
+                    raise ValueError("Source changed during migration; new files may already be written")
                 source.unlink()
+        # Only remove empty ancestors of exact sources removed above.
+        for item in actions:
+            if item["action"] not in ("relocate", "retire", "move-report"):
+                continue
+            directory = (root / item.get("from", item["path"])).parent
+            while directory != root and directory.is_dir() and not any(directory.iterdir()):
+                directory.rmdir()
+                directory = directory.parent
         tracked = {name: body for name, body in files.items() if name != "workspace.json"}
         next_state = json.loads(state_bytes(state["template"], tracked))
         if "workspace.json" in old:
             next_state["files"]["workspace.json"] = old["workspace.json"]
+        for name in kept & set(files):
+            next_state["files"][name] = old[name]
         atomic_write(state_path, (json.dumps(next_state, indent=2) + "\n").encode())
         result["applied"] = True
     return result
