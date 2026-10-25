@@ -118,6 +118,12 @@ authorize a version bump, tag, installation, signing, or publication.
 
 ## Manual release checklist
 
+Enable repository release immutability before the next publication. It applies
+to future releases, not retroactively to v0.2.0. Prepare the release as a draft
+and finish asset/checksum verification before publishing: publication locks the
+release assets and associated tag. Correct a published immutable release with
+a new version; do not rely on disabling the setting to unlock it.
+
 1. Review the target commit and complete diff. Preserve unrelated work and
    resolve release-blocking issues. Use a clean checkout for release validation.
 2. Choose the version using the policy above. Update native `Version` and finalize the
@@ -171,8 +177,11 @@ authorize a version bump, tag, installation, signing, or publication.
    `-local` suffix. Include the binary, full notices, native binary guide, and a
    build record identifying the tag, commit, toolchain and build metadata.
    Repeat extracted-binary verification and generate `SHA256SUMS` for that exact
-   archive. With publication authorization, upload both assets and user-facing
-   release notes to the GitHub release for that tag.
+   archive. With publication authorization, create a draft GitHub release for
+   that tag, upload both assets and user-facing release notes, and verify the
+   complete draft inventory against the validated local files. Publish only
+   after that verification; do not publish an empty release and attach assets
+   afterward. Publication and the next version remain explicit maintainer actions.
 10. Download the published archive and manifest into a fresh directory. Verify
     their hashes and byte identity against the validated local assets. Confirm
     the release tag resolves to the tested commit and the release is not a
