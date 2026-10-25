@@ -61,55 +61,34 @@ The [native binary guide](native-install.md) covers extraction, explicit-path
 use, owner-selected installation, replacement, uninstall, and recovery. It is
 also the archive's self-contained `README.md`. This procedure builds a local
 macOS ARM64 candidate, not a release, and leaves product `Version` unchanged.
-Use Go 1.27.3 and cached dependencies. Packaging also uses POSIX shell tools,
-`tar`, `gzip`, and `shasum`; these are not application runtime requirements.
+Use Go 1.27.3 and cached dependencies. Packaging also requires Bash, Git, POSIX
+shell tools, `tar`, `gzip`, and `shasum`; these are not application runtime
+requirements. The command refuses hosts other than macOS ARM64 and a Go version
+different from `go.mod`. It uses offline dependencies and never installs tools.
 
 Run from the source root. The fresh temporary output directory avoids replacing
 owner files and stays outside the tracked tree:
 
 ```sh
-set -eu
-output=$(mktemp -d "${TMPDIR:-/tmp}/wsup-package.XXXXXX")
-version=$(go run ./cmd/wsup --version)
-name="wsup_${version}-local_darwin_arm64"
-package="$output/$name"
-mkdir "$package"
-mkdir "$package/licenses"
-CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local \
-  go build -trimpath -buildvcs=false -o "$package/wsup" ./cmd/wsup
-cp LICENSE "$package/LICENSE"
-cp docs/native-install.md "$package/README.md"
-goroot=$(go env GOROOT)
-cp "$goroot/LICENSE" "$package/licenses/go-LICENSE"
-cp "$goroot/PATENTS" "$package/licenses/go-PATENTS"
-for component in crypto net sys text; do
-  cp "$goroot/src/vendor/golang.org/x/$component/LICENSE" \
-    "$package/licenses/go-x-$component-LICENSE"
-  cp "$goroot/src/vendor/golang.org/x/$component/PATENTS" \
-    "$package/licenses/go-x-$component-PATENTS"
-done
-cobra=$(go list -m -f '{{.Dir}}' github.com/spf13/cobra)
-pflag=$(go list -m -f '{{.Dir}}' github.com/spf13/pflag)
-mousetrap=$(go list -m -f '{{.Dir}}' github.com/inconshreveable/mousetrap)
-cp "$cobra/LICENSE.txt" "$package/licenses/cobra-LICENSE"
-cp "$pflag/LICENSE" "$package/licenses/pflag-LICENSE"
-cp "$mousetrap/LICENSE" "$package/licenses/mousetrap-LICENSE"
-{
-  printf 'Local candidate, not a published release\nSource: '
-  git rev-parse HEAD
-  printf '\nWorking-tree status (empty means clean):\n'
-  git status --porcelain
-  printf '\nToolchain:\n'
-  go version
-  printf '\nBinary build metadata:\n'
-  go version -m "$package/wsup"
-} > "$package/BUILD.txt"
-chmod 755 "$package/wsup"
-tar -czf "$output/$name.tar.gz" -C "$output" "$name"
-(cd "$output" && shasum -a 256 "$name.tar.gz" > SHA256SUMS)
-(cd "$output" && shasum -a 256 -c SHA256SUMS)
-printf 'Local candidate output: %s\n' "$output"
+mise exec go@1.27.3 -- bash scripts/package.sh
 ```
+
+If the pinned Go toolchain is already on PATH, `bash scripts/package.sh` is
+sufficient. The script runs the full race suite, vet, registry validation and
+guidance checks, compares two release-profile binary builds, packages full
+notices, verifies checksums and extraction, and exercises the extracted binary
+with empty PATH. Smoke coverage includes generation, guidance, collections,
+updates, relocation, and child workspace/project generation.
+
+The printed output directory contains the package, archive, and `SHA256SUMS`.
+Successful runs remove their disposable verification fixtures; failures retain
+staging for inspection and exit nonzero. The script accepts no arguments,
+does not bump versions, and never tags, pushes, publishes, installs, signs, or
+changes PATH. It can package uncommitted work, recording Git revision/status in
+`BUILD.txt`; such output is a local candidate, not exact-commit release evidence.
+It rejects observed revision/status changes during the run, but does not isolate
+concurrent writes or detect every edit to already-dirty files. Keep source
+unchanged while packaging and use an isolated clean checkout for release work.
 
 `-trimpath` removes source paths and `-buildvcs=false` avoids implicit VCS metadata;
 the separate build record supplies provenance. Cgo is disabled. Native acceptance
@@ -199,8 +178,9 @@ authorize a version bump, tag, installation, signing, or publication.
     the release tag resolves to the tested commit and the release is not a
     draft. Do not declare download-back verification complete if it was blocked.
 
-There is no release automation, package-manager publication, or remote self-update
-service; GitHub binary release assets are published manually. Keep development
+Local candidate verification and packaging are automated; there is no automatic
+release publication, package-manager publication, or remote self-update service.
+GitHub binary release assets are published manually. Keep development
 notes and release-preparation drafts under ignored
 `workbench/.local/`; CLI check reports are under ignored `.wsup/reports/`. Publish
 user-facing changes and material limitations in the changelog or release notes.

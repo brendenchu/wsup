@@ -147,8 +147,10 @@ disabled. It excludes only that enclosing self-test to avoid recursion; the
 normal registry run covers it and runs race detection separately. Standalone
 generation, inspection, collection additions, updates, and child generation
 also run with empty PATH.
+Build and verify a local candidate with
+`mise exec go@1.27.3 -- bash scripts/package.sh` on macOS ARM64.
 See [local candidate archives](docs/releases.md#local-candidate-archive) for
-packaging, notices, checksum verification, and the separate release gates.
+prerequisites, notices, checksum verification, output, and separate release gates.
 
 For starter changes, inspect a disposable workspace/project outside the checkout,
 relocate output, and verify both safe changes and owner-byte preservation.

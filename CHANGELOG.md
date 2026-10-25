@@ -6,7 +6,11 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ## Unreleased
 
-No changes yet.
+### Added
+
+- One-command local macOS ARM64 candidate verification and packaging with the
+  pinned Go toolchain, full notices, checksums, repeated binary builds, and
+  extracted-binary smoke checks. Tagging and publication remain explicit.
 
 ## 0.2.0 (2026-10-25)
 
