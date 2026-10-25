@@ -1,16 +1,20 @@
-# Product rules
+# Rule index
 
-Each workspace knows only itself and its descendants. Read guidance from this
-repository only; the ownership rule defines the self-contained workspace boundary.
+Each workspace knows only itself and its descendants.
+Paths and instruction discovery are scoped to this repository.
+Read every row relevant to the task; a path match alone may miss a task rule.
 
-Read the relevant portable rule when changing this product:
+| Trigger / paths | Rule |
+| --- | --- |
+| Any implementation, configuration or Git operation | [changes.md](changes.md) |
+| Workspace scope, adding projects, dependencies or changing ownership | [boundaries.md](boundaries.md) |
+| Tests, checks, formatting or static analysis | [verification.md](verification.md) |
+| Research, captures, findings or generated evidence | [evidence.md](evidence.md) |
+| Public APIs, CLI/config contracts, schemas or migrations | [interfaces.md](interfaces.md) |
+| Documentation, instructions or skills | [documentation.md](documentation.md) |
+| `journal/**` or a work recap | [journaling.md](journaling.md) |
 
-- Implementation: [changes](../../templates/workspace/guidance/rules/changes.md).
-- Ownership: [boundaries](../../templates/workspace/guidance/rules/boundaries.md).
-- Checks and tests: [verification](../../templates/workspace/guidance/rules/verification.md).
-- CLI/registry/config contracts: [interfaces](../../templates/workspace/guidance/rules/interfaces.md).
-- Guidance and documentation: [documentation](../../templates/workspace/guidance/rules/documentation.md).
-- Evidence: [evidence](../../templates/workspace/guidance/rules/evidence.md).
+Project-specific language and framework rules belong in that project's own index.
 
 Use the task procedure that matches the request:
 

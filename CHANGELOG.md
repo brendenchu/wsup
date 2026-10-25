@@ -8,14 +8,18 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- Consolidate human working material under workbench: ignored `workbench/.local/`
+  holds local notes and handoffs, created on demand. Retain legacy `.work/`
+  ignore rules without treating ignored content as disposable or confidential.
 - Align the development checkout and both starter Git-ignore baselines, including
   macOS metadata, while retaining repository-local ownership exclusions.
 - Define the workspace boundary explicitly: each workspace knows only itself
   and its descendants. Keep documentation, guidance, configuration, and
   onboarding self-contained with no upward workspace relationship or inheritance.
-- Deliberate pre-1.0 installation layout: generated commands use `.wsup/wsup.py`,
+- Deliberate pre-1.0 installation layout: all workspaces use `.wsup/wsup.py`,
   with runtime and one authoritative template catalogue under `.wsup/`.
-  The source checkout retains its visible `tools/` and `templates/` layout.
+  The source checkout uses the same layout with authoritative sources under
+  `.wsup/`, without a duplicate runtime or template catalogue.
 - Move shared rules to visible `guidance/rules/`, retaining `AI.md`, the
   `AGENTS.md` pointer, and discoverable `.agents/skills/`.
 - Store verification reports under ignored `.wsup/reports/`; enforce report

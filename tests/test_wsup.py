@@ -10,7 +10,7 @@ import tempfile
 import unittest
 
 SOURCE = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("wsup", SOURCE / "tools/wsup.py")
+spec = importlib.util.spec_from_file_location("wsup", SOURCE / ".wsup/wsup.py")
 wsup = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(wsup)
 
@@ -69,14 +69,26 @@ class WsupTest(unittest.TestCase):
         self.assertFalse((self.root / "app/unexpected").exists())
     def test_ai_kit_references_and_skill_structure(self):
         import re
-        kit = SOURCE / "templates/workspace"
-        for template in (kit, SOURCE / "templates/project"):
+        kit = SOURCE / ".wsup/templates/workspace"
+        for template in (kit, SOURCE / ".wsup/templates/project"):
             self.assertEqual(
                 (SOURCE / "LICENSE").read_bytes(),
                 (template / "WSUP-LICENSE").read_bytes())
         self.assertEqual(
             (SOURCE / "docs/workspace-model.md").read_bytes(),
             (kit / "docs/workspace-model.md").read_bytes())
+        rules = SOURCE / "guidance/rules"
+        bundled_rules = kit / "guidance/rules"
+        self.assertEqual(
+            {path.name for path in rules.glob("*.md")},
+            {path.name for path in bundled_rules.glob("*.md")})
+        for rule in rules.glob("*.md"):
+            self.assertEqual(rule.read_bytes(), (bundled_rules / rule.name).read_bytes(),
+                             rule.name)
+        self.assertNotIn(".wsup/templates/", (rules / "index.md").read_text())
+        self.assertIn(
+            "routes to local rules in `guidance/rules/`",
+            (SOURCE / "AI.md").read_text())
         for guide in kit.rglob("*.md"):
             for target in re.findall(r"\]\(([^)]+)\)", guide.read_text()):
                 linked = (guide.parent / target.split("#", 1)[0]).resolve()
@@ -115,13 +127,14 @@ class WsupTest(unittest.TestCase):
                 self.assertTrue(linked.is_file(), target)
 
     def test_gitignore_baselines_match_and_preserve_trackable_content(self):
-        baseline = (SOURCE / "templates/project/.gitignore").read_text()
-        for path in (SOURCE / ".gitignore", SOURCE / "templates/workspace/.gitignore"):
+        baseline = (SOURCE / ".wsup/templates/project/.gitignore").read_text()
+        for path in (SOURCE / ".gitignore", SOURCE / ".wsup/templates/workspace/.gitignore"):
             self.assertEqual(baseline, path.read_text().split("\n\n", 1)[0] + "\n")
         self.assertEqual(
             (SOURCE / ".gitignore").read_bytes(),
-            (SOURCE / "templates/workspace/.gitignore").read_bytes())
+            (SOURCE / ".wsup/templates/workspace/.gitignore").read_bytes())
         ignored = [
+            "workbench/.local/note", "apps/example/workbench/.local/note",
             ".work/note", "apps/example/.work/note", ".wsup/reports/check.json",
             "wsup.local.json", ".env", ".env.local", "apps/example/.env",
             "__pycache__/module.pyc", "tools/__pycache__/module.pyc",
@@ -148,9 +161,9 @@ class WsupTest(unittest.TestCase):
     def test_workspace_guidance_is_self_contained_and_descendant_only(self):
         import re
         contract = "Each workspace knows only itself and its descendants."
-        for base in (SOURCE, SOURCE / "templates/workspace", SOURCE / "templates/project"):
+        for base in (SOURCE, SOURCE / ".wsup/templates/workspace", SOURCE / ".wsup/templates/project"):
             self.assertIn(contract, (base / "AI.md").read_text())
-        for base in (SOURCE / "templates/workspace", SOURCE / "templates/project"):
+        for base in (SOURCE / ".wsup/templates/workspace", SOURCE / ".wsup/templates/project"):
             self.assertIn(contract, (base / "guidance/rules/boundaries.md").read_text())
             for guide in base.rglob("*.md"):
                 content = guide.read_text()
@@ -184,10 +197,10 @@ class WsupTest(unittest.TestCase):
         for relative in ("apps", "packages", "tools", "infrastructure", "workbench"):
             self.assertTrue((destination / relative).is_dir(), relative)
         self.assertEqual(
-            (SOURCE / "tools/wsup.py").read_bytes(),
+            (SOURCE / ".wsup/wsup.py").read_bytes(),
             (destination / ".wsup/wsup.py").read_bytes())
-        for source in (SOURCE / "tools/wsup_core").rglob("*.py"):
-            bundled = destination / ".wsup/wsup_core" / source.relative_to(SOURCE / "tools/wsup_core")
+        for source in (SOURCE / ".wsup/wsup_core").rglob("*.py"):
+            bundled = destination / ".wsup/wsup_core" / source.relative_to(SOURCE / ".wsup/wsup_core")
             self.assertEqual(source.read_bytes(), bundled.read_bytes())
         for source in (SOURCE / ".agents/skills").rglob("SKILL.md"):
             for bundled_root in (destination / ".agents/skills", destination / ".wsup/templates/workspace/.agents/skills"):

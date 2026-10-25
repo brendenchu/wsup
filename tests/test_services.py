@@ -13,7 +13,7 @@ import unittest
 from unittest.mock import patch
 
 SOURCE = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(SOURCE / "tools"))
+sys.path.insert(0, str(SOURCE / ".wsup"))
 from wsup_core import cli, configuration, execution, guidance, scaffolding
 
 class ServicesTest(unittest.TestCase):
@@ -102,7 +102,7 @@ class ServicesTest(unittest.TestCase):
     @unittest.skipUnless(os.name == "posix", "POSIX process-group signal test")
     def test_actual_interrupt_terminates_check_and_reports(self):
         self.checks({"sleep": [sys.executable, "-c", "import time;open('started','w').close();time.sleep(30)"]})
-        process = subprocess.Popen([sys.executable, "-B", str(SOURCE / "tools/wsup.py"), "--root", str(self.root), "check", "--project", "app"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        process = subprocess.Popen([sys.executable, "-B", str(SOURCE / ".wsup/wsup.py"), "--root", str(self.root), "check", "--project", "app"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.addCleanup(lambda: process.kill() if process.poll() is None else None)
         deadline = time.monotonic() + 5
         while not (self.root / "app/started").exists() and process.poll() is None and time.monotonic() < deadline:
@@ -289,7 +289,7 @@ class ServicesTest(unittest.TestCase):
         target = self.legacy_workspace()
         state_path = target / scaffolding.STATE
         before = state_path.read_bytes()
-        command = [sys.executable, "-B", str(SOURCE / "tools/wsup.py"),
+        command = [sys.executable, "-B", str(SOURCE / ".wsup/wsup.py"),
                    "--root", str(target), "update"]
         preview = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(0, preview.returncode, preview.stderr)

@@ -24,8 +24,9 @@ and setup.
 - Keep each workspace self-contained, describing only itself and its descendants.
   Never write upward workspace relationships into descendant documentation or
   make local guidance depend on context outside its root.
-- Root `.agents/skills/` is canonical. Keep the corresponding copies under
-  `templates/workspace/.agents/skills/` synchronized.
+- Root `guidance/rules/` and `.agents/skills/` are canonical. Keep their
+  corresponding copies under `.wsup/templates/workspace/` synchronized.
+  Development guidance routes to local rules, not the distribution catalogue.
 - Keep durable documentation with its owning project, use one canonical copy,
   and link rather than duplicate. Visible `workbench/` drafts may be tracked
   locally after review; do not commit them automatically. Keep restricted
@@ -41,9 +42,9 @@ and setup.
 From this repository's root, run:
 
 ```sh
-python3 -B tools/wsup.py validate
-python3 -B tools/wsup.py guidance
-python3 -B tools/wsup.py check --project wsup --show-output
+python3 -B .wsup/wsup.py validate
+python3 -B .wsup/wsup.py guidance
+python3 -B .wsup/wsup.py check --project wsup --show-output
 git diff --check
 ```
 
@@ -55,7 +56,7 @@ python3 -B -m unittest discover -s tests -p 'test_services.py'
 
 The configured suite covers standalone generation and update safety. Check
 reports are local under ignored `.wsup/reports/`; keep development notes and
-disposable artifacts in ignored `.work/`. Use temporary destinations outside
+disposable artifacts in ignored `workbench/.local/`. Use temporary destinations outside
 the source tree for manual generation and upgrade exercises; never overwrite
 real user workspaces to test changes.
 
@@ -63,7 +64,7 @@ Report the interpreter, operating system, checks performed, and any skipped
 coverage. Structural skill validation is not proof of client discovery or
 invocation. See [AI guidance](docs/ai-guidance.md) for discovery and compatibility
 limits. Keep session logs, implementation plans, and disposable investigation
-material under ignored `.work/`; public documentation should describe the
+material under ignored `workbench/.local/`; public documentation should describe the
 product and its use.
 
 ## Preparing a contribution

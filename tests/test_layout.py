@@ -7,11 +7,24 @@ import unittest
 from unittest.mock import patch
 
 SOURCE = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(SOURCE / "tools"))
+sys.path.insert(0, str(SOURCE / ".wsup"))
 from wsup_core import configuration, guidance, scaffolding
 
 
 class LayoutTest(unittest.TestCase):
+    def test_development_root_uses_the_same_authoritative_installation_layout(self):
+        self.assertEqual(SOURCE / ".wsup/templates", scaffolding.catalogue())
+        self.assertTrue((SOURCE / ".wsup/wsup.py").is_file())
+        self.assertTrue((SOURCE / ".wsup/template-state.json").is_file())
+        self.assertFalse((SOURCE / "tools/wsup.py").exists())
+        self.assertFalse((SOURCE / "tools/wsup_core").exists())
+        self.assertFalse((SOURCE / "templates").exists())
+        state = json.loads((SOURCE / ".wsup/template-state.json").read_text())
+        self.assertEqual("workspace", state["template"])
+        for name in (".wsup/wsup.py", ".wsup/wsup_core/scaffolding.py",
+                     ".wsup/templates/workspace/AI.md"):
+            self.assertIn(name, state["files"])
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -144,7 +157,7 @@ class LayoutTest(unittest.TestCase):
             (SOURCE / ".agents/skills/workspace-check/SKILL.md").read_bytes(),
             (workspace / ".agents/skills/workspace-check/SKILL.md").read_bytes())
         self.assertEqual(
-            (SOURCE / "templates/project/README.md").read_bytes(),
+            (SOURCE / ".wsup/templates/project/README.md").read_bytes(),
             (destination / "README.md").read_bytes())
         result = subprocess.run(
             [sys.executable, "-B", str(root / ".wsup/wsup.py"),

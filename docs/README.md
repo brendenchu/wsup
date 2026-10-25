@@ -9,7 +9,7 @@ Maintain durable product and contributor documentation here:
 - [Releases](releases.md): versioning and manual release procedure.
 
 Keep drafts in the [development workbench](../workbench/). Session logs and
-disposable evidence belong in ignored `.work/`, not public product docs.
-The [template catalogue](../templates/) contains distributable starter content;
+disposable evidence belong in ignored `workbench/.local/`, not public product docs.
+The [template catalogue](../.wsup/templates/) contains distributable starter content;
 this directory documents the product itself. The workspace model is also
 bundled into the workspace starter and must remain synchronized.

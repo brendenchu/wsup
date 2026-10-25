@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch
 
 SOURCE = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(SOURCE / "tools"))
+sys.path.insert(0, str(SOURCE / ".wsup"))
 from wsup_core import cli, scaffolding
 
 

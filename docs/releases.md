@@ -4,7 +4,7 @@
 
 WSUP uses one version for its CLI, bundled workspace/project templates, and
 portable skills. The authoritative value is `VERSION` in
-[tools/wsup_core/__init__.py](../tools/wsup_core/__init__.py). It supplies CLI
+[.wsup/wsup_core/__init__.py](../.wsup/wsup_core/__init__.py). It supplies CLI
 `--version` output and template-version reporting.
 
 Template-state schema `version` is a separate format identifier; a product
@@ -52,10 +52,10 @@ actually verified.
 
    ```sh
    python3 --version
-   python3 -B tools/wsup.py --version
-   python3 -B tools/wsup.py validate
-   python3 -B tools/wsup.py guidance
-   python3 -B tools/wsup.py check --project wsup --show-output
+   python3 -B .wsup/wsup.py --version
+   python3 -B .wsup/wsup.py validate
+   python3 -B .wsup/wsup.py guidance
+   python3 -B .wsup/wsup.py check --project wsup --show-output
    git diff --check
    ```
 
@@ -89,7 +89,7 @@ actually verified.
 
 There is no release automation, package publication, or remote self-update
 service. Keep development notes and release-preparation drafts under ignored
-`.work/`; CLI check reports are under ignored `.wsup/reports/`. Publish
+`workbench/.local/`; CLI check reports are under ignored `.wsup/reports/`. Publish
 user-facing changes and material limitations in the changelog or release notes.
 See [AI guidance](ai-guidance.md) for compatibility limits and the
 [workspace model](workspace-model.md) for upgrade delivery.

@@ -26,9 +26,9 @@ their documentation. Directory nesting does not create policy inheritance.
 Generated workspaces retain no relationship to their generating workspace and
 must remain usable after relocation.
 
-Generated workspaces run `python3 -B .wsup/wsup.py ...` from the workspace root.
-The development checkout instead runs `tools/wsup.py`; its visible `tools/` and
-`templates/` are product source, not an installed consumer.
+Development and generated workspaces run `python3 -B .wsup/wsup.py ...`
+from their own workspace root. Runtime and the authoritative template catalogue
+live under `.wsup/` in both; there is no second implementation or catalogue.
 Commands target the current directory unless `--root PATH` is supplied.
 
 The generated installation contains:
@@ -58,6 +58,19 @@ eligible for local tracking. Review contents before staging; nothing is
 committed automatically. Keep restricted records out of documentation and Git.
 Promote approved knowledge to the owning project's maintained documentation and
 avoid competing canonical copies.
+
+## Local working material
+
+Keep shareable human-authored drafts in `workbench/` and local session notes,
+plans, handoffs, and investigation evidence in ignored `workbench/.local/`.
+Create the local directory on demand, not as starter content. Ignored does not
+mean disposable, backed up, or confidential. Preserve useful work and promote
+accepted knowledge to its maintained owner.
+
+Existing `.work/` ignore rules remain for compatibility, not as the recommended
+location. Move only workspace-owned scratch material after checking destination
+collisions and relative links; never sweep descendant projects or move historical
+WSUP reports here. Machine check reports remain in `.wsup/reports/`.
 
 ## Default layout and optional collections
 
@@ -107,8 +120,8 @@ is WSUP-owned runtime content, not a user project grouping.
 
 WSUP provides `archive`, `artifacts`, `journal`, `learning`, `private`,
 `reference`, and `research` scaffolds, each containing a README that describes
-its purpose and limitations; journal also includes an entry template. In a source checkout use
-`tools/wsup.py`; in an installed workspace use `.wsup/wsup.py`:
+its purpose and limitations; journal also includes an entry template. Use the
+same command in development and generated workspaces:
 
 ```sh
 python3 -B .wsup/wsup.py init /path/to/new-workspace --collection archive --collection artifacts
@@ -179,7 +192,8 @@ repositories side by side. Nothing under the standard grouping directories is
 ignored by default just because it is a project.
 
 The development checkout and both starters share the same Git-ignore baseline:
-local `.work/` directories, `.wsup/reports/`, `wsup.local.json`, `.env` and
+local `workbench/.local/` directories (plus legacy `.work/` exclusions),
+`.wsup/reports/`, `wsup.local.json`, `.env` and
 `.env.*` files (except `.env.example`), Python `__pycache__/`, and `.DS_Store`.
 Keep that baseline aligned; add project, toolchain, or collection exclusions
 locally after it. Every repository carries its own rules rather than relying on
@@ -278,8 +292,8 @@ unrecognized files are retained. The workspace registry remains user-owned.
 ### Pre-1.0 layout migration
 
 This is a deliberate layout break without old wrappers or duplicate catalogues.
-A trusted newer CLI at `tools/wsup.py` (or installed at `.wsup/wsup.py`)
-relocates manifest-owned `tools/wsup.py`, runtime modules, embedded templates,
+A trusted newer CLI at `.wsup/wsup.py` (or installed at `.wsup/wsup.py`)
+relocates manifest-owned `.wsup/wsup.py`, runtime modules, embedded templates,
 `.ai/rules/`, and legacy `.ai/skills/`. Redundant root project templates retire.
 Files that establish new default homes are added, and existing managed home
 files are updated in place only when unchanged. Other orphaned files and
@@ -308,8 +322,8 @@ Back up the workspace, including ignored evidence and customizations, then
 run a trusted newer source checkout against the old root:
 
 ```sh
-python3 -B /path/to/new-wsup/tools/wsup.py --root /path/to/existing-workspace update
-python3 -B /path/to/new-wsup/tools/wsup.py --root /path/to/existing-workspace update --apply
+python3 -B /path/to/new-wsup/.wsup/wsup.py --root /path/to/existing-workspace update
+python3 -B /path/to/new-wsup/.wsup/wsup.py --root /path/to/existing-workspace update --apply
 ```
 
 From a newer generated installation use `/path/to/new/.wsup/wsup.py` instead.

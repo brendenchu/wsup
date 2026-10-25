@@ -1,13 +1,10 @@
 # WSUP development tools
 
-This source checkout uses this directory for the product implementation:
+This is the baseline home for separately owned developer-tool projects.
+There are currently none in this checkout.
 
-- [wsup.py](wsup.py) is the development CLI entry point.
-- [wsup_core](wsup_core/) contains the standard-library Python services.
-
-Run `python3 -B tools/wsup.py ...` from the repository root. Generated
-workspaces install this runtime under `.wsup/`; their visible `tools/` is a
-home for developer-tool projects, not a second WSUP implementation.
-
-Keep tests in [tests](../tests/) and distributable starters in
-[templates](../templates/). Do not copy an installed runtime into this directory.
+WSUP's authoritative implementation lives in
+[.wsup/wsup_core](../.wsup/wsup_core/), its entry point is
+[.wsup/wsup.py](../.wsup/wsup.py), and its catalogue lives in
+[.wsup/templates](../.wsup/templates/), just as in generated workspaces.
+Do not create a duplicate runtime here. Keep regression tests in [tests](../tests/).
