@@ -86,6 +86,11 @@ func TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles(t *test
 }
 
 func TestNativeGeneratedWorkspaceMixedGitOnboarding(t *testing.T) {
+	t.Setenv("WSUP_ONBOARDING_HELPER", "1")
+	binary, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
 	root := filepath.Join(t.TempDir(), "mixed workspace")
 	run := func(args ...string) []byte {
 		t.Helper()
@@ -172,7 +177,7 @@ func TestNativeGeneratedWorkspaceMixedGitOnboarding(t *testing.T) {
 	if !reflect.DeepEqual(paths, []string{".", "apps/owned", "apps/independent"}) {
 		t.Fatalf("editor folders: %v", paths)
 	}
-	for _, name := range []string{".agents/skills", "tools/wsup.py", ".wsup/wsup.py", "workspace.json"} {
+	for _, name := range []string{".agents/skills", ".wsup/templates", "workspace.json"} {
 		if _, err := os.Lstat(filepath.Join(independent, filepath.FromSlash(name))); !os.IsNotExist(err) {
 			t.Fatalf("project inherited workspace runtime/guidance: %s", name)
 		}
@@ -191,5 +196,23 @@ func TestNativeGeneratedWorkspaceMixedGitOnboarding(t *testing.T) {
 	}
 	if strings.Contains(fixtureGit(t, root, "ls-files", "--stage"), "160000 ") {
 		t.Fatal("independent repository staged as a submodule")
+	}
+}
+
+func TestOnboardingTool(t *testing.T) {
+	if os.Getenv("WSUP_ONBOARDING_HELPER") != "1" {
+		return
+	}
+	expected, err := filepath.EvalSymlinks(os.Args[len(os.Args)-1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	cwd, err := os.Getwd()
+	if err != nil || cwd != expected {
+		t.Fatalf("project cwd: %q, want %q: %v", cwd, expected, err)
+	}
+	info, err := os.Stat("README.md")
+	if err != nil || !info.Mode().IsRegular() {
+		t.Fatalf("project README missing or not regular: %v", err)
 	}
 }

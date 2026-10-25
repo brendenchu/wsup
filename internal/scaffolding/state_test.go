@@ -93,7 +93,7 @@ func TestInvalidStateContracts(t *testing.T) {
 			}
 		})
 	}
-	for _, name := range []string{"", ".", "../outside", "/absolute", "a/../b", "a//b", "a\\b", "a:b", "a\x00b", StatePath, ".wsup/reports/report.json", ".wsup/wsup.py"} {
+	for _, name := range []string{"", ".", "../outside", "/absolute", "a/../b", "a//b", "a\\b", "a:b", "a\x00b", StatePath, ".wsup/reports/report.json", ".wsup/runtime"} {
 		document := stateDocument(StateVersion)
 		document["files"] = map[string]string{name: strings.Repeat("a", 64)}
 		if _, err := ParseState(encoded(t, document)); err == nil {

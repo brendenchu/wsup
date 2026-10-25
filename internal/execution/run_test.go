@@ -277,7 +277,7 @@ func TestEscapedDescendantPipeCleanupFailureIsBoundedAndExplicit(t *testing.T) {
 	}
 }
 
-func TestOutputDecodingMatchesPythonReplacement(t *testing.T) {
+func TestOutputDecodingReplacesInvalidSequences(t *testing.T) {
 	for _, tc := range []struct{ input, want string }{
 		{"\xff\xff", "\ufffd\ufffd"}, {"\xf0\x9f\x9a", "\ufffd"},
 		{"\xe2\x82x", "\ufffdx"}, {"\xed\xa0\x80", "\ufffd\ufffd\ufffd"},

@@ -34,9 +34,6 @@ func TestNativeSourceBuildAndGenerationAreSelfContained(t *testing.T) {
 			if !entry.Type().IsRegular() {
 				t.Fatalf("nonregular native build input: %s", relative)
 			}
-			if strings.HasSuffix(name, "_test.go") {
-				return nil
-			}
 			body, err := os.ReadFile(name)
 			if err != nil {
 				return err
@@ -47,9 +44,9 @@ func TestNativeSourceBuildAndGenerationAreSelfContained(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	for _, name := range []string{"src", ".wsup", "internal/catalogue/assets.zip", "internal/catalogue/native"} {
+	for _, name := range []string{".wsup", ".git"} {
 		if _, err := os.Lstat(filepath.Join(checkout, filepath.FromSlash(name))); !os.IsNotExist(err) {
-			t.Fatalf("native source build retained reference/overlay input: %s", name)
+			t.Fatalf("native source build retained workspace/repository state: %s", name)
 		}
 	}
 	binary := filepath.Join(t.TempDir(), "wsup")
@@ -58,6 +55,22 @@ func TestNativeSourceBuildAndGenerationAreSelfContained(t *testing.T) {
 	build.Env = append(os.Environ(), "GOPROXY=off", "GOSUMDB=off", "GOTOOLCHAIN=local")
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("offline native-only source build: %s %v", output, err)
+	}
+	tools := t.TempDir()
+	for _, name := range []string{"go", "git"} {
+		executable, err := exec.LookPath(name)
+		if err != nil {
+			t.Fatalf("required development tool %s: %v", name, err)
+		}
+		if err := os.Symlink(executable, filepath.Join(tools, name)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	test := exec.Command(filepath.Join(tools, "go"), "test", "-count=1", "-skip", "^TestNativeSourceBuildAndGenerationAreSelfContained$", "./...")
+	test.Dir = checkout
+	test.Env = append(os.Environ(), "PATH="+tools, "CGO_ENABLED=0", "GOPROXY=off", "GOSUMDB=off", "GOTOOLCHAIN=local")
+	if output, err := test.CombinedOutput(); err != nil {
+		t.Fatalf("isolated native suite with only Go/Git on PATH: %s %v", output, err)
 	}
 	run := func(args ...string) {
 		t.Helper()

@@ -126,7 +126,7 @@ func TestUpdateAddsUnmanagedDefaultMarkersAndKeepsOmissionsLocal(t *testing.T) {
 func TestInvalidPersistedSelectionsAndPathsBlockEveryOperation(t *testing.T) {
 	for field, values := range map[string][]any{
 		"collections":        {nil, "archive", []any{"unknown"}, []any{1}},
-		"omitted_home_files": {nil, "apps/.gitkeep", []any{"../escape"}, []any{".wsup/wsup.py"}, []any{1}},
+		"omitted_home_files": {nil, "apps/.gitkeep", []any{"../escape"}, []any{".wsup/runtime"}, []any{1}},
 		"files":              {map[string]string{"../escape": contentDigest(nil)}},
 	} {
 		for _, value := range values {

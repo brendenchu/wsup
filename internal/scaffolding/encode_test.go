@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestNativeEncodingRoundTripDoesNotMigrateLegacy(t *testing.T) {
+func TestNativeEncodingRoundTripAndUnsupportedSchemas(t *testing.T) {
 	native, err := ParseState(encoded(t, stateDocument(StateVersion)))
 	if err != nil {
 		t.Fatal(err)
@@ -23,12 +23,10 @@ func TestNativeEncodingRoundTripDoesNotMigrateLegacy(t *testing.T) {
 	if err != nil || !bytes.Equal(body, again) {
 		t.Fatal("native state serialization is not deterministic")
 	}
-	legacy, err := ParseState(encoded(t, stateDocument(1)))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := EncodeNativeState(legacy); err == nil || legacy.Version != 1 {
-		t.Fatal("serializer silently migrated legacy ownership")
+	unsupported := native
+	unsupported.Version = 1
+	if _, err := EncodeNativeState(unsupported); err == nil || unsupported.Version != 1 {
+		t.Fatal("serializer silently converted unsupported ownership")
 	}
 }
 

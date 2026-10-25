@@ -72,7 +72,7 @@ func TestCollectionsInitSelectionAndAllOptionalHomes(t *testing.T) {
 }
 
 func TestCollectionListingPreviewApplyAndIdempotence(t *testing.T) {
-	// Listing needs no workspace or state, matching Python.
+	// Listing needs no workspace or state.
 	listed, err := AddCollections(filepath.Join(t.TempDir(), "absent"), nil, false)
 	if err != nil || !reflect.DeepEqual(listed.Available, catalogue.CollectionNames()) || listed.Selected != nil {
 		t.Fatalf("list: %+v %v", listed, err)

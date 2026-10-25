@@ -172,7 +172,7 @@ func TestPlanInvalidKeepBundleAndUnsupportedStateRefuseWithoutWrites(t *testing.
 			t.Fatalf("invalid keep accepted: %s", name)
 		}
 	}
-	for _, name := range []string{"../outside", ".wsup/wsup.py", StatePath, ".wsup", "bad\xffname"} {
+	for _, name := range []string{"../outside", ".wsup/runtime", StatePath, ".wsup", "bad\xffname"} {
 		if _, err := PlanUpdate(root, "0.2.0", map[string][]byte{name: []byte("bad")}, nil); err == nil {
 			t.Fatalf("unsafe bundle accepted: %q", name)
 		}

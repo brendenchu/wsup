@@ -37,7 +37,7 @@ func TestNativeProjectMatchesEmbeddedCatalogueAndRelocates(t *testing.T) {
 	if len(files) != len(state.State.Files) {
 		t.Fatalf("inventory mismatch: %d", len(files))
 	}
-	for _, name := range []string{"workspace.json", ".wsup/wsup.py", ".wsup/templates"} {
+	for _, name := range []string{"workspace.json", ".wsup/runtime", ".wsup/templates"} {
 		if _, err := os.Lstat(filepath.Join(destination, name)); !os.IsNotExist(err) {
 			t.Fatalf("unexpected registry/runtime/catalogue: %s", name)
 		}
@@ -70,7 +70,7 @@ func TestProjectInitRefusesExistingDestinationsAndInvalidBundleBeforeWrites(t *t
 			t.Fatalf("existing destination accepted: %s", destination)
 		}
 	}
-	for _, name := range []string{"../escape", StatePath, ".wsup/wsup.py", "workspace.json"} {
+	for _, name := range []string{"../escape", StatePath, ".wsup/runtime", "workspace.json"} {
 		if _, err := initialiseProject(filepath.Join(parent, "new"), "0.1.0", map[string][]byte{name: {}}, writeManaged); err == nil {
 			t.Fatalf("invalid bundle accepted: %s", name)
 		}

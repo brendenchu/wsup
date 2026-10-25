@@ -21,15 +21,6 @@
           "go",
           "vet",
           "./..."
-        ],
-        "python-reference": [
-          "{python}",
-          "-B",
-          "-m",
-          "unittest",
-          "discover",
-          "-s",
-          "tests"
         ]
       }
     }

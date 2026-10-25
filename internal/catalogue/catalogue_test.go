@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io/fs"
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -27,8 +26,8 @@ func TestEmbeddedCatalogueMatchesSource(t *testing.T) {
 			if name == "embed.go" {
 				return nil
 			}
-			if !entry.Type().IsRegular() || strings.HasSuffix(name, ".pyc") || strings.HasSuffix(name, ".py") {
-				t.Fatalf("native catalogue requires regular non-Python assets: %s", name)
+			if !entry.Type().IsRegular() {
+				t.Fatalf("native catalogue requires regular assets: %s", name)
 			}
 			body, err := fs.ReadFile(tree, name)
 			if err != nil {

@@ -181,8 +181,8 @@ func newCommand() *cobra.Command {
 	return root
 }
 
-// argparse accepts unambiguous long-option prefixes within the active parser.
-// Resolve against this flag set only so root options cannot follow a command.
+// Resolve unambiguous long-option prefixes within this flag set only so root
+// options cannot follow a command.
 func abbreviatedFlag(flags *pflag.FlagSet, name string) pflag.NormalizedName {
 	var match string
 	count := 0
@@ -322,7 +322,7 @@ func createEditor(output io.Writer, root, name string, data registry.Registry) e
 	return err
 }
 
-// Python's managed editor files use ensure_ascii; preserve those bytes, including
+// Managed editor files use ASCII escapes; preserve those bytes, including
 // UTF-16 surrogate pairs for non-BMP characters, rather than just parsed equality.
 func writeEditorJSON(destination io.Writer, value any) error {
 	encoded, err := jsoncompat.Marshal(value, "  ")

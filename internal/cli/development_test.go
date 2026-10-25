@@ -8,7 +8,7 @@ import (
 	"github.com/brendenchu/wsup/internal/registry"
 )
 
-func TestDevelopmentRegistryUsesNativeChecksAndExplicitPythonReference(t *testing.T) {
+func TestDevelopmentRegistryUsesNativeChecks(t *testing.T) {
 	root, err := filepath.Abs("../..")
 	if err != nil {
 		t.Fatal(err)
@@ -18,17 +18,16 @@ func TestDevelopmentRegistryUsesNativeChecksAndExplicitPythonReference(t *testin
 		t.Fatal(err)
 	}
 	selected, err := data.Select([]string{"wsup"}, nil)
-	if err != nil || len(selected) != 3 {
+	if err != nil || len(selected) != 2 {
 		t.Fatalf("development checks: %+v %v", selected, err)
 	}
 	expected := map[string][]string{
-		"test":             {"go", "test", "-race", "./..."},
-		"vet":              {"go", "vet", "./..."},
-		"python-reference": {"{python}", "-B", "-m", "unittest", "discover", "-s", "tests"},
+		"test": {"go", "test", "-race", "./..."},
+		"vet":  {"go", "vet", "./..."},
 	}
 	for _, item := range selected {
 		if item.Project.Path != "." || !reflect.DeepEqual(item.Check.Command, expected[item.Name]) || !item.Check.Enabled {
-			t.Fatalf("incorrect native/reference check: %+v", item)
+			t.Fatalf("incorrect native check: %+v", item)
 		}
 		delete(expected, item.Name)
 	}

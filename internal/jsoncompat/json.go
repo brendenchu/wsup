@@ -1,4 +1,4 @@
-// Package jsoncompat preserves Python's ASCII JSON encoding where byte identity matters.
+// Package jsoncompat provides stable ASCII JSON encoding where byte identity matters.
 package jsoncompat
 
 import (
@@ -8,9 +8,8 @@ import (
 	"unicode/utf16"
 )
 
-// Marshal uses Python-compatible ASCII string escapes and optional indentation.
-// Compact output uses Go's compact separators; callers needing Python's default
-// comma/colon spaces must supply those separators explicitly.
+// Marshal uses ASCII string escapes and optional indentation. Compact output
+// uses compact separators; callers needing spaces must supply them explicitly.
 func Marshal(value any, indent string) ([]byte, error) {
 	var encoded bytes.Buffer
 	encoder := json.NewEncoder(&encoded)

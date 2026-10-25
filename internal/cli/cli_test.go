@@ -11,16 +11,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func TestVersionMatchesPythonBaseline(t *testing.T) {
-	body, err := os.ReadFile("../../src/wsup_core/__init__.py")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Contains(body, []byte(`VERSION = "`+Version+`"`)) {
-		t.Fatal("Go version differs from the Python product version")
-	}
-}
-
 func TestHelpVersionAndErrors(t *testing.T) {
 	for _, tc := range []struct {
 		name   string
@@ -110,7 +100,7 @@ func TestRootFlagMustPrecedeCommand(t *testing.T) {
 	}
 }
 
-func TestEditorJSONMatchesPythonASCIIEncoding(t *testing.T) {
+func TestEditorJSONUsesStableASCIIEncoding(t *testing.T) {
 	var actual bytes.Buffer
 	if err := writeEditorJSON(&actual, map[string]string{
 		"path": "caf\u00e9/\U0001f680/\x7f/<>&/\u2028",

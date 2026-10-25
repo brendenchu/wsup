@@ -166,7 +166,7 @@ func launchFailure(err error) (Result, error) {
 	return Result{}, fmt.Errorf("prepare check command: %w", err)
 }
 
-// Python replaces an incomplete valid UTF-8 prefix once, but distinct invalid
+// Replace an incomplete valid UTF-8 prefix once, but distinct invalid
 // bytes separately. Retained byte limits may split a multibyte character.
 func decodeOutput(body []byte) string {
 	var text strings.Builder

@@ -263,7 +263,7 @@ func stringsValue(value any) ([]string, bool) {
 	return result, true
 }
 
-// ParseCheck accepts an argument array or policy object and applies Python-compatible
+// ParseCheck accepts an argument array or policy object and applies
 // defaults. Missing and null timeout both defer to workspace settings; other
 // explicitly null policy fields are rejected.
 func ParseCheck(raw any) (Check, error) {
@@ -402,7 +402,7 @@ func Load(root string) (Registry, error) {
 			if !ok {
 				return Registry{}, fmt.Errorf("%s: checks must be named definitions", id)
 			}
-			// Decode order separately: JSON object iteration in Python defines check order.
+			// Decode order separately to preserve configured check order.
 			project.CheckNames, err = checkOrder(body, len(result.Projects))
 			if err != nil {
 				return Registry{}, err
