@@ -4,6 +4,8 @@ Maintain durable product and contributor documentation here:
 
 - [Product quick start](../README.md): requirements, invocation, and everyday
   commands.
+- [First-workspace tutorial](getting-started.md): create a workspace, register
+  a project, and run a check with the downloaded binary.
 - [Workspace model](workspace-model.md): layout, ownership, registry, CLI
   configuration, optional collections, and safe updates.
   Its [command reference](workspace-model.md#command-reference) covers options,

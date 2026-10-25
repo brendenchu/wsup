@@ -69,6 +69,11 @@ collections selected explicitly; see the workspace layout below.
 The project starter contains project documentation, guidance, ignore rules, and
 template state, but no bundled CLI or workspace registry.
 
+Follow the [first-workspace tutorial](docs/getting-started.md) for a complete
+create/register/check walkthrough, or see
+[optional PATH setup](docs/native-install.md#optional-path-setup) to use `wsup`
+without its full path.
+
 ## Use the CLI
 
 Run the downloaded or source-built executable with `--help`, or

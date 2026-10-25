@@ -17,7 +17,8 @@ The [published v0.2.0 release](https://github.com/brendenchu/wsup/releases/tag/v
 includes a compiled macOS ARM64 binary. Users of that archive need neither Go
 nor this checkout; follow [native binary use](docs/native-install.md).
 Compilation is required for source development and release packaging, not for
-running the downloaded executable.
+running the downloaded executable. The [first-workspace tutorial](docs/getting-started.md)
+covers project registration and an explicit check without a development setup.
 
 Use Go 1.27.3, pinned in `mise.toml`. Mise is optional if that toolchain is
 already available. Development tests also require Git for ownership and reporting

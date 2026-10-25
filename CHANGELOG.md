@@ -34,7 +34,8 @@ No changes yet.
 ### Added
 
 - Published macOS ARM64 binary archive and SHA-256 manifest, with download,
-  extraction, and no-toolchain usage instructions. Version 0.2.0 was reissued
+  extraction, optional PATH setup, and a first-workspace tutorial without a
+  Go toolchain. Version 0.2.0 was reissued
   with corrected distribution documentation and a rebuilt archive; download
   its archive and checksum manifest together from the release page.
 - Manual local candidate packaging with SHA-256 verification, full runtime

@@ -75,6 +75,33 @@ An owner may separately copy the executable into a chosen writable location or
 configure PATH, but neither extraction nor this procedure does that automatically.
 Do not overwrite another executable or modify shell configuration implicitly.
 
+## Optional PATH setup
+
+Explicit-path invocation above is sufficient. To use the shorter `wsup` command,
+keep the verified extracted package in a stable, owner-selected location, with
+its license and notices. Substitute that package's actual absolute directory
+below; do not use a temporary extraction directory you intend to delete:
+
+```sh
+export PATH="/absolute/path/to/wsup_0.2.0_darwin_arm64:$PATH"
+command -v wsup
+wsup --version
+```
+
+This changes only the current shell and places the chosen package before other
+PATH entries. Confirm `command -v wsup` selects the intended executable and
+`--version` prints `0.2.0`. No `sudo`, system-directory copy, or Go build is needed.
+
+For persistence, manually add the reviewed `export PATH="..."` line, with your
+real package directory, to your shell's startup file. macOS's default zsh login
+shell reads `~/.zprofile`; Bash login shells use `~/.bash_profile`. Other shells
+and terminal launch modes may use different files. Do not replace existing
+startup-file contents or add duplicate lines. Open a new terminal and repeat
+the two verification commands. WSUP does not edit these files.
+
+To undo this setup, remove only the line you added and open a new terminal.
+Before removing a package directory, confirm no PATH entry still depends on it.
+
 ## New and existing workspaces
 
 ```sh
@@ -86,6 +113,9 @@ Destinations must not exist. The generated workspace contains managed files,
 schema-2 state under `.wsup/`, and local reports when checks run. It contains no
 executable or copied catalogue. Retain access to a compatible external binary
 after moving the workspace.
+
+For a complete create/register/check walkthrough, follow the
+[first-workspace tutorial](https://github.com/brendenchu/wsup/blob/v0.2.0/docs/getting-started.md).
 
 Only schema-2 managed state is supported. Unsupported schemas fail without
 writes; there is no in-place conversion. Never edit schema numbers to bypass
