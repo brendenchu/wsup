@@ -51,6 +51,12 @@ Editor JSON retains Python's ASCII escaping, including Unicode surrogate pairs.
 The global `--root` flag must precede the command in both implementations.
 Malformed JSON/UTF-8 is rejected with exit 2 and no success output; Go decoder
 diagnostic wording is not yet asserted byte-for-byte against Python.
+Guidance metadata accepts colons within values and universal text newlines.
+Directory scan roots may be symlinks, but descendant symlink directories are not
+traversed; inspected files still must resolve within their owner.
+Go intentionally sorts guidance errors lexically, preserving duplicates, rather
+than using Python's filesystem traversal order. The fixture comparison sorts only
+Python's expected errors and checks Go's actual order.
 
 `src/templates/` remains the authoritative starter catalogue. During coexistence,
 `internal/catalogue/assets.zip` is a generated, deterministic snapshot embedded

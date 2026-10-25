@@ -86,8 +86,11 @@ python3 -B tests/test_migration_safety.py --source /path/to/extracted/python-bas
   JSON evidence and timestamp-normalized Markdown rather than raw hashes.
 - Report runtime normalization does not approve retaining `runtime.python` in Go:
   truthful runtime metadata and any schema version change remain a design gate.
-- Do not normalize conflict/action lists, errors, exit codes, hashes, or lost
-  files to make a port pass. Document intentional changes before adapting tests.
+- Do not normalize conflict/action lists, error content, exit codes, hashes, or
+  lost files to make a port pass. One approved native difference is guidance
+  error ordering: Go sorts errors lexically and preserves duplicates. The subset
+  comparison sorts only Python's expected guidance errors; Go's actual order
+  must match. Frozen Python expectations retain their original order.
 
 The current cases cover every command, version output, settings precedence and
 invalid input, literal check arguments, failure continuation, report findings,
@@ -96,9 +99,15 @@ editor overwrite protection, root resolution, workspace/project initialization,
 collection preview/apply/collisions, update conflicts/keep, missing files,
 manifest traversal, and symlink escapes/destinations.
 
-The 61-step golden replay across ten scenarios is not a replacement for all 65
+The 66-step golden replay across twelve scenarios is not a replacement for all 65
 original tests. The Unicode editor scenario compares exact ASCII-escaped bytes,
 including non-BMP characters, and preserves multiple guidance findings in order.
+Guidance boundary scenarios cover colons in descriptions, carriage-return line
+endings, shared-versus-legacy skill coexistence, and a symlink used as a scan root.
+Cross-file finding order is an approved compatibility difference: Python scans
+in filesystem traversal order, whereas Go sorts all error strings lexically.
+The boundary scenario checks nested-versus-parent findings and duplicates;
+Go tests also assert the ordering independently.
 `safety-contracts.json` specifies how to port the safety cases that need
 in-process injection or specialized probes rather than ordinary JSON fixtures.
 Archive verification executes the original concurrency/I/O-failure, Git staging,

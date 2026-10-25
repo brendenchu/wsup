@@ -8,6 +8,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- Go guidance findings use deterministic lexical error ordering, preserving
+  duplicates, instead of Python's filesystem traversal order. Metadata and
+  scan-root symlink handling retain the Python inspection contract.
 - Refresh current Python CLI documentation: root and destination selection,
   command options and exit codes, check selection and timeout precedence,
   configuration examples, starter boundaries, and source-based update delivery.

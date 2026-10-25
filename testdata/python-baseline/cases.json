@@ -2,6 +2,21 @@
   "version": 1,
   "cases": [
     {
+      "id": "guidance-boundaries",
+      "steps": [
+        {"args": ["guidance"], "files": {"AI.md": "Local\n", "guidance/rules/index.md": "Rules\n", ".agents/skills/example/SKILL.md": "---\nname: example\ndescription: Example: with colon\n---\nBody\n"}},
+        {"args": ["guidance"], "files": {".agents/skills/example/SKILL.md": "---\rname: example\rdescription: Carriage returns\r---\rBody\r"}},
+        {"args": ["guidance"], "remove": [".agents/skills/example/SKILL.md"], "files": {"guidance/example/SKILL.md": "---\nname: example\ndescription: Local\n---\nBody\n", ".ai/skills/example/SKILL.md": "---\nname: example\ndescription: Legacy\n---\nBody\n"}},
+        {"args": ["guidance"], "files": {"guidance/z.md": "[missing](missing.md)\n[again](missing.md)\n", "guidance/a/nested.md": "[missing](missing.md)\n"}}
+      ]
+    },
+    {
+      "id": "guidance-symlink-root",
+      "steps": [
+        {"args": ["guidance"], "symlinks": {"guidance": "workspace/local-guidance"}, "files": {"AI.md": "Local\n", "local-guidance/rules/index.md": "Rules\n", "local-guidance/example/SKILL.md": "---\nname: example\ndescription: Linked root\n---\nBody\n"}}
+      ]
+    },
+    {
       "id": "unicode-editor",
       "steps": [
         {"args": ["projects"], "set": {"projects.0.path": "caf\u00e9-\ud83d\ude80"}, "files": {"caf\u00e9-\ud83d\ude80/README.md": "Synthetic Unicode path\n"}},

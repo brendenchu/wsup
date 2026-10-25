@@ -1,4 +1,201 @@
 {
+  "guidance-boundaries": [
+    {
+      "exit": 0,
+      "stdout": {
+        "files": [
+          ".agents/skills/example/SKILL.md",
+          "AI.md",
+          "guidance/rules/index.md"
+        ],
+        "skills": [
+          {
+            "name": "example",
+            "path": ".agents/skills/example/SKILL.md"
+          }
+        ],
+        "errors": []
+      },
+      "stderr": "",
+      "writes": {},
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/.agents/",
+        "workspace/.agents/skills/",
+        "workspace/.agents/skills/example/",
+        "workspace/.agents/skills/example/SKILL.md",
+        "workspace/AI.md",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/guidance/",
+        "workspace/guidance/rules/",
+        "workspace/guidance/rules/index.md",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    },
+    {
+      "exit": 0,
+      "stdout": {
+        "files": [
+          ".agents/skills/example/SKILL.md",
+          "AI.md",
+          "guidance/rules/index.md"
+        ],
+        "skills": [
+          {
+            "name": "example",
+            "path": ".agents/skills/example/SKILL.md"
+          }
+        ],
+        "errors": []
+      },
+      "stderr": "",
+      "writes": {},
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/.agents/",
+        "workspace/.agents/skills/",
+        "workspace/.agents/skills/example/",
+        "workspace/.agents/skills/example/SKILL.md",
+        "workspace/AI.md",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/guidance/",
+        "workspace/guidance/rules/",
+        "workspace/guidance/rules/index.md",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    },
+    {
+      "exit": 0,
+      "stdout": {
+        "files": [
+          "AI.md",
+          "guidance/example/SKILL.md",
+          "guidance/rules/index.md"
+        ],
+        "skills": [
+          {
+            "name": "example",
+            "path": "guidance/example/SKILL.md"
+          }
+        ],
+        "errors": []
+      },
+      "stderr": "",
+      "writes": {},
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/.agents/",
+        "workspace/.agents/skills/",
+        "workspace/.agents/skills/example/",
+        "workspace/.ai/",
+        "workspace/.ai/skills/",
+        "workspace/.ai/skills/example/",
+        "workspace/.ai/skills/example/SKILL.md",
+        "workspace/AI.md",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/guidance/",
+        "workspace/guidance/example/",
+        "workspace/guidance/example/SKILL.md",
+        "workspace/guidance/rules/",
+        "workspace/guidance/rules/index.md",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    },
+    {
+      "exit": 1,
+      "stdout": {
+        "files": [
+          "AI.md",
+          "guidance/a/nested.md",
+          "guidance/example/SKILL.md",
+          "guidance/rules/index.md",
+          "guidance/z.md"
+        ],
+        "skills": [
+          {
+            "name": "example",
+            "path": "guidance/example/SKILL.md"
+          }
+        ],
+        "errors": [
+          "guidance/z.md: unresolved/nonlocal reference",
+          "guidance/z.md: unresolved/nonlocal reference",
+          "guidance/a/nested.md: unresolved/nonlocal reference"
+        ]
+      },
+      "stderr": "",
+      "writes": {},
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/.agents/",
+        "workspace/.agents/skills/",
+        "workspace/.agents/skills/example/",
+        "workspace/.ai/",
+        "workspace/.ai/skills/",
+        "workspace/.ai/skills/example/",
+        "workspace/.ai/skills/example/SKILL.md",
+        "workspace/AI.md",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/guidance/",
+        "workspace/guidance/a/",
+        "workspace/guidance/a/nested.md",
+        "workspace/guidance/example/",
+        "workspace/guidance/example/SKILL.md",
+        "workspace/guidance/rules/",
+        "workspace/guidance/rules/index.md",
+        "workspace/guidance/z.md",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    }
+  ],
+  "guidance-symlink-root": [
+    {
+      "exit": 0,
+      "stdout": {
+        "files": [
+          "AI.md",
+          "guidance/example/SKILL.md",
+          "guidance/rules/index.md"
+        ],
+        "skills": [
+          {
+            "name": "example",
+            "path": "guidance/example/SKILL.md"
+          }
+        ],
+        "errors": []
+      },
+      "stderr": "",
+      "writes": {},
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/AI.md",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/guidance",
+        "workspace/local-guidance/",
+        "workspace/local-guidance/example/",
+        "workspace/local-guidance/example/SKILL.md",
+        "workspace/local-guidance/rules/",
+        "workspace/local-guidance/rules/index.md",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    }
+  ],
   "unicode-editor": [
     {
       "exit": 0,

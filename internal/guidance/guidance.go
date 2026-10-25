@@ -40,13 +40,19 @@ func regular(name string) bool {
 
 func markdown(root string) ([]string, error) {
 	files := []string{}
-	_, err := os.Stat(root)
+	info, err := os.Stat(root)
 	if os.IsNotExist(err) {
 		return files, nil
 	}
 	if err != nil {
 		return nil, err
 	}
+	if !info.IsDir() {
+		return files, nil
+	}
+	// rglob traverses a symlink used as its root, but not symlink descendants.
+	// Keep lexical paths so owner checks and output still describe the link.
+	root += string(filepath.Separator)
 	err = filepath.WalkDir(root, func(name string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -76,12 +82,16 @@ func Inspect(root string) (Result, error) {
 	}
 	candidates := []string{filepath.Join(root, "AI.md"), filepath.Join(root, "AGENTS.md")}
 	shared := filepath.Join(root, ".agents/skills")
+	var sharedFiles []string
 	for _, directory := range []string{filepath.Join(root, "guidance"), shared} {
 		files, err := markdown(directory)
 		if err != nil {
 			return Result{}, err
 		}
 		candidates = append(candidates, files...)
+		if directory == shared {
+			sharedFiles = files
+		}
 	}
 	if info, err := os.Stat(filepath.Join(root, ".ai/rules")); err == nil && info.IsDir() {
 		result.Errors = append(result.Errors, "Legacy .ai/rules require an explicit layout migration to guidance/rules")
@@ -98,7 +108,7 @@ func Inspect(root string) (Result, error) {
 		}
 		return false
 	}
-	if hasSkill(candidates) && hasSkill(legacy) {
+	if hasSkill(sharedFiles) && hasSkill(legacy) {
 		result.Errors = append(result.Errors, "Legacy skills in .ai/skills coexist with .agents/skills; resolve migration manually")
 	}
 	seen := map[string]bool{}
@@ -131,6 +141,7 @@ func Inspect(root string) (Result, error) {
 			return Result{}, fmt.Errorf("%s: guidance must be UTF-8", relative)
 		}
 		text := strings.ReplaceAll(string(body), "\r\n", "\n")
+		text = strings.ReplaceAll(text, "\r", "\n")
 		for _, match := range linkPattern.FindAllStringSubmatch(text, -1) {
 			link := match[1]
 			if schemePattern.MatchString(link) || strings.HasPrefix(link, "#") {
@@ -158,6 +169,8 @@ func Inspect(root string) (Result, error) {
 		}
 	}
 	sort.Strings(result.Files)
+	// Native findings have a stable order independent of filesystem enumeration.
+	sort.Strings(result.Errors)
 	sort.SliceStable(result.Skills, func(i, j int) bool { return result.Skills[i].Name < result.Skills[j].Name })
 	return result, nil
 }
@@ -173,7 +186,7 @@ func parseSkill(text, directory string) (string, bool) {
 	}
 	fields := map[string]string{}
 	for _, line := range strings.Split(parts[0], "\n") {
-		pair := strings.Split(line, ": ")
+		pair := strings.SplitN(line, ": ", 2)
 		if len(pair) != 2 {
 			return "", false
 		}

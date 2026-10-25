@@ -160,6 +160,11 @@ def replay(command, compare_read_only=None):
                                      output(candidate.stderr, paths))
                     reference_result = (completed.returncode, output(completed.stdout, paths),
                                         output(completed.stderr, paths))
+                    if step["args"][0] == "guidance" and isinstance(reference_result[1], dict):
+                        # Approved native difference: findings are lexically ordered,
+                        # not filesystem-ordered. Preserve duplicates and require
+                        # the candidate's actual order rather than sorting it here.
+                        reference_result[1]["errors"] = sorted(reference_result[1]["errors"])
                     if actual_result != reference_result:
                         raise AssertionError(
                             f"{case['id']} {args}: Go={actual_result!r}; Python={reference_result!r}")
