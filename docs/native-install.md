@@ -1,31 +1,58 @@
 # Native binary use and recovery
 
 WSUP runs as a separately supplied executable with embedded starter templates.
-There is no installer, remote updater, or automatic PATH change. Local candidate
-archives are not published releases. Only macOS ARM64 currently has runtime
-verification; other target builds are not support claims.
+There is no installer, remote updater, or automatic PATH change. The published
+v0.2.0 archive contains the compiled binary; download users do not need Go or a
+source checkout. Only macOS ARM64 currently has runtime verification; other
+target builds are not support claims.
+
+## Download
+
+Obtain both files from the
+[WSUP v0.2.0 release](https://github.com/brendenchu/wsup/releases/tag/v0.2.0):
+
+- [wsup_0.2.0_darwin_arm64.tar.gz](https://github.com/brendenchu/wsup/releases/download/v0.2.0/wsup_0.2.0_darwin_arm64.tar.gz)
+- [SHA256SUMS](https://github.com/brendenchu/wsup/releases/download/v0.2.0/SHA256SUMS)
+
+Download the archive and manifest together. If replacing an earlier download,
+keep the old package separately and use a fresh directory for the new pair.
+Local `-local` candidate archives are separate from published release assets.
 
 ## Verify and extract
 
-Obtain the archive and its SHA-256 manifest from a trusted source. On macOS,
-from the directory containing both files:
+On macOS ARM64, from the directory containing both downloaded files:
 
 ```sh
 shasum -a 256 -c SHA256SUMS
-tar -tzf wsup_VERSION-local_darwin_arm64.tar.gz
+tar -tzf wsup_0.2.0_darwin_arm64.tar.gz
 ```
 
-Replace `VERSION` with the exact candidate version. Review the archive listing:
-it should contain one named directory, a `wsup` executable, `LICENSE`, this guide
-as `README.md`, `BUILD.txt`, and dependency notices under `licenses/`. Extract
+Stop if checksum verification fails. Review the archive listing:
+it should contain one `wsup_0.2.0_darwin_arm64/` directory, a `wsup` executable,
+`LICENSE`, this guide as `README.md`, `BUILD.txt`, and dependency notices under
+`licenses/`. Extract
 only a trusted archive into a new owner-selected directory. Checksums detect
 different bytes, not authorship or safety when the manifest is also untrusted.
-Current local archives are unsigned and not notarized. Do not bypass operating
-system security prompts for an untrusted executable.
+Published and local archives are unsigned and not notarized. Do not bypass
+operating system security prompts for an untrusted executable.
+
+For example, from the download directory, create a new extraction destination
+and extract only after completing those checks:
+
+```sh
+mkdir wsup-0.2.0-extracted
+tar -xzf wsup_0.2.0_darwin_arm64.tar.gz -C wsup-0.2.0-extracted
+./wsup-0.2.0-extracted/wsup_0.2.0_darwin_arm64/wsup --version
+```
+
+Local candidates use `wsup_VERSION-local_darwin_arm64.tar.gz` and a matching
+top-level directory instead. Substitute their exact names when following this
+procedure; their version output does not establish a published release.
 
 Keep the license and dependency notices when redistributing the executable.
-`BUILD.txt` records the source revision, working-tree status, toolchain and binary
-build information; review it before sharing local candidates.
+`BUILD.txt` records source provenance, toolchain and binary build information.
+Published packages identify the exact release tag and source commit; local
+candidates also record working-tree status. Review it before redistributing.
 
 ## Run without installation
 
@@ -68,7 +95,8 @@ content instead, preserving the original workspace and reports.
 ## Replace a binary and recover
 
 1. Keep the previous trusted executable in its own location. Extract and verify
-   the next candidate separately; do not replace a running executable in place.
+   the next release or local candidate separately; do not replace a running
+   executable in place.
 2. Check its version and inspect a disposable generated workspace first. Run
    validation/guidance against the intended workspace before opting into checks.
 3. Select the new executable by explicit path. Binary replacement does not

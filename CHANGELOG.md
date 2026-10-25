@@ -33,10 +33,15 @@ No changes yet.
 
 ### Added
 
+- Published macOS ARM64 binary archive and SHA-256 manifest, with download,
+  extraction, and no-toolchain usage instructions. Version 0.2.0 was reissued
+  with corrected distribution documentation and a rebuilt archive; download
+  its archive and checksum manifest together from the release page.
 - Manual local candidate packaging with SHA-256 verification, full runtime
   dependency notices, build provenance, and explicit binary replacement/recovery
   instructions. Release-profile acceptance checks repeatable binary bytes with
-  cgo disabled and source paths removed; no installation or publication occurs.
+  cgo disabled and source paths removed; local candidate packaging does not
+  install or publish anything.
 - Native initialization, registry/configuration inspection, guidance checks,
   exclusive editor generation, collection selection/additions, and managed
   content update preview/apply with explicit conflict handling.

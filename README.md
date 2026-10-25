@@ -26,29 +26,35 @@ Runtime verification is currently macOS ARM64. Unix checks use process-group
 supervision; non-Unix checks explicitly refuse launch pending equivalent
 descendant cleanup. Cross-compilation does not establish runtime support.
 
-Build from source with Go 1.27.3, pinned in `mise.toml`; see
+Download the compiled macOS ARM64 binary from the
+[WSUP v0.2.0 release](https://github.com/brendenchu/wsup/releases/tag/v0.2.0).
+Download users do not need Go or this checkout. See
+[native binary use](docs/native-install.md) for download links, checksum
+verification, extraction, explicit-path invocation, replacement, and recovery.
+There is no binary installer, automatic updater, or automatic PATH change.
+
+To build from source instead, use Go 1.27.3, pinned in `mise.toml`; see
 [Go development](CONTRIBUTING.md#go-development). Development tests also require
 Git for ownership and reporting assertions. Only schema-2 workspace state is
-supported; unsupported formats fail without writes. No binary installer or published native release
-is provided yet; source build does not require a PATH change.
-See [native binary use](docs/native-install.md) for local candidate extraction,
-explicit-path invocation, replacement, and recovery.
+supported; unsupported formats fail without writes.
 
 ## Try it
 
-Run these from this directory:
+After verifying and extracting the release archive, invoke its executable by
+absolute path to create a workspace or project at a new destination:
 
 ```sh
-go run ./cmd/wsup validate
-go run ./cmd/wsup projects
-go run ./cmd/wsup check --project wsup --show-output
+/absolute/path/to/wsup_0.2.0_darwin_arm64/wsup --version
+/absolute/path/to/wsup_0.2.0_darwin_arm64/wsup init /path/to/workspace
+/absolute/path/to/wsup_0.2.0_darwin_arm64/wsup init /path/to/project --template project
 ```
 
-Create a workspace or a project starter at a new path:
+Inspect the new workspace without installing anything or changing PATH:
 
 ```sh
-go run ./cmd/wsup init /path/to/workspace
-go run ./cmd/wsup init /path/to/project --template project
+/absolute/path/to/wsup_0.2.0_darwin_arm64/wsup --root /path/to/workspace validate
+/absolute/path/to/wsup_0.2.0_darwin_arm64/wsup --root /path/to/workspace projects
+/absolute/path/to/wsup_0.2.0_darwin_arm64/wsup --root /path/to/workspace guidance
 ```
 
 `init` never overwrites an existing destination. A compiled executable embeds
@@ -65,8 +71,10 @@ template state, but no bundled CLI or workspace registry.
 
 ## Use the CLI
 
-Run `go run ./cmd/wsup --help` in this checkout, or `wsup --help` with a
-separately built executable. Examples below use the latter. The main commands:
+Run the downloaded or source-built executable with `--help`, or
+`go run ./cmd/wsup --help` in this checkout. Examples below use `wsup` for the
+trusted executable; substitute its absolute path unless you separately added it
+to PATH. The main commands:
 
 | Command | Purpose |
 | --- | --- |

@@ -1,5 +1,19 @@
 # Versioning and releases
 
+## Current release
+
+[WSUP v0.2.0](https://github.com/brendenchu/wsup/releases/tag/v0.2.0), dated
+2026-10-25, is the published native release. It includes a compiled macOS ARM64
+archive and `SHA256SUMS`; see [download and extraction](native-install.md).
+Users do not compile the downloaded binary. Go is needed for source development
+and release packaging, not normal binary use.
+
+Version 0.2.0 was reissued with corrected distribution documentation and a rebuilt
+archive by explicit maintainer authorization. Its tag and asset checksums changed;
+download the archive and manifest together from the release page rather than
+combining a retained earlier asset with a new manifest. This is an exception to
+the immutable-tag policy below, not the normal release procedure.
+
 ## One product version
 
 WSUP uses one version for its CLI, bundled workspace/project templates, and
@@ -174,13 +188,20 @@ authorize a version bump, tag, installation, signing, or publication.
    does not publish a release. If pushing is approved, specify the intended
    remote and exact tag rather than pushing every local tag.
 
-Version 0.2.0 is the native release target under the pre-1.0 minor-version
-policy, with its changelog dated 2026-10-25. This date does not establish a tag
-or publication: verify the exact clean release commit before separately
-authorized tagging or publication.
+9. Build the final archive from the exact clean tagged commit, without the
+   `-local` suffix. Include the binary, full notices, native binary guide, and a
+   build record identifying the tag, commit, toolchain and build metadata.
+   Repeat extracted-binary verification and generate `SHA256SUMS` for that exact
+   archive. With publication authorization, upload both assets and user-facing
+   release notes to the GitHub release for that tag.
+10. Download the published archive and manifest into a fresh directory. Verify
+    their hashes and byte identity against the validated local assets. Confirm
+    the release tag resolves to the tested commit and the release is not a
+    draft. Do not declare download-back verification complete if it was blocked.
 
-There is no release automation, package publication, or remote self-update
-service. Keep development notes and release-preparation drafts under ignored
+There is no release automation, package-manager publication, or remote self-update
+service; GitHub binary release assets are published manually. Keep development
+notes and release-preparation drafts under ignored
 `workbench/.local/`; CLI check reports are under ignored `.wsup/reports/`. Publish
 user-facing changes and material limitations in the changelog or release notes.
 See [AI guidance](ai-guidance.md) for compatibility limits and the
