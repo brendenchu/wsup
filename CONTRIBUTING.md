@@ -148,7 +148,24 @@ An explicit keep suppresses a conflict only for that preview, without accepting
 the current file as a new baseline. Symlink destinations, non-directory parents,
 unavailable/invalid bundles, and Python state fail explicitly. Rooted reads
 confine inspection, but planning is point-in-time evidence, not an apply-time
-race guarantee. Apply and legacy runtime retirement remain unimplemented.
+race guarantee.
+
+The native apply service now plans and blocks on all conflicts, rechecks exact
+state bytes and observed file hashes/types before the first write, and rechecks
+each destination before writing it. New files use exclusive creation; existing
+files use same-directory temporary files and rename rather than truncation.
+State is replaced last, retaining kept baseline hashes, collection selections,
+home omissions, and original registry ownership. Orphan content is retained but
+is no longer managed, matching Python updates. A final state recheck refuses
+concurrent state changes during content writes.
+
+This is not a multi-file transaction: an I/O failure can leave partial content or
+new directories with old state, and errors explicitly report that possibility.
+Rooted operations contain paths, but concurrent writers can still race after a
+per-file recheck; concurrent mutation is not an isolation guarantee. There is no
+fsync/power-loss durability guarantee. Native apply is tested with synthetic
+schema-2 workspaces only and is not exposed by the CLI. Native starter adaptation,
+initialization, legacy migration, and Python runtime retirement remain pending.
 
 `src/templates/` remains the authoritative starter catalogue. During coexistence,
 `internal/catalogue/assets.zip` is a generated, deterministic snapshot embedded

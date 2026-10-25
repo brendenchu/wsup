@@ -1,6 +1,7 @@
 package scaffolding
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"io"
@@ -32,6 +33,10 @@ type UpdatePlan struct {
 // here. No registry, reports, unknown files, or orphan files are overwritten.
 // Legacy state requires a separate explicit migration rather than this planner.
 func PlanUpdate(root, version string, files map[string][]byte, keep []string) (UpdatePlan, error) {
+	return planUpdate(root, version, files, keep, nil)
+}
+
+func planUpdate(root, version string, files map[string][]byte, keep []string, prepared *preparedUpdate) (UpdatePlan, error) {
 	if files == nil {
 		return UpdatePlan{}, fmt.Errorf("native template bundle is unavailable")
 	}
@@ -90,11 +95,13 @@ func PlanUpdate(root, version string, files map[string][]byte, keep []string) (U
 		FromVersion: state.TemplateVersion, ToVersion: version,
 		Actions: []Action{}, Conflicts: []string{},
 	}
+	observed := make(map[string]observation, len(names))
 	for _, name := range names {
 		current, err := observeFile(handle, name)
 		if err != nil {
 			return UpdatePlan{}, err
 		}
+		observed[name] = current
 		if kept[name] && !current.regular {
 			return UpdatePlan{}, fmt.Errorf("--keep requires an existing same-path managed file: %s", name)
 		}
@@ -126,6 +133,32 @@ func PlanUpdate(root, version string, files map[string][]byte, keep []string) (U
 			continue
 		}
 		result.Actions = append(result.Actions, Action{Path: name, Action: action})
+	}
+	if prepared != nil {
+		// Registry ownership and kept baseline hashes survive state replacement.
+		delete(proposed.Files, "workspace.json")
+		if digest, exists := state.Files["workspace.json"]; exists {
+			proposed.Files["workspace.json"] = digest
+		}
+		for name := range kept {
+			if _, exists := proposed.Files[name]; exists {
+				proposed.Files[name] = state.Files[name]
+			}
+		}
+		body, err := EncodeNativeState(proposed)
+		if err != nil {
+			return UpdatePlan{}, err
+		}
+		bodies := make(map[string][]byte)
+		for _, action := range result.Actions {
+			if action.Action == "write" {
+				bodies[action.Path] = bytes.Clone(files[action.Path])
+			}
+		}
+		*prepared = preparedUpdate{
+			root: root, plan: result, observed: observed,
+			stateBefore: loaded.Original, stateAfter: body, files: bodies,
+		}
 	}
 	return result, nil
 }
