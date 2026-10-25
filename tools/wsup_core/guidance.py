@@ -5,17 +5,19 @@ from .registry import relative_target
 
 def inspect(root):
     errors, files, skills = [], [], []
-    for name in ("AI.md", ".ai/rules/index.md"):
+    for name in ("AI.md", "guidance/rules/index.md"):
         if not (root / name).is_file():
             errors.append(f"Missing {name}")
     candidates = [root / "AI.md", root / "AGENTS.md"]
-    ai = root / ".ai"
+    ai = root / "guidance"
     if ai.exists():
         candidates.extend(ai.rglob("*.md"))
     shared_skills = root / ".agents/skills"
     if shared_skills.exists():
         candidates.extend(shared_skills.rglob("*.md"))
     legacy_skills = root / ".ai/skills"
+    if (root / ".ai/rules").is_dir():
+        errors.append("Legacy .ai/rules require an explicit layout migration to guidance/rules")
     coexist = any(shared_skills.rglob("SKILL.md")) and any(legacy_skills.rglob("SKILL.md"))
     if coexist:
         errors.append("Legacy skills in .ai/skills coexist with .agents/skills; resolve migration manually")

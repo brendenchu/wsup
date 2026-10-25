@@ -2,12 +2,12 @@
 
 Read the relevant portable rule when changing this product:
 
-- Implementation: [changes](../../templates/workspace/.ai/rules/changes.md).
-- Ownership: [boundaries](../../templates/workspace/.ai/rules/boundaries.md).
-- Checks and tests: [verification](../../templates/workspace/.ai/rules/verification.md).
-- CLI/registry/config contracts: [interfaces](../../templates/workspace/.ai/rules/interfaces.md).
-- Guidance and documentation: [documentation](../../templates/workspace/.ai/rules/documentation.md).
-- Evidence: [evidence](../../templates/workspace/.ai/rules/evidence.md).
+- Implementation: [changes](../../templates/workspace/guidance/rules/changes.md).
+- Ownership: [boundaries](../../templates/workspace/guidance/rules/boundaries.md).
+- Checks and tests: [verification](../../templates/workspace/guidance/rules/verification.md).
+- CLI/registry/config contracts: [interfaces](../../templates/workspace/guidance/rules/interfaces.md).
+- Guidance and documentation: [documentation](../../templates/workspace/guidance/rules/documentation.md).
+- Evidence: [evidence](../../templates/workspace/guidance/rules/evidence.md).
 
 Use the task procedure that matches the request:
 
