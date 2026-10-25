@@ -21,7 +21,7 @@ func put(t *testing.T, root, name, body string) {
 	}
 }
 
-func TestSkillMetadataLinksAndCoexistence(t *testing.T) {
+func TestSkillMetadataAndLinks(t *testing.T) {
 	root := t.TempDir()
 	put(t, root, "AI.md", "[rules](guidance/rules/index.md)\n")
 	put(t, root, "guidance/rules/index.md", "Local rules\n")
@@ -47,12 +47,6 @@ func TestSkillMetadataLinksAndCoexistence(t *testing.T) {
 	result, err = Inspect(root)
 	if err != nil || len(result.Errors) != 1 || !strings.Contains(result.Errors[0], "unresolved/nonlocal") {
 		t.Fatalf("broken link: %+v %v", result, err)
-	}
-	put(t, root, name, body)
-	put(t, root, ".ai/skills/example/SKILL.md", body)
-	result, err = Inspect(root)
-	if err != nil || len(result.Errors) != 1 || !strings.Contains(result.Errors[0], "coexist") {
-		t.Fatalf("legacy coexistence: %+v %v", result, err)
 	}
 }
 
@@ -109,16 +103,15 @@ func TestMetadataColonsAndUniversalNewlines(t *testing.T) {
 	}
 }
 
-func TestLegacyCoexistenceOnlyChecksSharedSkills(t *testing.T) {
+func TestSkillsInGuidanceAreInspected(t *testing.T) {
 	root := t.TempDir()
 	put(t, root, "AI.md", "Local\n")
 	put(t, root, "guidance/rules/index.md", "Rules\n")
 	body := "---\nname: example\ndescription: Local\n---\nBody\n"
 	put(t, root, "guidance/example/SKILL.md", body)
-	put(t, root, ".ai/skills/example/SKILL.md", body)
 	result, err := Inspect(root)
 	if err != nil || len(result.Errors) != 0 || len(result.Skills) != 1 {
-		t.Fatalf("unrelated guidance caused coexistence finding: %+v %v", result, err)
+		t.Fatalf("guidance skill not inspected: %+v %v", result, err)
 	}
 }
 
@@ -136,11 +129,11 @@ func TestSymlinkScanRootButNotDescendant(t *testing.T) {
 	result, err := Inspect(root)
 	if err != nil || len(result.Errors) != 0 ||
 		strings.Join(result.Files, ",") != "AI.md,guidance/rules/index.md" {
-		t.Fatalf("symlink traversal differs from rglob: %+v %v", result, err)
+		t.Fatalf("unexpected symlink traversal: %+v %v", result, err)
 	}
 }
 
-func TestBundledSharedSkillsAndLegacyCoexistence(t *testing.T) {
+func TestBundledSharedSkillsAndInvalidEdits(t *testing.T) {
 	root := t.TempDir()
 	assets := catalogue.Open()
 	starter, err := fs.Sub(assets, "workspace")
@@ -180,12 +173,5 @@ func TestBundledSharedSkillsAndLegacyCoexistence(t *testing.T) {
 		if err != nil || len(result.Errors) == 0 {
 			t.Fatalf("invalid shared skill accepted: %+v %v", result, err)
 		}
-	}
-	put(t, root, name, string(body))
-	put(t, root, ".ai/skills/workspace-check/SKILL.md", string(body))
-	result, err = Inspect(root)
-	if err != nil || len(result.Skills) != 12 || len(result.Errors) != 1 ||
-		!strings.Contains(result.Errors[0], "Legacy skills") {
-		t.Fatalf("legacy coexistence lost shared skills: %+v %v", result, err)
 	}
 }

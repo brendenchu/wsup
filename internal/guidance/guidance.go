@@ -66,7 +66,7 @@ func markdown(root string) ([]string, error) {
 }
 
 // Inspect checks required entry points, local file references, simple skill
-// metadata, and legacy-layout coexistence. It neither fetches external links nor
+// metadata. It neither fetches external links nor
 // establishes that a client discovers or follows the instructions.
 func Inspect(root string) (Result, error) {
 	resolvedRoot, err := registry.Resolve(root)
@@ -82,34 +82,12 @@ func Inspect(root string) (Result, error) {
 	}
 	candidates := []string{filepath.Join(root, "AI.md"), filepath.Join(root, "AGENTS.md")}
 	shared := filepath.Join(root, ".agents/skills")
-	var sharedFiles []string
 	for _, directory := range []string{filepath.Join(root, "guidance"), shared} {
 		files, err := markdown(directory)
 		if err != nil {
 			return Result{}, err
 		}
 		candidates = append(candidates, files...)
-		if directory == shared {
-			sharedFiles = files
-		}
-	}
-	if info, err := os.Stat(filepath.Join(root, ".ai/rules")); err == nil && info.IsDir() {
-		result.Errors = append(result.Errors, "Legacy .ai/rules require an explicit layout migration to guidance/rules")
-	}
-	legacy, err := markdown(filepath.Join(root, ".ai/skills"))
-	if err != nil {
-		return Result{}, err
-	}
-	hasSkill := func(files []string) bool {
-		for _, name := range files {
-			if filepath.Base(name) == "SKILL.md" {
-				return true
-			}
-		}
-		return false
-	}
-	if hasSkill(sharedFiles) && hasSkill(legacy) {
-		result.Errors = append(result.Errors, "Legacy skills in .ai/skills coexist with .agents/skills; resolve migration manually")
 	}
 	seen := map[string]bool{}
 	for _, name := range candidates {
