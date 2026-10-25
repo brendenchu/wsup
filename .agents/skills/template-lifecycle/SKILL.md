@@ -8,9 +8,10 @@ description: Create workspace or project starters, maintain template content, or
 1. Read the [workspace model](../../../docs/workspace-model.md) and affected
    starter guidance. Identify the operation: generate a new destination, change
    starter content, or update an existing workspace. Inspect CLI help and locate
-   the actual template source; generated workspaces carry embedded templates and
+   the actual template source: source checkouts use `templates/`, installed
+   workspaces use `.wsup/templates/`. Generated workspaces carry their catalogue and
    must work without the generator checkout.
-2. For generation, use `python3 -B tools/wsup.py init DESTINATION` with
+2. For generation, use `python3 -B .wsup/wsup.py init DESTINATION` with
    `--template project` when appropriate. Choose a new destination and preserve
    existing paths. Inspect generated guidance, registry, and local links; project
    starters must remain usable outside their original workspace.
@@ -20,7 +21,7 @@ description: Create workspace or project starters, maintain template content, or
    surfaces if the change affects both, including embedded copies. Keep
    framework-specific setup with its project.
 4. For an existing workspace update, inspect Git status and run
-   `python3 -B tools/wsup.py update` first. Review proposed changes and conflicts.
+   `python3 -B .wsup/wsup.py update` first. Review proposed changes and conflicts.
    Apply with `update --apply` only when authorized and conflict-free. Preserve
    user-edited or missing files for manual resolution and retain the user-owned
    registry. The bundled template determines available updates; this is not a
@@ -34,3 +35,6 @@ description: Create workspace or project starters, maintain template content, or
 Complete when the requested output or update is inspected and portable, existing
 files remain preserved, and relevant checks pass. Report unresolved conflicts
 and clean up only disposable paths created for verification.
+
+Commands above target an installed workspace. In the WSUP development checkout,
+use `tools/wsup.py` instead; inspect the owner before choosing a CLI.

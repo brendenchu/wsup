@@ -21,8 +21,8 @@ description: Maintain AI.md entry points, rule indexes, portable skills, or opti
    trigger and relative link. In the generator repository, maintain canonical
    root skills and matching bundled template copies and routes. In a generated
    workspace, treat local edits as user customizations that updates may flag.
-5. Run `python3 -B tools/wsup.py guidance` for workspace guidance, or
-   `python3 -B tools/wsup.py guidance --project PROJECT_ID` for a registered
+5. Run `python3 -B .wsup/wsup.py guidance` for workspace guidance, or
+   `python3 -B .wsup/wsup.py guidance --project PROJECT_ID` for a registered
    project's kit. Check relative links, skill names, frontmatter, and instruction
    boundaries. For starter changes, generate a disposable workspace and run its
    own guidance command to verify distribution.
@@ -33,3 +33,6 @@ description: Maintain AI.md entry points, rule indexes, portable skills, or opti
 Complete when the procedure is reachable from its owner, structural checks pass,
 and portable copies match where applicable. State whether client loading was
 tested; file presence alone does not establish invocation.
+
+Commands above target an installed workspace. In the WSUP development checkout,
+use `tools/wsup.py` instead; inspect the owner before choosing a CLI.

@@ -11,7 +11,7 @@ description: Onboard a new or existing workspace project. Use when adding or reg
    kind, dependencies, and intended repository ownership before making changes.
 2. Choose the existing-project or new-project path. For an existing project,
    preserve its files and setup. For a new starter, inspect
-   `python3 -B tools/wsup.py init --help` and generate with `--template project`
+   `python3 -B .wsup/wsup.py init --help` and generate with `--template project`
    into a new destination. Confirm the directory contains a README and remains
    inside the workspace, including through symlinks.
 3. Apply the Git ownership procedure in the workspace model. For independent
@@ -23,7 +23,7 @@ description: Onboard a new or existing workspace project. Use when adding or reg
 4. Add the project's registry entry with the established ownership and dependency
    IDs. Reuse the [registry-checks](../registry-checks/SKILL.md) procedure when
    adding checks or changing dependencies.
-5. Run `python3 -B tools/wsup.py validate` and `python3 -B tools/wsup.py projects`.
+5. Run `python3 -B .wsup/wsup.py validate` and `python3 -B .wsup/wsup.py projects`.
    Review Git status in both owners: workspace metadata belongs to the workspace,
    independent project contents belong to the project. Run project guidance
    validation if it carries the instruction kit. Generate an editor file only
@@ -31,3 +31,6 @@ description: Onboard a new or existing workspace project. Use when adding or reg
 
 Complete when the project is registered, validation passes, and Git ownership
 matches intent. Report pending repository setup or migration explicitly.
+
+Commands above target an installed workspace. In the WSUP development checkout,
+use `tools/wsup.py` instead; inspect the owner before choosing a CLI.

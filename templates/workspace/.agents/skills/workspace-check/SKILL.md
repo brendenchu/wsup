@@ -10,8 +10,8 @@ check argument arrays; configured commands execute with the current user's acces
 Use Python 3.9+ and run from the workspace root:
 
 ```sh
-python3 -B tools/wsup.py validate
-python3 -B tools/wsup.py check --project PROJECT_ID
+python3 -B .wsup/wsup.py validate
+python3 -B .wsup/wsup.py check --project PROJECT_ID
 ```
 
 Replace PROJECT_ID with a registered ID. Select individual check names with
@@ -22,3 +22,6 @@ or unavailable checks. It does not install dependencies or run dependent project
 Report each outcome, existing findings and missing prerequisites separately.
 A passing command certifies only its configured coverage. Do not apply fixes,
 change exclusions or add a workflow just to make a check pass.
+
+Commands above target an installed workspace. In the WSUP development checkout,
+use `tools/wsup.py` instead; inspect the owner before choosing a CLI.

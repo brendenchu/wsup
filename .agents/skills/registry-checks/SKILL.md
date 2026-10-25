@@ -19,10 +19,10 @@ description: Configure workspace registry entries, dependencies, check commands,
    to the requested failure policy. Specify finding exit codes deliberately;
    preserve genuine command failures. Give disabled checks a concrete reason.
 4. For settings, choose shared or local configuration deliberately. Use the
-   model's precedence and bounds, keep reports inside `.work/`, and keep local
-   settings ignored. Inspect `python3 -B tools/wsup.py config` to verify effective
+   model's precedence and bounds, keep reports inside `.wsup/reports/`, and keep local
+   settings ignored. Inspect `python3 -B .wsup/wsup.py config` to verify effective
    values and their sources without publishing machine-specific configuration.
-5. Run `python3 -B tools/wsup.py validate` before executing project code. Review
+5. Run `python3 -B .wsup/wsup.py validate` before executing project code. Review
    the selected command arguments, then use
    [workspace-check](../workspace-check/SKILL.md) to run only affected checks.
    Dependencies are registry relationships, not automatic check selection.
@@ -30,3 +30,6 @@ description: Configure workspace registry entries, dependencies, check commands,
 Complete when registry validation passes and the affected checks or effective
 settings have been verified. Report skipped executions and unresolved tool
 requirements; a valid registry alone does not prove a check works.
+
+Commands above target an installed workspace. In the WSUP development checkout,
+use `tools/wsup.py` instead; inspect the owner before choosing a CLI.

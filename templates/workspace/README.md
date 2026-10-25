@@ -17,10 +17,10 @@ run the CLI; no system Python replacement is needed. WSUP compatibility does
 not extend upstream Python security maintenance. From this directory:
 
 ```sh
-python3 -B tools/wsup.py validate
-python3 -B tools/wsup.py projects
-python3 -B tools/wsup.py guidance
-python3 -B tools/wsup.py editor
+python3 -B .wsup/wsup.py validate
+python3 -B .wsup/wsup.py projects
+python3 -B .wsup/wsup.py guidance
+python3 -B .wsup/wsup.py editor
 ```
 
 Add each project to `workspace.json` with a unique ID, existing directory,
