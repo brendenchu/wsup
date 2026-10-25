@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/spf13/pflag"
 )
 
 func TestVersionMatchesPythonBaseline(t *testing.T) {
@@ -28,7 +30,7 @@ func TestHelpVersionAndErrors(t *testing.T) {
 		error  string
 	}{
 		{"help", []string{"--help"}, 0, "Go migration bootstrap", ""},
-		{"empty", nil, 0, "Usage:", ""},
+		{"empty", nil, 2, "", "a command is required"},
 		{"version", []string{"--version"}, 0, Version + "\n", ""},
 		{"unknown command", []string{"unknown"}, 2, "", "unknown command"},
 		{"unknown flag", []string{"--invalid"}, 2, "", "unknown flag"},
@@ -149,6 +151,7 @@ func TestMalformedRegistryNeverProducesSuccessOrEditorOutput(t *testing.T) {
 			if err := os.WriteFile(filepath.Join(root, "workspace.json"), []byte(body), 0600); err != nil {
 				t.Fatal(err)
 			}
+
 			for _, command := range []string{"validate", "projects", "config", "editor"} {
 				var stdout, stderr bytes.Buffer
 				if code := Run([]string{"--root", root, command}, &stdout, &stderr); code != 2 ||
@@ -160,5 +163,74 @@ func TestMalformedRegistryNeverProducesSuccessOrEditorOutput(t *testing.T) {
 				t.Fatalf("malformed registry created editor output: %v", err)
 			}
 		})
+	}
+}
+
+func TestEditorIsRelativeAndPreservesExistingOutput(t *testing.T) {
+	root := t.TempDir()
+	if err := os.Mkdir(filepath.Join(root, "app"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	for name, body := range map[string]string{
+		"app/README.md":  "Synthetic\n",
+		"workspace.json": `{"version":1,"name":"Synthetic","projects":[{"id":"app","path":"app","kind":"app","repository":"independent","purpose":"Fixture","owner":"Test"}]}`,
+	} {
+		if err := os.WriteFile(filepath.Join(root, name), []byte(body), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var stdout, stderr bytes.Buffer
+	if code := Run([]string{"--root", root, "editor"}, &stdout, &stderr); code != 0 {
+		t.Fatalf("exit %d: %s", code, &stderr)
+	}
+	filename := filepath.Join(root, "workspace.code-workspace")
+	original, err := os.ReadFile(filename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var document struct{ Folders []map[string]string }
+	if err := json.Unmarshal(original, &document); err != nil ||
+		len(document.Folders) != 2 || document.Folders[1]["path"] != "app" {
+		t.Fatalf("expected relative project folder: %s %v", original, err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if code := Run([]string{"--root", root, "editor"}, &stdout, &stderr); code != 2 || stdout.Len() != 0 {
+		t.Fatalf("overwrite exit %d: stdout=%q stderr=%q", code, &stdout, &stderr)
+	}
+	current, err := os.ReadFile(filename)
+	if err != nil || !bytes.Equal(original, current) {
+		t.Fatalf("existing output changed: %v", err)
+	}
+}
+
+func TestLongOptionAbbreviations(t *testing.T) {
+	for _, tc := range []struct {
+		args []string
+		code int
+		text string
+	}{
+		{[]string{"--ver"}, 0, Version},
+		{[]string{"--h"}, 0, "Usage:"},
+		{[]string{"guidance", "--h"}, 0, "Usage:"},
+		{[]string{"--ro", t.TempDir(), "guidance"}, 1, "Missing AI.md"},
+	} {
+		var stdout, stderr bytes.Buffer
+		if code := Run(tc.args, &stdout, &stderr); code != tc.code ||
+			!strings.Contains(stdout.String(), tc.text) || stderr.Len() != 0 {
+			t.Fatalf("%v: stdout=%q stderr=%q", tc.args, &stdout, &stderr)
+		}
+	}
+	flags := pflag.NewFlagSet("ambiguity", pflag.ContinueOnError)
+	flags.String("project", "", "")
+	flags.String("profile", "", "")
+	if got := abbreviatedFlag(flags, "pro"); got != "pro" {
+		t.Fatalf("ambiguous prefix resolved to %q", got)
+	}
+	if got := abbreviatedFlag(flags, "proj"); got != "project" {
+		t.Fatalf("unique prefix did not resolve: %q", got)
+	}
+	if got := abbreviatedFlag(flags, "project"); got != "project" {
+		t.Fatalf("exact name changed: %q", got)
 	}
 }

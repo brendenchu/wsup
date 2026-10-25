@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"unicode/utf16"
 
 	"github.com/brendenchu/wsup/internal/catalogue"
@@ -15,6 +16,7 @@ import (
 	"github.com/brendenchu/wsup/internal/guidance"
 	"github.com/brendenchu/wsup/internal/registry"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 // Version mirrors the Python product version until the native-runtime cutover.
@@ -58,10 +60,11 @@ func newCommand() *cobra.Command {
 		TraverseChildren: true,
 		Args:             cobra.NoArgs,
 		RunE: func(command *cobra.Command, args []string) error {
-			return command.Help()
+			return fmt.Errorf("a command is required; use --help")
 		},
 	}
 	root.SetVersionTemplate("{{.Version}}\n")
+	root.SetGlobalNormalizationFunc(abbreviatedFlag)
 	root.CompletionOptions.DisableDefaultCmd = true
 	root.Flags().String("root", ".", "Explicit workspace root (before the command)")
 	for _, name := range []string{"validate", "projects", "config"} {
@@ -92,6 +95,27 @@ func newCommand() *cobra.Command {
 		})
 	}
 	return root
+}
+
+// argparse accepts unambiguous long-option prefixes within the active parser.
+// Resolve against this flag set only so root options cannot follow a command.
+func abbreviatedFlag(flags *pflag.FlagSet, name string) pflag.NormalizedName {
+	var match string
+	count := 0
+	exact := false
+	flags.VisitAll(func(flag *pflag.Flag) {
+		if flag.Name == name {
+			exact = true
+		}
+		if strings.HasPrefix(flag.Name, name) {
+			match = flag.Name
+			count++
+		}
+	})
+	if !exact && count == 1 {
+		return pflag.NormalizedName(match)
+	}
+	return pflag.NormalizedName(name)
 }
 
 func inspectWorkspace(command *cobra.Command, args []string) error {

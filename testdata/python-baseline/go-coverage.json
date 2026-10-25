@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "baseline_commit": "3b709d522ddd1aab38c4442b20cfb22eb1787915",
+  "unlisted_status": "pending",
+  "entries": [
+    {
+      "python": "test_services.py:ServicesTest.test_configuration_precedence_and_sources",
+      "status": "covered",
+      "tests": {"internal/configuration/configuration_test.go": ["TestPrecedenceAndSources"]},
+      "assertions": "Shared/local/environment/CLI timeout precedence and effective source labels.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_unknown_registry_fields_fail",
+      "status": "covered",
+      "tests": {"internal/registry/registry_test.go": ["TestLoadRejectsInvalidContracts"]},
+      "assertions": "Unknown root/project fields reject registry loading.",
+      "remaining": ""
+    },
+    {
+      "python": "test_wsup.py:WsupTest.test_editor_is_relative_and_preserves_existing_output",
+      "status": "covered",
+      "tests": {"internal/cli/cli_test.go": ["TestEditorIsRelativeAndPreservesExistingOutput"]},
+      "assertions": "CLI creates a relative app folder, refuses a second creation with exit 2, and preserves exact existing bytes.",
+      "remaining": ""
+    },
+    {
+      "python": "test_wsup.py:WsupTest.test_dependency_cycle_and_unknown_dependency",
+      "status": "covered",
+      "tests": {"internal/registry/registry_test.go": ["TestLoadRejectsInvalidContracts"]},
+      "assertions": "Self-dependency cycle and unknown dependency reject registry loading.",
+      "remaining": ""
+    },
+    {
+      "python": "test_wsup.py:WsupTest.test_escape_and_symlink_escape_rejected",
+      "status": "covered",
+      "tests": {"internal/registry/registry_test.go": ["TestLoadRejectsInvalidContracts", "TestRelativeTargetRejectsTraversalAndSymlinkEscapes"]},
+      "assertions": "Registry rejects parent escape; shared path validation rejects direct, dangling-suffix, and indirect symlink escapes.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_guidance_detects_broken_local_reference",
+      "status": "covered",
+      "tests": {"internal/guidance/guidance_test.go": ["TestLinksAndSymlinksCannotEscapeOwner", "TestSkillMetadataLinksAndCoexistence"]},
+      "assertions": "Missing and nonlocal references produce guidance errors.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_guidance_inspects_shared_skills_and_reports_legacy_coexistence",
+      "status": "covered",
+      "tests": {"internal/guidance/guidance_test.go": ["TestBundledSharedSkillsAndLegacyCoexistence", "TestLegacyCoexistenceOnlyChecksSharedSkills"]},
+      "assertions": "Extracted bundled starter has twelve valid skills; broken links and invalid names fail; legacy coexistence retains all twelve shared skills.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_guidance_rejects_shared_skill_link_outside_owner",
+      "status": "covered",
+      "tests": {"internal/guidance/guidance_test.go": ["TestBundledSharedSkillsAndLegacyCoexistence", "TestLinksAndSymlinksCannotEscapeOwner"]},
+      "assertions": "Escaping relative link from the nested bundled shared SKILL.md path produces guidance errors; root links and external file symlinks also fail.",
+      "remaining": ""
+    },
+    {
+      "python": "test_layout.py:LayoutTest.test_report_containment_and_symlink_defenses",
+      "status": "covered",
+      "tests": {"internal/configuration/configuration_test.go": ["TestReportContainmentAndSymlinkDefenses", "TestBoundsAndSymlinkedReports"]},
+      "assertions": "Original invalid path matrix and both symlinked .wsup/report roots are rejected; nested report paths remain valid.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_bad_configuration_fails_before_command",
+      "status": "partial",
+      "tests": {"internal/configuration/configuration_test.go": ["TestInvalidConfiguration"]},
+      "assertions": "Invalid setting types, unknown keys, and report escapes reject configuration loading.",
+      "remaining": "Port check execution and prove invalid configuration prevents the marker-writing command from running."
+    },
+    {
+      "python": "test_wsup.py:WsupTest.test_unknown_check_validated_before_any_execution",
+      "status": "partial",
+      "tests": {"internal/registry/registry_test.go": ["TestChecksPreserveLiteralArgsOrderAndNullTimeout"]},
+      "assertions": "Invalid check selection returns an error and no partial selection.",
+      "remaining": "Port check execution and prove no marker is created before an unknown selection is rejected."
+    }
+  ]
+}

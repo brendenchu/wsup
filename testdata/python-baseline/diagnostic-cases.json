@@ -1,0 +1,22 @@
+[
+  {"id":"missing-command","args":[],"argument_error":true},
+  {"id":"missing-root-value","args":["--root"],"explicit_root":true,"argument_error":true},
+  {"id":"missing-registry","args":["validate"],"remove":["workspace.json"]},
+  {"id":"registry-is-directory","args":["validate"],"remove":["workspace.json"],"directories":["workspace.json"]},
+  {"id":"malformed-registry","args":["validate"],"files":{"workspace.json":"{\"version\":"}},
+  {"id":"trailing-json","args":["projects"],"files":{"workspace.json":"{} {}"}},
+  {"id":"invalid-utf8-registry","args":["editor"],"invalid_utf8":["workspace.json"]},
+  {"id":"malformed-shared-config","args":["config"],"files":{"wsup.json":"{\"version\":"}},
+  {"id":"invalid-utf8-local-config","args":["config"],"invalid_utf8":["wsup.local.json"]},
+  {"id":"config-is-directory","args":["config"],"directories":["wsup.json"]},
+  {"id":"missing-project-readme","args":["editor"],"remove":["app/README.md"]},
+  {"id":"missing-root","args":["--root","$ROOT/missing","validate"],"explicit_root":true},
+  {"id":"root-is-file","args":["--root","$ROOT/workspace.json","validate"],"explicit_root":true},
+  {"id":"invalid-timeout-environment","args":["config"],"env":{"WSUP_TIMEOUT_SECONDS":"not-an-integer"}},
+  {"id":"invalid-output-limit-environment","args":["config"],"env":{"WSUP_OUTPUT_LIMIT_BYTES":"0"}},
+  {"id":"unknown-command","args":["not-a-command"],"argument_error":true},
+  {"id":"unknown-option","args":["projects","--not-an-option"],"argument_error":true},
+  {"id":"root-after-command","args":["projects","--root","$ROOT"],"argument_error":true},
+  {"id":"missing-option-value","args":["editor","--output"],"argument_error":true},
+  {"id":"unexpected-positional","args":["validate","unexpected"],"argument_error":true}
+]

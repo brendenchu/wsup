@@ -87,3 +87,28 @@ func TestBoundsAndSymlinkedReports(t *testing.T) {
 		t.Fatalf("symlinked reports: %v", err)
 	}
 }
+
+func TestReportContainmentAndSymlinkDefenses(t *testing.T) {
+	for _, path := range []string{".work/quality", ".wsup/templates", "../reports", ".wsup/reports/../../escape"} {
+		t.Run(path, func(t *testing.T) {
+			root := t.TempDir()
+			write(t, root, "wsup.json", `{"version":1,"settings":{"report_dir":"`+path+`"}}`)
+			if _, err := Load(root, nil, noEnv); err == nil {
+				t.Fatalf("accepted report path %q", path)
+			}
+		})
+	}
+	root := t.TempDir()
+	write(t, root, "wsup.json", `{"version":1,"settings":{"report_dir":".wsup/reports/custom"}}`)
+	config, err := Load(root, nil, noEnv)
+	if err != nil || config.Settings.ReportDir != ".wsup/reports/custom" {
+		t.Fatalf("nested report path: %+v %v", config, err)
+	}
+	outside := t.TempDir()
+	if err := os.Symlink(outside, filepath.Join(root, ".wsup")); err != nil {
+		t.Skipf("symlink creation unavailable: %v", err)
+	}
+	if _, err := Load(root, nil, noEnv); err == nil {
+		t.Fatal("accepted symlinked .wsup root")
+	}
+}

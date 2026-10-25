@@ -1,4 +1,82 @@
 {
+  "option-abbreviations": [
+    {
+      "exit": 0,
+      "stdout": "0.1.0\n",
+      "stderr": "",
+      "writes": {},
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    },
+    {
+      "exit": 0,
+      "stdout": "Valid: Synthetic (1 projects)\n",
+      "stderr": "",
+      "writes": {},
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    },
+    {
+      "exit": 2,
+      "stdout": "",
+      "stderr": "Error: Unknown project\n",
+      "writes": {},
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    },
+    {
+      "exit": 0,
+      "stdout": "Created $ROOT/abbreviated.code-workspace\n",
+      "stderr": "",
+      "writes": {
+        "workspace/abbreviated.code-workspace": {
+          "sha256": "915cd2e53dd9b8668033d7b51b757e24669b7aca8d008bda4f3f768ae03d73d1",
+          "bytes": 152
+        }
+      },
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    },
+    {
+      "exit": 2,
+      "stdout": "",
+      "stderr": "Error: Editor output must be a new file in the workspace root\n",
+      "writes": {},
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/abbreviated.code-workspace",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    }
+  ],
   "guidance-boundaries": [
     {
       "exit": 0,

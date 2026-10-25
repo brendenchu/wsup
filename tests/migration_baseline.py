@@ -87,6 +87,54 @@ def set_field(document, dotted, value=None, delete=False):
         target[key] = value
 
 
+def compare_diagnostics(reference, candidate):
+    """Check approved native wording differences without weakening golden replay."""
+    cases = json.loads((DATA / "diagnostic-cases.json").read_text())
+    seen = set()
+    for case in cases:
+        if case["id"] in seen:
+            raise AssertionError(f"Duplicate diagnostic case: {case['id']}")
+        seen.add(case["id"])
+        with tempfile.TemporaryDirectory(prefix="wsup-diagnostic-") as temporary:
+            base = Path(temporary).resolve()
+            root = base / "workspace"
+            (root / "app").mkdir(parents=True)
+            (root / "app/README.md").write_text("Synthetic\n")
+            (root / "workspace.json").write_text(json.dumps({
+                "version": 1, "name": "Synthetic", "projects": [{
+                    "id": "app", "path": "app", "kind": "app",
+                    "repository": "independent", "purpose": "Fixture", "owner": "Test"}]}))
+            for name in case.get("remove", []):
+                (root / name).unlink()
+            for name in case.get("directories", []):
+                (root / name).mkdir()
+            for name, body in case.get("files", {}).items():
+                (root / name).write_text(body)
+            for name in case.get("invalid_utf8", []):
+                (root / name).write_bytes(b'{"version":1,"name":"\xff","projects":[]}')
+            env = {key: value for key, value in os.environ.items()
+                   if not key.startswith("WSUP_")}
+            env.update(case.get("env", {}))
+            env["PYTHONDONTWRITEBYTECODE"] = "1"
+            args = [arg.replace("$ROOT", str(root)) for arg in case["args"]]
+            if not case.get("explicit_root"):
+                args = ["--root", str(root)] + args
+            before = snapshot(base)
+            for label, command in (("Python", reference), ("Go", candidate)):
+                result = subprocess.run(command + args, cwd=base, env=env,
+                                        capture_output=True, text=True, timeout=20)
+                if (result.returncode != 2 or result.stdout or not result.stderr.strip()
+                        or "Traceback (most recent call last)" in result.stderr):
+                    raise AssertionError(
+                        f"{case['id']} {label}: expected handled exit 2, empty stdout, "
+                        f"and stderr diagnostic; got {result!r}")
+                if not case.get("argument_error") and not result.stderr.startswith("Error: "):
+                    raise AssertionError(f"{case['id']} {label}: missing operational Error prefix")
+                if snapshot(base) != before:
+                    raise AssertionError(f"{case['id']} {label}: failed inspection changed files")
+    return len(cases)
+
+
 def replay(command, compare_read_only=None):
     cases = json.loads((DATA / "cases.json").read_text())["cases"]
     results = {}
@@ -267,6 +315,8 @@ def verify_archives():
             raise AssertionError("Pinned archive command fixtures differ")
         if test_map(source) != json.loads((DATA / "test-map.json").read_text()):
             raise AssertionError("Pinned archive test inventory differs")
+        reference = [sys.executable, "-B", str(source / "src/wsup.py")]
+        compare_diagnostics(reference, reference)
         histories = json.loads((DATA / "generated-workspaces.json").read_text())
         for name, record in histories.items():
             target = base / name
@@ -394,6 +444,9 @@ def main():
                                              f"{[key for key in want if want[key] != got[key]]}")
             raise AssertionError("Fixture inventory differs")
         print(f"Passed {sum(map(len, actual.values()))} command steps in {len(actual)} scenarios.")
+        if args.compare_read_only:
+            count = compare_diagnostics(command, args.compare_read_only)
+            print(f"Passed {count} diagnostic failure contracts (native wording allowed).")
 
 
 if __name__ == "__main__":

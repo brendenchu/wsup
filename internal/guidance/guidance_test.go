@@ -1,10 +1,13 @@
 package guidance
 
 import (
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/brendenchu/wsup/internal/catalogue"
 )
 
 func put(t *testing.T, root, name, body string) {
@@ -134,5 +137,58 @@ func TestSymlinkScanRootButNotDescendant(t *testing.T) {
 	if err != nil || len(result.Errors) != 0 ||
 		strings.Join(result.Files, ",") != "AI.md,guidance/rules/index.md" {
 		t.Fatalf("symlink traversal differs from rglob: %+v %v", result, err)
+	}
+}
+
+func TestBundledSharedSkillsAndLegacyCoexistence(t *testing.T) {
+	root := t.TempDir()
+	assets, err := catalogue.Open()
+	if err != nil {
+		t.Fatal(err)
+	}
+	starter, err := fs.Sub(assets, "workspace")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = fs.WalkDir(starter, ".", func(name string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return err
+		}
+		body, err := fs.ReadFile(starter, name)
+		if err != nil {
+			return err
+		}
+		put(t, root, name, string(body))
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := Inspect(root)
+	if err != nil || len(result.Errors) != 0 || len(result.Skills) != 12 {
+		t.Fatalf("bundled starter: %+v %v", result, err)
+	}
+	name := ".agents/skills/workspace-check/SKILL.md"
+	body, err := os.ReadFile(filepath.Join(root, name))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, text := range []string{
+		string(body) + "\n[missing](missing.md)\n",
+		strings.Replace(string(body), "name: workspace-check", "name: wrong-name", 1),
+		string(body) + "\n[outside](../../../../workspace.json)\n",
+	} {
+		put(t, root, name, text)
+		result, err = Inspect(root)
+		if err != nil || len(result.Errors) == 0 {
+			t.Fatalf("invalid shared skill accepted: %+v %v", result, err)
+		}
+	}
+	put(t, root, name, string(body))
+	put(t, root, ".ai/skills/workspace-check/SKILL.md", string(body))
+	result, err = Inspect(root)
+	if err != nil || len(result.Skills) != 12 || len(result.Errors) != 1 ||
+		!strings.Contains(result.Errors[0], "Legacy skills") {
+		t.Fatalf("legacy coexistence lost shared skills: %+v %v", result, err)
 	}
 }

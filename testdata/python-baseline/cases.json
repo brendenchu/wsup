@@ -2,6 +2,16 @@
   "version": 1,
   "cases": [
     {
+      "id": "option-abbreviations",
+      "steps": [
+        {"args": ["--ver"]},
+        {"args": ["--ro", "$ROOT", "validate"], "root": false},
+        {"args": ["guidance", "--pro", "missing"]},
+        {"args": ["editor", "--out", "abbreviated.code-workspace"]},
+        {"args": ["editor", "--out", "abbreviated.code-workspace"]}
+      ]
+    },
+    {
       "id": "guidance-boundaries",
       "steps": [
         {"args": ["guidance"], "files": {"AI.md": "Local\n", "guidance/rules/index.md": "Rules\n", ".agents/skills/example/SKILL.md": "---\nname: example\ndescription: Example: with colon\n---\nBody\n"}},

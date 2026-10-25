@@ -8,6 +8,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- Preserve Python CLI long-option abbreviations and missing-command errors in
+  the Go port. Native parser/runtime diagnostic wording may differ while failure
+  exits, output roles, and no-write behavior remain compatible.
 - Go guidance findings use deterministic lexical error ordering, preserving
   duplicates, instead of Python's filesystem traversal order. Metadata and
   scan-root symlink handling retain the Python inspection contract.

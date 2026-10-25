@@ -12,7 +12,18 @@ fixtures, not private workspace captures or proof of other-platform support.
 - `expected.json`: captured exit status, stdout/stderr, file/directory writes,
   removed paths, preserved paths, and sanitized report evidence for every step.
 - `test-map.json`: all 65 original Python test identifiers, behavior labels, and
-  intended Go package/test targets. Every Go target is **pending**, not covered.
+  intended Go package/test targets. This frozen inventory retains its original
+  **pending** statuses; current progress is recorded separately.
+- `go-coverage.json`: reviewed Go assertion mappings for original contracts,
+  distinguishing covered, partial, and unlisted/pending. Each mapping names
+  existing Go tests and any remaining assertions. A Python test checks reference
+  integrity; run Go tests separately to execute the assertions. Coverage here
+  means the stated behavioral contract, not identical internal implementation.
+- `diagnostic-cases.json`: malformed input, missing/non-file paths, environment
+  errors, and argument failures for the approved native diagnostic policy.
+  Unlike golden output, parser/runtime wording may differ; both runtimes must
+  fail with exit 2, empty stdout, a handled stderr diagnostic, and no writes.
+  Operational failures require the `Error: ` prefix; tracebacks are forbidden.
 - `safety-contracts.json`: executable-reference test names and explicit setup,
   stimulus, and acceptance assertions for process cleanup, concurrent-state and
   write failures, migrations, omissions, collections, ownership, and reports.
@@ -42,6 +53,7 @@ the exact recorded Git commits into temporary directories and verifies:
   and guidance, and further workspace generation.
 - All 65 original tests in the isolated checkpoint, requiring zero skips.
 - The additional black-box safety probes against that isolated checkpoint.
+- The diagnostic failure matrix against the isolated checkpoint.
 
 It requires Git, the recorded objects locally, and a POSIX environment with
 symlink support. Neither command changes expectations or real workspaces.
@@ -63,7 +75,8 @@ python3 -B tests/migration_baseline.py --compare-read-only /absolute/path/to/wsu
 ```
 
 The subset comparison checks stdout, stderr, exits, no-write inspections, and exact
-editor bytes/overwrite protection. It does not substitute Go for unported commands
+editor bytes/overwrite protection, followed by 20 diagnostic failure contracts.
+It does not substitute Go for unported commands
 or certify full parity. The synthetic check commands deliberately require
 Python; they test running an application tool, not a dependency of the Go CLI.
 The original Python tests remain the executable reference for internal failure
@@ -91,6 +104,10 @@ python3 -B tests/test_migration_safety.py --source /path/to/extracted/python-bas
   error ordering: Go sorts errors lexically and preserves duplicates. The subset
   comparison sorts only Python's expected guidance errors; Go's actual order
   must match. Frozen Python expectations retain their original order.
+- Native parser/runtime wording is separately approved. Only the explicit
+  diagnostic matrix uses failure-shape assertions instead of byte equality;
+  golden validation messages still compare exactly. This does not approve
+  different accepted inputs or successful behavior.
 
 The current cases cover every command, version output, settings precedence and
 invalid input, literal check arguments, failure continuation, report findings,
@@ -99,7 +116,7 @@ editor overwrite protection, root resolution, workspace/project initialization,
 collection preview/apply/collisions, update conflicts/keep, missing files,
 manifest traversal, and symlink escapes/destinations.
 
-The 66-step golden replay across twelve scenarios is not a replacement for all 65
+The 71-step golden replay across thirteen scenarios is not a replacement for all 65
 original tests. The Unicode editor scenario compares exact ASCII-escaped bytes,
 including non-BMP characters, and preserves multiple guidance findings in order.
 Guidance boundary scenarios cover colons in descriptions, carriage-return line
@@ -113,8 +130,8 @@ in-process injection or specialized probes rather than ordinary JSON fixtures.
 Archive verification executes the original concurrency/I/O-failure, Git staging,
 legacy migration, omission, and guidance tests. Supplemental black-box probes
 verify real Ctrl-C with a descendant, retained pipes after immediate-parent exit,
-and omitted-home persistence/independent child generation. Go mappings remain
-pending until their Go assertions run. Help text is not frozen: Go help formatting
+and omitted-home persistence/independent child generation. Current Go mapping
+progress is in `go-coverage.json`; unlisted contracts remain pending. Help text is not frozen: Go help formatting
 may differ, but help must be useful and truthful.
 Native installation/state changes and generated-runtime asset differences are
 intentional-change candidates, not silently ignored comparisons.
