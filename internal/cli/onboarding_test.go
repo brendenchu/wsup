@@ -30,7 +30,6 @@ func TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles(t *test
 		"workbench/.local/note", "apps/example/workbench/.local/note",
 		".work/note", "apps/example/.work/note", ".wsup/reports/check.json",
 		"wsup.local.json", ".env", ".env.local", "apps/example/.env",
-		"__pycache__/module.pyc", "tools/__pycache__/module.pyc",
 		".DS_Store", "apps/example/.DS_Store", "nested/.work/log",
 	}
 	trackable := []string{

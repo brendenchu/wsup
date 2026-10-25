@@ -7,5 +7,4 @@ wsup.local.json
 .env
 .env.*
 !.env.example
-**/__pycache__/
 .DS_Store
