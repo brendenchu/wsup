@@ -1,0 +1,1193 @@
+{
+  "v0.1.0": {
+    "commit": "b30b8675901b9146afe82165dfb612483334fb04",
+    "files": {
+      ".agents/": {
+        "directory": true
+      },
+      ".agents/skills/": {
+        "directory": true
+      },
+      ".agents/skills/ai-guidance-maintenance/": {
+        "directory": true
+      },
+      ".agents/skills/ai-guidance-maintenance/SKILL.md": {
+        "sha256": "89780f382b3471bfc33892b307a28c9f44207c5ab46347cb5cf66dbaa554cc34",
+        "bytes": 2229
+      },
+      ".agents/skills/commit-message/": {
+        "directory": true
+      },
+      ".agents/skills/commit-message/SKILL.md": {
+        "sha256": "83db51e7afe15bdb1b16b537259bf70277039ec7a7af58bf6e0139f1daa488fa",
+        "bytes": 1070
+      },
+      ".agents/skills/diagnose-issue/": {
+        "directory": true
+      },
+      ".agents/skills/diagnose-issue/SKILL.md": {
+        "sha256": "aec6a9690941bf8f7ec25d2431cce90296a9388de3e2626e6f72aa89c969b2d9",
+        "bytes": 1384
+      },
+      ".agents/skills/infer-conventions/": {
+        "directory": true
+      },
+      ".agents/skills/infer-conventions/SKILL.md": {
+        "sha256": "faad3be652b15e190778fe5e3e2970e64df6ee8788747573bfc3d66c0b812eb3",
+        "bytes": 1301
+      },
+      ".agents/skills/plan-work/": {
+        "directory": true
+      },
+      ".agents/skills/plan-work/SKILL.md": {
+        "sha256": "5122b435416b54bdb02c2ab2d46edf056a8067a8093641041428444386fa096e",
+        "bytes": 1315
+      },
+      ".agents/skills/project-onboarding/": {
+        "directory": true
+      },
+      ".agents/skills/project-onboarding/SKILL.md": {
+        "sha256": "02ec16caef52c0a05b1457115e9cdf6731bb98644b71168ee5cdb743c40ed398",
+        "bytes": 2132
+      },
+      ".agents/skills/recap-work/": {
+        "directory": true
+      },
+      ".agents/skills/recap-work/SKILL.md": {
+        "sha256": "da449b16ca1da138395a8694aa7d5828eba768fa6256223af849f35b2ac6f743",
+        "bytes": 947
+      },
+      ".agents/skills/registry-checks/": {
+        "directory": true
+      },
+      ".agents/skills/registry-checks/SKILL.md": {
+        "sha256": "6df5e01faef73b60023b73ecda53356ebeb734580f6502a4c9318041903cc924",
+        "bytes": 2043
+      },
+      ".agents/skills/repository-change/": {
+        "directory": true
+      },
+      ".agents/skills/repository-change/SKILL.md": {
+        "sha256": "bccb68bef172702739e7bc9b9d83b9f4815d3b08154c3a2d1bb1ea1014ba2d61",
+        "bytes": 1229
+      },
+      ".agents/skills/review-change/": {
+        "directory": true
+      },
+      ".agents/skills/review-change/SKILL.md": {
+        "sha256": "140b4364257c1f7eb533b0d98c184b0796a468f8ba718bbd972ede5adf276271",
+        "bytes": 1212
+      },
+      ".agents/skills/template-lifecycle/": {
+        "directory": true
+      },
+      ".agents/skills/template-lifecycle/SKILL.md": {
+        "sha256": "cefd2a5065ca0bc7dd60b825f247c4cc5f150097d8c53575621717812f21d086",
+        "bytes": 2271
+      },
+      ".agents/skills/workspace-check/": {
+        "directory": true
+      },
+      ".agents/skills/workspace-check/SKILL.md": {
+        "sha256": "b4fd412f1c45ee5898ea887a2bc2174cd1e426c9bea8b71c1bfe1ab29fb8af77",
+        "bytes": 1069
+      },
+      ".ai/": {
+        "directory": true
+      },
+      ".ai/rules/": {
+        "directory": true
+      },
+      ".ai/rules/boundaries.md": {
+        "sha256": "4da771aa420efcddffa8cebf97cbbbf0dbf5517e4a0f1f3d7832675f52be95e0",
+        "bytes": 833
+      },
+      ".ai/rules/changes.md": {
+        "sha256": "bc3a2b53fbec86cac997eb187dd7a02c164d55ed83b2bb9d0020e49400397540",
+        "bytes": 941
+      },
+      ".ai/rules/documentation.md": {
+        "sha256": "c4a0a29ba63bfcef7eb25ffca13281ed66bdfa26c1327b4d4178b454048d990d",
+        "bytes": 979
+      },
+      ".ai/rules/evidence.md": {
+        "sha256": "b956c7fed385f482bb6747c6505becd6297d2e1c5c402c3a7cc7df7832d7196a",
+        "bytes": 801
+      },
+      ".ai/rules/index.md": {
+        "sha256": "4338123d1e879d7fef081d2839e76cc6ddfb9525089389deca79928ff028625b",
+        "bytes": 2162
+      },
+      ".ai/rules/interfaces.md": {
+        "sha256": "013b84c644d0c16b687dbe03aa7b65fd50fa9bcfc55749e11335a16ed3905b03",
+        "bytes": 871
+      },
+      ".ai/rules/journaling.md": {
+        "sha256": "95d93f0aa21ed46b4e046c6b0c993cd4603f80e6778ef68a526451cf58edccc6",
+        "bytes": 865
+      },
+      ".ai/rules/verification.md": {
+        "sha256": "e8ab894309bde541d0383262b837f06af934a5d5eda282e576025c4162a5248f",
+        "bytes": 854
+      },
+      ".gitignore": {
+        "sha256": "a7a68971b763122eb5a648979f64c4d324f53e8d4f7bf06a049bcf0b8b90414d",
+        "bytes": 176
+      },
+      ".wsup/": {
+        "directory": true
+      },
+      ".wsup/template-state.json": {
+        "sha256": "8b78fc3f4339b38913c00a5623c498dd8aaf9622d397b7a5271c2cf66ebc33cb",
+        "bytes": 13050
+      },
+      "AGENTS.md": {
+        "sha256": "cc1767ea0c804857cd73f4220eb09f1f99fcf59ea136f17ba17f1874180b10ff",
+        "bytes": 156
+      },
+      "AI.md": {
+        "sha256": "da4bd30a1e61872167bbc300a74339d70ef5cd9b7010601db602747b1d2f27f9",
+        "bytes": 1253
+      },
+      "README.md": {
+        "sha256": "e421116cd026850f01dc3e5dd0fc6f7755311497ddcbca692f3a2744ea6d2951",
+        "bytes": 3601
+      },
+      "WSUP-LICENSE": {
+        "sha256": "7a156d8ef118b977e14b60350712c0ed06d6220bba4a64ff00c4dfa523899197",
+        "bytes": 1068
+      },
+      "apps/": {
+        "directory": true
+      },
+      "apps/README.md": {
+        "sha256": "b66fde8b6a2d3e6adf57065d3b9605944f563fa3ec8748aee40163c213fe2050",
+        "bytes": 188
+      },
+      "docs/": {
+        "directory": true
+      },
+      "docs/README.md": {
+        "sha256": "83a69912a562cfce50ebfcbe91652eb2d98612a406b245e9040e26a533496af1",
+        "bytes": 300
+      },
+      "docs/workspace-model.md": {
+        "sha256": "f7aee7e3c0e971681e9099642cabf4b5282c803c1df35736ff107b0a69b8b3b0",
+        "bytes": 7937
+      },
+      "infrastructure/": {
+        "directory": true
+      },
+      "infrastructure/README.md": {
+        "sha256": "b14f3c2a0cb5039a9d32817faa2441985a94047704250b26bb830a7e3b94e97a",
+        "bytes": 219
+      },
+      "journal/": {
+        "directory": true
+      },
+      "journal/README.md": {
+        "sha256": "a89049f2416154f2aef40434f51cc861e6ad6d2cafdbcb6a798946771384a1ff",
+        "bytes": 489
+      },
+      "journal/TEMPLATE.md": {
+        "sha256": "09f1404cf895691f1e48673bb10b1ab9917ada2cc3b7a431f7057adcaf6be7ec",
+        "bytes": 364
+      },
+      "packages/": {
+        "directory": true
+      },
+      "packages/README.md": {
+        "sha256": "8b729a412c14b88eb8333f1e6edd850cc073b47676e2c4a572a6f10d7dbcae15",
+        "bytes": 211
+      },
+      "research/": {
+        "directory": true
+      },
+      "research/README.md": {
+        "sha256": "fc8e52f493b2be99cf5f709842f668246d1267893aa9ccebcc4b8950d922889c",
+        "bytes": 210
+      },
+      "templates/": {
+        "directory": true
+      },
+      "templates/project/": {
+        "directory": true
+      },
+      "templates/project/.ai/": {
+        "directory": true
+      },
+      "templates/project/.ai/rules/": {
+        "directory": true
+      },
+      "templates/project/.ai/rules/boundaries.md": {
+        "sha256": "de695a05d5c0bcd0e68faa4e162aae3d5dce3eeebc88a07be7f58a2d45666f7d",
+        "bytes": 917
+      },
+      "templates/project/.ai/rules/changes.md": {
+        "sha256": "bc3a2b53fbec86cac997eb187dd7a02c164d55ed83b2bb9d0020e49400397540",
+        "bytes": 941
+      },
+      "templates/project/.ai/rules/documentation.md": {
+        "sha256": "c4a0a29ba63bfcef7eb25ffca13281ed66bdfa26c1327b4d4178b454048d990d",
+        "bytes": 979
+      },
+      "templates/project/.ai/rules/index.md": {
+        "sha256": "efe819002b400a264846f615eceeace40e5589269604d552d665062f671413c9",
+        "bytes": 455
+      },
+      "templates/project/.ai/rules/interfaces.md": {
+        "sha256": "013b84c644d0c16b687dbe03aa7b65fd50fa9bcfc55749e11335a16ed3905b03",
+        "bytes": 871
+      },
+      "templates/project/.ai/rules/verification.md": {
+        "sha256": "e8ab894309bde541d0383262b837f06af934a5d5eda282e576025c4162a5248f",
+        "bytes": 854
+      },
+      "templates/project/.gitignore": {
+        "sha256": "78272c391857f84d3a14befe57f89de552137884a53c34dfb5eaec7ee6615ca0",
+        "bytes": 75
+      },
+      "templates/project/AGENTS.md": {
+        "sha256": "cc1767ea0c804857cd73f4220eb09f1f99fcf59ea136f17ba17f1874180b10ff",
+        "bytes": 156
+      },
+      "templates/project/AI.md": {
+        "sha256": "c887d6c9784d96ad7032826b4bfba6aa387a8b062c595451d80bab52e9042b9c",
+        "bytes": 573
+      },
+      "templates/project/README.md": {
+        "sha256": "f0f8ac5fd1bc41143c04deeff64e51305b1449aa804d18df1d540a30d6045c70",
+        "bytes": 756
+      },
+      "templates/project/WSUP-LICENSE": {
+        "sha256": "7a156d8ef118b977e14b60350712c0ed06d6220bba4a64ff00c4dfa523899197",
+        "bytes": 1068
+      },
+      "tools/": {
+        "directory": true
+      },
+      "tools/wsup.py": {
+        "sha256": "cfb79fbd433139498140f40897763ef35f6c6d4ad6a5838be3bcd03c99040b64",
+        "bytes": 389
+      },
+      "tools/wsup_core/": {
+        "directory": true
+      },
+      "tools/wsup_core/__init__.py": {
+        "sha256": "f5f6529c9f616433736424d3aa75940e4a22d83e6ed1b860d86d794638ef759e",
+        "bytes": 73
+      },
+      "tools/wsup_core/cli.py": {
+        "sha256": "6bee97398f17e4e132f5be4a49eb5e5ee7eab52821a592d768363177755c4b52",
+        "bytes": 6129
+      },
+      "tools/wsup_core/configuration.py": {
+        "sha256": "35543ac78986d741b612eb55eb2cf9bab44beb34160db90b92ab809ccbc3e9b6",
+        "bytes": 2139
+      },
+      "tools/wsup_core/execution.py": {
+        "sha256": "a21f2d0ec3c2612769c8730ed7ce069696f7a6cd6c37daecfaa7bf3143f9d66d",
+        "bytes": 2823
+      },
+      "tools/wsup_core/guidance.py": {
+        "sha256": "7c513779df32be476aa6dce8b980fa50e1affed1c42fba572cf5d9db306227b4",
+        "bytes": 2565
+      },
+      "tools/wsup_core/registry.py": {
+        "sha256": "6a52eaf9fd70cd1227a444774554e4457dfa6893a95443d03fa4bcd6b48db909",
+        "bytes": 5934
+      },
+      "tools/wsup_core/reporting.py": {
+        "sha256": "c1dd7907b5ab5c4416cfc2d6a49ce2e87e8225c37fd26ccf3d5e2ddbcd825fca",
+        "bytes": 2577
+      },
+      "tools/wsup_core/scaffolding.py": {
+        "sha256": "faf444c2d2884be0e0931b6ca62fe3dfd61fc737cfe91191670f2cdeeed10f68",
+        "bytes": 8972
+      },
+      "tools/wsup_templates/": {
+        "directory": true
+      },
+      "tools/wsup_templates/project/": {
+        "directory": true
+      },
+      "tools/wsup_templates/project/.ai/": {
+        "directory": true
+      },
+      "tools/wsup_templates/project/.ai/rules/": {
+        "directory": true
+      },
+      "tools/wsup_templates/project/.ai/rules/boundaries.md": {
+        "sha256": "de695a05d5c0bcd0e68faa4e162aae3d5dce3eeebc88a07be7f58a2d45666f7d",
+        "bytes": 917
+      },
+      "tools/wsup_templates/project/.ai/rules/changes.md": {
+        "sha256": "bc3a2b53fbec86cac997eb187dd7a02c164d55ed83b2bb9d0020e49400397540",
+        "bytes": 941
+      },
+      "tools/wsup_templates/project/.ai/rules/documentation.md": {
+        "sha256": "c4a0a29ba63bfcef7eb25ffca13281ed66bdfa26c1327b4d4178b454048d990d",
+        "bytes": 979
+      },
+      "tools/wsup_templates/project/.ai/rules/index.md": {
+        "sha256": "efe819002b400a264846f615eceeace40e5589269604d552d665062f671413c9",
+        "bytes": 455
+      },
+      "tools/wsup_templates/project/.ai/rules/interfaces.md": {
+        "sha256": "013b84c644d0c16b687dbe03aa7b65fd50fa9bcfc55749e11335a16ed3905b03",
+        "bytes": 871
+      },
+      "tools/wsup_templates/project/.ai/rules/verification.md": {
+        "sha256": "e8ab894309bde541d0383262b837f06af934a5d5eda282e576025c4162a5248f",
+        "bytes": 854
+      },
+      "tools/wsup_templates/project/.gitignore": {
+        "sha256": "78272c391857f84d3a14befe57f89de552137884a53c34dfb5eaec7ee6615ca0",
+        "bytes": 75
+      },
+      "tools/wsup_templates/project/AGENTS.md": {
+        "sha256": "cc1767ea0c804857cd73f4220eb09f1f99fcf59ea136f17ba17f1874180b10ff",
+        "bytes": 156
+      },
+      "tools/wsup_templates/project/AI.md": {
+        "sha256": "c887d6c9784d96ad7032826b4bfba6aa387a8b062c595451d80bab52e9042b9c",
+        "bytes": 573
+      },
+      "tools/wsup_templates/project/README.md": {
+        "sha256": "f0f8ac5fd1bc41143c04deeff64e51305b1449aa804d18df1d540a30d6045c70",
+        "bytes": 756
+      },
+      "tools/wsup_templates/project/WSUP-LICENSE": {
+        "sha256": "7a156d8ef118b977e14b60350712c0ed06d6220bba4a64ff00c4dfa523899197",
+        "bytes": 1068
+      },
+      "tools/wsup_templates/workspace/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/ai-guidance-maintenance/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/ai-guidance-maintenance/SKILL.md": {
+        "sha256": "89780f382b3471bfc33892b307a28c9f44207c5ab46347cb5cf66dbaa554cc34",
+        "bytes": 2229
+      },
+      "tools/wsup_templates/workspace/.agents/skills/commit-message/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/commit-message/SKILL.md": {
+        "sha256": "83db51e7afe15bdb1b16b537259bf70277039ec7a7af58bf6e0139f1daa488fa",
+        "bytes": 1070
+      },
+      "tools/wsup_templates/workspace/.agents/skills/diagnose-issue/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/diagnose-issue/SKILL.md": {
+        "sha256": "aec6a9690941bf8f7ec25d2431cce90296a9388de3e2626e6f72aa89c969b2d9",
+        "bytes": 1384
+      },
+      "tools/wsup_templates/workspace/.agents/skills/infer-conventions/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/infer-conventions/SKILL.md": {
+        "sha256": "faad3be652b15e190778fe5e3e2970e64df6ee8788747573bfc3d66c0b812eb3",
+        "bytes": 1301
+      },
+      "tools/wsup_templates/workspace/.agents/skills/plan-work/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/plan-work/SKILL.md": {
+        "sha256": "5122b435416b54bdb02c2ab2d46edf056a8067a8093641041428444386fa096e",
+        "bytes": 1315
+      },
+      "tools/wsup_templates/workspace/.agents/skills/project-onboarding/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/project-onboarding/SKILL.md": {
+        "sha256": "02ec16caef52c0a05b1457115e9cdf6731bb98644b71168ee5cdb743c40ed398",
+        "bytes": 2132
+      },
+      "tools/wsup_templates/workspace/.agents/skills/recap-work/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/recap-work/SKILL.md": {
+        "sha256": "da449b16ca1da138395a8694aa7d5828eba768fa6256223af849f35b2ac6f743",
+        "bytes": 947
+      },
+      "tools/wsup_templates/workspace/.agents/skills/registry-checks/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/registry-checks/SKILL.md": {
+        "sha256": "6df5e01faef73b60023b73ecda53356ebeb734580f6502a4c9318041903cc924",
+        "bytes": 2043
+      },
+      "tools/wsup_templates/workspace/.agents/skills/repository-change/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/repository-change/SKILL.md": {
+        "sha256": "bccb68bef172702739e7bc9b9d83b9f4815d3b08154c3a2d1bb1ea1014ba2d61",
+        "bytes": 1229
+      },
+      "tools/wsup_templates/workspace/.agents/skills/review-change/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/review-change/SKILL.md": {
+        "sha256": "140b4364257c1f7eb533b0d98c184b0796a468f8ba718bbd972ede5adf276271",
+        "bytes": 1212
+      },
+      "tools/wsup_templates/workspace/.agents/skills/template-lifecycle/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/template-lifecycle/SKILL.md": {
+        "sha256": "cefd2a5065ca0bc7dd60b825f247c4cc5f150097d8c53575621717812f21d086",
+        "bytes": 2271
+      },
+      "tools/wsup_templates/workspace/.agents/skills/workspace-check/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.agents/skills/workspace-check/SKILL.md": {
+        "sha256": "b4fd412f1c45ee5898ea887a2bc2174cd1e426c9bea8b71c1bfe1ab29fb8af77",
+        "bytes": 1069
+      },
+      "tools/wsup_templates/workspace/.ai/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.ai/rules/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/.ai/rules/boundaries.md": {
+        "sha256": "4da771aa420efcddffa8cebf97cbbbf0dbf5517e4a0f1f3d7832675f52be95e0",
+        "bytes": 833
+      },
+      "tools/wsup_templates/workspace/.ai/rules/changes.md": {
+        "sha256": "bc3a2b53fbec86cac997eb187dd7a02c164d55ed83b2bb9d0020e49400397540",
+        "bytes": 941
+      },
+      "tools/wsup_templates/workspace/.ai/rules/documentation.md": {
+        "sha256": "c4a0a29ba63bfcef7eb25ffca13281ed66bdfa26c1327b4d4178b454048d990d",
+        "bytes": 979
+      },
+      "tools/wsup_templates/workspace/.ai/rules/evidence.md": {
+        "sha256": "b956c7fed385f482bb6747c6505becd6297d2e1c5c402c3a7cc7df7832d7196a",
+        "bytes": 801
+      },
+      "tools/wsup_templates/workspace/.ai/rules/index.md": {
+        "sha256": "4338123d1e879d7fef081d2839e76cc6ddfb9525089389deca79928ff028625b",
+        "bytes": 2162
+      },
+      "tools/wsup_templates/workspace/.ai/rules/interfaces.md": {
+        "sha256": "013b84c644d0c16b687dbe03aa7b65fd50fa9bcfc55749e11335a16ed3905b03",
+        "bytes": 871
+      },
+      "tools/wsup_templates/workspace/.ai/rules/journaling.md": {
+        "sha256": "95d93f0aa21ed46b4e046c6b0c993cd4603f80e6778ef68a526451cf58edccc6",
+        "bytes": 865
+      },
+      "tools/wsup_templates/workspace/.ai/rules/verification.md": {
+        "sha256": "e8ab894309bde541d0383262b837f06af934a5d5eda282e576025c4162a5248f",
+        "bytes": 854
+      },
+      "tools/wsup_templates/workspace/.gitignore": {
+        "sha256": "a7a68971b763122eb5a648979f64c4d324f53e8d4f7bf06a049bcf0b8b90414d",
+        "bytes": 176
+      },
+      "tools/wsup_templates/workspace/AGENTS.md": {
+        "sha256": "cc1767ea0c804857cd73f4220eb09f1f99fcf59ea136f17ba17f1874180b10ff",
+        "bytes": 156
+      },
+      "tools/wsup_templates/workspace/AI.md": {
+        "sha256": "da4bd30a1e61872167bbc300a74339d70ef5cd9b7010601db602747b1d2f27f9",
+        "bytes": 1253
+      },
+      "tools/wsup_templates/workspace/README.md": {
+        "sha256": "e421116cd026850f01dc3e5dd0fc6f7755311497ddcbca692f3a2744ea6d2951",
+        "bytes": 3601
+      },
+      "tools/wsup_templates/workspace/WSUP-LICENSE": {
+        "sha256": "7a156d8ef118b977e14b60350712c0ed06d6220bba4a64ff00c4dfa523899197",
+        "bytes": 1068
+      },
+      "tools/wsup_templates/workspace/apps/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/apps/README.md": {
+        "sha256": "b66fde8b6a2d3e6adf57065d3b9605944f563fa3ec8748aee40163c213fe2050",
+        "bytes": 188
+      },
+      "tools/wsup_templates/workspace/docs/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/docs/README.md": {
+        "sha256": "83a69912a562cfce50ebfcbe91652eb2d98612a406b245e9040e26a533496af1",
+        "bytes": 300
+      },
+      "tools/wsup_templates/workspace/docs/workspace-model.md": {
+        "sha256": "f7aee7e3c0e971681e9099642cabf4b5282c803c1df35736ff107b0a69b8b3b0",
+        "bytes": 7937
+      },
+      "tools/wsup_templates/workspace/infrastructure/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/infrastructure/README.md": {
+        "sha256": "b14f3c2a0cb5039a9d32817faa2441985a94047704250b26bb830a7e3b94e97a",
+        "bytes": 219
+      },
+      "tools/wsup_templates/workspace/journal/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/journal/README.md": {
+        "sha256": "a89049f2416154f2aef40434f51cc861e6ad6d2cafdbcb6a798946771384a1ff",
+        "bytes": 489
+      },
+      "tools/wsup_templates/workspace/journal/TEMPLATE.md": {
+        "sha256": "09f1404cf895691f1e48673bb10b1ab9917ada2cc3b7a431f7057adcaf6be7ec",
+        "bytes": 364
+      },
+      "tools/wsup_templates/workspace/packages/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/packages/README.md": {
+        "sha256": "8b729a412c14b88eb8333f1e6edd850cc073b47676e2c4a572a6f10d7dbcae15",
+        "bytes": 211
+      },
+      "tools/wsup_templates/workspace/research/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/research/README.md": {
+        "sha256": "fc8e52f493b2be99cf5f709842f668246d1267893aa9ccebcc4b8950d922889c",
+        "bytes": 210
+      },
+      "tools/wsup_templates/workspace/templates/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/templates/project/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/templates/project/.ai/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/templates/project/.ai/rules/": {
+        "directory": true
+      },
+      "tools/wsup_templates/workspace/templates/project/.ai/rules/boundaries.md": {
+        "sha256": "de695a05d5c0bcd0e68faa4e162aae3d5dce3eeebc88a07be7f58a2d45666f7d",
+        "bytes": 917
+      },
+      "tools/wsup_templates/workspace/templates/project/.ai/rules/changes.md": {
+        "sha256": "bc3a2b53fbec86cac997eb187dd7a02c164d55ed83b2bb9d0020e49400397540",
+        "bytes": 941
+      },
+      "tools/wsup_templates/workspace/templates/project/.ai/rules/documentation.md": {
+        "sha256": "c4a0a29ba63bfcef7eb25ffca13281ed66bdfa26c1327b4d4178b454048d990d",
+        "bytes": 979
+      },
+      "tools/wsup_templates/workspace/templates/project/.ai/rules/index.md": {
+        "sha256": "efe819002b400a264846f615eceeace40e5589269604d552d665062f671413c9",
+        "bytes": 455
+      },
+      "tools/wsup_templates/workspace/templates/project/.ai/rules/interfaces.md": {
+        "sha256": "013b84c644d0c16b687dbe03aa7b65fd50fa9bcfc55749e11335a16ed3905b03",
+        "bytes": 871
+      },
+      "tools/wsup_templates/workspace/templates/project/.ai/rules/verification.md": {
+        "sha256": "e8ab894309bde541d0383262b837f06af934a5d5eda282e576025c4162a5248f",
+        "bytes": 854
+      },
+      "tools/wsup_templates/workspace/templates/project/.gitignore": {
+        "sha256": "78272c391857f84d3a14befe57f89de552137884a53c34dfb5eaec7ee6615ca0",
+        "bytes": 75
+      },
+      "tools/wsup_templates/workspace/templates/project/AGENTS.md": {
+        "sha256": "cc1767ea0c804857cd73f4220eb09f1f99fcf59ea136f17ba17f1874180b10ff",
+        "bytes": 156
+      },
+      "tools/wsup_templates/workspace/templates/project/AI.md": {
+        "sha256": "c887d6c9784d96ad7032826b4bfba6aa387a8b062c595451d80bab52e9042b9c",
+        "bytes": 573
+      },
+      "tools/wsup_templates/workspace/templates/project/README.md": {
+        "sha256": "f0f8ac5fd1bc41143c04deeff64e51305b1449aa804d18df1d540a30d6045c70",
+        "bytes": 756
+      },
+      "tools/wsup_templates/workspace/templates/project/WSUP-LICENSE": {
+        "sha256": "7a156d8ef118b977e14b60350712c0ed06d6220bba4a64ff00c4dfa523899197",
+        "bytes": 1068
+      },
+      "tools/wsup_templates/workspace/workspace.json": {
+        "sha256": "e95219885d52e9bf0d980e42180448084793a2893dc1512d6f19aea41b350a7b",
+        "bytes": 63
+      },
+      "workspace.json": {
+        "sha256": "e95219885d52e9bf0d980e42180448084793a2893dc1512d6f19aea41b350a7b",
+        "bytes": 63
+      }
+    }
+  },
+  "python-baseline": {
+    "commit": "3b709d522ddd1aab38c4442b20cfb22eb1787915",
+    "files": {
+      ".agents/": {
+        "directory": true
+      },
+      ".agents/skills/": {
+        "directory": true
+      },
+      ".agents/skills/ai-guidance-maintenance/": {
+        "directory": true
+      },
+      ".agents/skills/ai-guidance-maintenance/SKILL.md": {
+        "sha256": "3ecff40f5a0b85eafd5b0e38b84030fe1fa66a7e54dcbb2a55607725826a72ee",
+        "bytes": 2539
+      },
+      ".agents/skills/commit-message/": {
+        "directory": true
+      },
+      ".agents/skills/commit-message/SKILL.md": {
+        "sha256": "83db51e7afe15bdb1b16b537259bf70277039ec7a7af58bf6e0139f1daa488fa",
+        "bytes": 1070
+      },
+      ".agents/skills/diagnose-issue/": {
+        "directory": true
+      },
+      ".agents/skills/diagnose-issue/SKILL.md": {
+        "sha256": "aec6a9690941bf8f7ec25d2431cce90296a9388de3e2626e6f72aa89c969b2d9",
+        "bytes": 1384
+      },
+      ".agents/skills/infer-conventions/": {
+        "directory": true
+      },
+      ".agents/skills/infer-conventions/SKILL.md": {
+        "sha256": "faad3be652b15e190778fe5e3e2970e64df6ee8788747573bfc3d66c0b812eb3",
+        "bytes": 1301
+      },
+      ".agents/skills/plan-work/": {
+        "directory": true
+      },
+      ".agents/skills/plan-work/SKILL.md": {
+        "sha256": "5122b435416b54bdb02c2ab2d46edf056a8067a8093641041428444386fa096e",
+        "bytes": 1315
+      },
+      ".agents/skills/project-onboarding/": {
+        "directory": true
+      },
+      ".agents/skills/project-onboarding/SKILL.md": {
+        "sha256": "919173444c4ccaed57034d04789ccdad1133f17287f6f61414bb7d4d19209932",
+        "bytes": 2435
+      },
+      ".agents/skills/recap-work/": {
+        "directory": true
+      },
+      ".agents/skills/recap-work/SKILL.md": {
+        "sha256": "b685a2bbf684e12a650b7454124b8e2e85ceb1aac76ed1cce9c8f1598f2ea01a",
+        "bytes": 1158
+      },
+      ".agents/skills/registry-checks/": {
+        "directory": true
+      },
+      ".agents/skills/registry-checks/SKILL.md": {
+        "sha256": "75df3e1bbf1e902dd771e0907eb6a44f487a6c8ba3423d5d4a3e948236a55327",
+        "bytes": 2202
+      },
+      ".agents/skills/repository-change/": {
+        "directory": true
+      },
+      ".agents/skills/repository-change/SKILL.md": {
+        "sha256": "bccb68bef172702739e7bc9b9d83b9f4815d3b08154c3a2d1bb1ea1014ba2d61",
+        "bytes": 1229
+      },
+      ".agents/skills/review-change/": {
+        "directory": true
+      },
+      ".agents/skills/review-change/SKILL.md": {
+        "sha256": "140b4364257c1f7eb533b0d98c184b0796a468f8ba718bbd972ede5adf276271",
+        "bytes": 1212
+      },
+      ".agents/skills/template-lifecycle/": {
+        "directory": true
+      },
+      ".agents/skills/template-lifecycle/SKILL.md": {
+        "sha256": "402a6118caa1bad3fe9b4d4b76979602ea65f58135af3489ff4e7ca4a1f60fa2",
+        "bytes": 2509
+      },
+      ".agents/skills/workspace-check/": {
+        "directory": true
+      },
+      ".agents/skills/workspace-check/SKILL.md": {
+        "sha256": "86e17814892c5e6db0348603e5f5af7d6c946994fdc1dcb3a6264d2f935d2ca5",
+        "bytes": 1220
+      },
+      ".gitignore": {
+        "sha256": "230e5608dc26348a4b566e1e272e8e04dbede8c59c833e01f0fbb186a55fc324",
+        "bytes": 240
+      },
+      ".wsup/": {
+        "directory": true
+      },
+      ".wsup/template-state.json": {
+        "sha256": "5afaacf2b145dd46c62fb76b55c11c9a892c97567f859d28a6beb96c0bb138d6",
+        "bytes": 10920
+      },
+      ".wsup/templates/": {
+        "directory": true
+      },
+      ".wsup/templates/collections/": {
+        "directory": true
+      },
+      ".wsup/templates/collections/archive/": {
+        "directory": true
+      },
+      ".wsup/templates/collections/archive/README.md": {
+        "sha256": "890845913f22c26e0c31cb376ad3458bd9df40b35e3e521912b25a4a71f13670",
+        "bytes": 339
+      },
+      ".wsup/templates/collections/artifacts/": {
+        "directory": true
+      },
+      ".wsup/templates/collections/artifacts/README.md": {
+        "sha256": "71fc9226b541749879b072c85c1bb8ed14e9441b3a717f06b35ee3c762d3b2e3",
+        "bytes": 330
+      },
+      ".wsup/templates/collections/journal/": {
+        "directory": true
+      },
+      ".wsup/templates/collections/journal/README.md": {
+        "sha256": "f9c45fa6c4aa42c93ab7e0d5e0167d87819992f742c2992fd4205f92ce16ca2b",
+        "bytes": 221
+      },
+      ".wsup/templates/collections/journal/TEMPLATE.md": {
+        "sha256": "5e29bfb1d3aa6c1f3cda5a1d67fefa08fbc8f42d0f68632e516b8a0e8ad1cef0",
+        "bytes": 364
+      },
+      ".wsup/templates/collections/learning/": {
+        "directory": true
+      },
+      ".wsup/templates/collections/learning/README.md": {
+        "sha256": "1ea0dc027d90ec4a06e869491a3e306e07e7368bcabfd43ea12448ab1b7b9ada",
+        "bytes": 180
+      },
+      ".wsup/templates/collections/private/": {
+        "directory": true
+      },
+      ".wsup/templates/collections/private/README.md": {
+        "sha256": "b39fe247aa9c5c5c5405ea12df633aba7a83e4a636ef9e01759bbf516d775dc3",
+        "bytes": 549
+      },
+      ".wsup/templates/collections/reference/": {
+        "directory": true
+      },
+      ".wsup/templates/collections/reference/README.md": {
+        "sha256": "700beb9a59fdaa280ccfea98579e54cc36c64c8380fd4a344ab73db16c7ca7c2",
+        "bytes": 212
+      },
+      ".wsup/templates/collections/research/": {
+        "directory": true
+      },
+      ".wsup/templates/collections/research/README.md": {
+        "sha256": "5029625575f97098dfb5ead85b13366ec9082b93f5d5fbf267b3189df5f2ad74",
+        "bytes": 231
+      },
+      ".wsup/templates/project/": {
+        "directory": true
+      },
+      ".wsup/templates/project/.gitignore": {
+        "sha256": "63b16619c2f3c6b7b65c68c0b0a435e4722efeda0d9a189af63b79f7659a2547",
+        "bytes": 139
+      },
+      ".wsup/templates/project/AGENTS.md": {
+        "sha256": "cc1767ea0c804857cd73f4220eb09f1f99fcf59ea136f17ba17f1874180b10ff",
+        "bytes": 156
+      },
+      ".wsup/templates/project/AI.md": {
+        "sha256": "5e9e7acb90c9f384fbf682dfb89d209236ed438e8584f20ffa7caf7fda9e7ca2",
+        "bytes": 626
+      },
+      ".wsup/templates/project/README.md": {
+        "sha256": "c1a794d7bd015ae5eebe44509b7b320a491459afc949af146467ee5ce148e9e5",
+        "bytes": 1618
+      },
+      ".wsup/templates/project/WSUP-LICENSE": {
+        "sha256": "7a156d8ef118b977e14b60350712c0ed06d6220bba4a64ff00c4dfa523899197",
+        "bytes": 1068
+      },
+      ".wsup/templates/project/guidance/": {
+        "directory": true
+      },
+      ".wsup/templates/project/guidance/rules/": {
+        "directory": true
+      },
+      ".wsup/templates/project/guidance/rules/boundaries.md": {
+        "sha256": "0dcc2a3bd04bd729711b006fd035114070f65bc2857d43c58ed87ebcb0d6e343",
+        "bytes": 1145
+      },
+      ".wsup/templates/project/guidance/rules/changes.md": {
+        "sha256": "bc3a2b53fbec86cac997eb187dd7a02c164d55ed83b2bb9d0020e49400397540",
+        "bytes": 941
+      },
+      ".wsup/templates/project/guidance/rules/documentation.md": {
+        "sha256": "3918fd96b428ac683c9298fdfb7f095c54ce1c04a81dbf7ae3843890ac4ad3a4",
+        "bytes": 1531
+      },
+      ".wsup/templates/project/guidance/rules/index.md": {
+        "sha256": "efe819002b400a264846f615eceeace40e5589269604d552d665062f671413c9",
+        "bytes": 455
+      },
+      ".wsup/templates/project/guidance/rules/interfaces.md": {
+        "sha256": "013b84c644d0c16b687dbe03aa7b65fd50fa9bcfc55749e11335a16ed3905b03",
+        "bytes": 871
+      },
+      ".wsup/templates/project/guidance/rules/verification.md": {
+        "sha256": "e8ab894309bde541d0383262b837f06af934a5d5eda282e576025c4162a5248f",
+        "bytes": 854
+      },
+      ".wsup/templates/workspace/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/ai-guidance-maintenance/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/ai-guidance-maintenance/SKILL.md": {
+        "sha256": "3ecff40f5a0b85eafd5b0e38b84030fe1fa66a7e54dcbb2a55607725826a72ee",
+        "bytes": 2539
+      },
+      ".wsup/templates/workspace/.agents/skills/commit-message/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/commit-message/SKILL.md": {
+        "sha256": "83db51e7afe15bdb1b16b537259bf70277039ec7a7af58bf6e0139f1daa488fa",
+        "bytes": 1070
+      },
+      ".wsup/templates/workspace/.agents/skills/diagnose-issue/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/diagnose-issue/SKILL.md": {
+        "sha256": "aec6a9690941bf8f7ec25d2431cce90296a9388de3e2626e6f72aa89c969b2d9",
+        "bytes": 1384
+      },
+      ".wsup/templates/workspace/.agents/skills/infer-conventions/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/infer-conventions/SKILL.md": {
+        "sha256": "faad3be652b15e190778fe5e3e2970e64df6ee8788747573bfc3d66c0b812eb3",
+        "bytes": 1301
+      },
+      ".wsup/templates/workspace/.agents/skills/plan-work/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/plan-work/SKILL.md": {
+        "sha256": "5122b435416b54bdb02c2ab2d46edf056a8067a8093641041428444386fa096e",
+        "bytes": 1315
+      },
+      ".wsup/templates/workspace/.agents/skills/project-onboarding/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/project-onboarding/SKILL.md": {
+        "sha256": "919173444c4ccaed57034d04789ccdad1133f17287f6f61414bb7d4d19209932",
+        "bytes": 2435
+      },
+      ".wsup/templates/workspace/.agents/skills/recap-work/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/recap-work/SKILL.md": {
+        "sha256": "b685a2bbf684e12a650b7454124b8e2e85ceb1aac76ed1cce9c8f1598f2ea01a",
+        "bytes": 1158
+      },
+      ".wsup/templates/workspace/.agents/skills/registry-checks/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/registry-checks/SKILL.md": {
+        "sha256": "75df3e1bbf1e902dd771e0907eb6a44f487a6c8ba3423d5d4a3e948236a55327",
+        "bytes": 2202
+      },
+      ".wsup/templates/workspace/.agents/skills/repository-change/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/repository-change/SKILL.md": {
+        "sha256": "bccb68bef172702739e7bc9b9d83b9f4815d3b08154c3a2d1bb1ea1014ba2d61",
+        "bytes": 1229
+      },
+      ".wsup/templates/workspace/.agents/skills/review-change/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/review-change/SKILL.md": {
+        "sha256": "140b4364257c1f7eb533b0d98c184b0796a468f8ba718bbd972ede5adf276271",
+        "bytes": 1212
+      },
+      ".wsup/templates/workspace/.agents/skills/template-lifecycle/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/template-lifecycle/SKILL.md": {
+        "sha256": "402a6118caa1bad3fe9b4d4b76979602ea65f58135af3489ff4e7ca4a1f60fa2",
+        "bytes": 2509
+      },
+      ".wsup/templates/workspace/.agents/skills/workspace-check/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/.agents/skills/workspace-check/SKILL.md": {
+        "sha256": "86e17814892c5e6db0348603e5f5af7d6c946994fdc1dcb3a6264d2f935d2ca5",
+        "bytes": 1220
+      },
+      ".wsup/templates/workspace/.gitignore": {
+        "sha256": "230e5608dc26348a4b566e1e272e8e04dbede8c59c833e01f0fbb186a55fc324",
+        "bytes": 240
+      },
+      ".wsup/templates/workspace/AGENTS.md": {
+        "sha256": "cc1767ea0c804857cd73f4220eb09f1f99fcf59ea136f17ba17f1874180b10ff",
+        "bytes": 156
+      },
+      ".wsup/templates/workspace/AI.md": {
+        "sha256": "6c4ef666e414ddaf9e23d549695076ef413f659eaa4f76384b535ec10fc12648",
+        "bytes": 1572
+      },
+      ".wsup/templates/workspace/README.md": {
+        "sha256": "244726cb3c9eb9c4e492493dfba21286ed0d0f60a44a2e86b87c49c1f8bf1ba0",
+        "bytes": 7296
+      },
+      ".wsup/templates/workspace/WSUP-LICENSE": {
+        "sha256": "7a156d8ef118b977e14b60350712c0ed06d6220bba4a64ff00c4dfa523899197",
+        "bytes": 1068
+      },
+      ".wsup/templates/workspace/apps/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/apps/.gitkeep": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      ".wsup/templates/workspace/docs/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/docs/README.md": {
+        "sha256": "c7743e936b1698025baeb9a24b40e7feeea89865270dc680b936b0189c3a1330",
+        "bytes": 1513
+      },
+      ".wsup/templates/workspace/docs/workspace-model.md": {
+        "sha256": "f97a60238a60638593cd7dfb4c60c33ce66d62194f88f45abd2e50d052650a60",
+        "bytes": 25843
+      },
+      ".wsup/templates/workspace/guidance/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/guidance/rules/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/guidance/rules/boundaries.md": {
+        "sha256": "b6f370ede8d300794f2fd62591bbbb79cf17ae7f5c22c36d2f436637bf7869a2",
+        "bytes": 1526
+      },
+      ".wsup/templates/workspace/guidance/rules/changes.md": {
+        "sha256": "bc3a2b53fbec86cac997eb187dd7a02c164d55ed83b2bb9d0020e49400397540",
+        "bytes": 941
+      },
+      ".wsup/templates/workspace/guidance/rules/documentation.md": {
+        "sha256": "bce7e04c29b247cc8635b0a03c92b63960ed0a15db06f6a31ede0f3f529bd693",
+        "bytes": 1560
+      },
+      ".wsup/templates/workspace/guidance/rules/evidence.md": {
+        "sha256": "ba02386e677e81b7706f0c0df07b2ea0e61b25c5a05e4ec75e1a310c78b41d01",
+        "bytes": 812
+      },
+      ".wsup/templates/workspace/guidance/rules/index.md": {
+        "sha256": "40f890b5282ca2bf362a4d5d18ba93c6e8f02a15df01178666b536ee48751d88",
+        "bytes": 2223
+      },
+      ".wsup/templates/workspace/guidance/rules/interfaces.md": {
+        "sha256": "013b84c644d0c16b687dbe03aa7b65fd50fa9bcfc55749e11335a16ed3905b03",
+        "bytes": 871
+      },
+      ".wsup/templates/workspace/guidance/rules/journaling.md": {
+        "sha256": "aab84e7ef0c0ec740ff985785afdf90c1bf7c03230b6421e60c5e35fa4f06c7f",
+        "bytes": 959
+      },
+      ".wsup/templates/workspace/guidance/rules/verification.md": {
+        "sha256": "e8ab894309bde541d0383262b837f06af934a5d5eda282e576025c4162a5248f",
+        "bytes": 854
+      },
+      ".wsup/templates/workspace/infrastructure/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/infrastructure/.gitkeep": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      ".wsup/templates/workspace/packages/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/packages/README.md": {
+        "sha256": "53ebfb29bd79db1994c4e8f467500e26d0b52b65721abf1ef352cfa534f38063",
+        "bytes": 250
+      },
+      ".wsup/templates/workspace/tools/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/tools/README.md": {
+        "sha256": "5b40a7fe5d0ba3af2747aa43b9bea49bb3c1dd8097d5b4a9c8f4c7686a214f71",
+        "bytes": 197
+      },
+      ".wsup/templates/workspace/workbench/": {
+        "directory": true
+      },
+      ".wsup/templates/workspace/workbench/README.md": {
+        "sha256": "0a5a9802450fdad70aeb0ca55f0916189b829b64f89d62eca323ca2498a13ce3",
+        "bytes": 481
+      },
+      ".wsup/templates/workspace/workspace.json": {
+        "sha256": "e95219885d52e9bf0d980e42180448084793a2893dc1512d6f19aea41b350a7b",
+        "bytes": 63
+      },
+      ".wsup/wsup.py": {
+        "sha256": "37ed11be461c0b611fb22e6470dd2994a63a6c4b5ca64354b4eba027b39e9870",
+        "bytes": 375
+      },
+      ".wsup/wsup_core/": {
+        "directory": true
+      },
+      ".wsup/wsup_core/__init__.py": {
+        "sha256": "f5f6529c9f616433736424d3aa75940e4a22d83e6ed1b860d86d794638ef759e",
+        "bytes": 73
+      },
+      ".wsup/wsup_core/cli.py": {
+        "sha256": "00bc63a817870d1222fc848406c871c0c7457d40526894f30dbc9920b0fc7fd8",
+        "bytes": 7085
+      },
+      ".wsup/wsup_core/configuration.py": {
+        "sha256": "51c6bcff5e62ffe015a48c6591f481b73535f8bcc8bcec60ac156797c8c8c5a1",
+        "bytes": 2213
+      },
+      ".wsup/wsup_core/execution.py": {
+        "sha256": "a21f2d0ec3c2612769c8730ed7ce069696f7a6cd6c37daecfaa7bf3143f9d66d",
+        "bytes": 2823
+      },
+      ".wsup/wsup_core/guidance.py": {
+        "sha256": "52a32eb64f66a8836a47955c7756c04c4925b16a3a41d2c422d823560d27fd09",
+        "bytes": 2710
+      },
+      ".wsup/wsup_core/registry.py": {
+        "sha256": "6a52eaf9fd70cd1227a444774554e4457dfa6893a95443d03fa4bcd6b48db909",
+        "bytes": 5934
+      },
+      ".wsup/wsup_core/reporting.py": {
+        "sha256": "c1dd7907b5ab5c4416cfc2d6a49ce2e87e8225c37fd26ccf3d5e2ddbcd825fca",
+        "bytes": 2577
+      },
+      ".wsup/wsup_core/scaffolding.py": {
+        "sha256": "14f43094dd0190f083c08206bdc6dfecad56a714dbec21a623a75a76ec7eaf69",
+        "bytes": 16762
+      },
+      "AGENTS.md": {
+        "sha256": "cc1767ea0c804857cd73f4220eb09f1f99fcf59ea136f17ba17f1874180b10ff",
+        "bytes": 156
+      },
+      "AI.md": {
+        "sha256": "6c4ef666e414ddaf9e23d549695076ef413f659eaa4f76384b535ec10fc12648",
+        "bytes": 1572
+      },
+      "README.md": {
+        "sha256": "244726cb3c9eb9c4e492493dfba21286ed0d0f60a44a2e86b87c49c1f8bf1ba0",
+        "bytes": 7296
+      },
+      "WSUP-LICENSE": {
+        "sha256": "7a156d8ef118b977e14b60350712c0ed06d6220bba4a64ff00c4dfa523899197",
+        "bytes": 1068
+      },
+      "apps/": {
+        "directory": true
+      },
+      "apps/.gitkeep": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "docs/": {
+        "directory": true
+      },
+      "docs/README.md": {
+        "sha256": "c7743e936b1698025baeb9a24b40e7feeea89865270dc680b936b0189c3a1330",
+        "bytes": 1513
+      },
+      "docs/workspace-model.md": {
+        "sha256": "f97a60238a60638593cd7dfb4c60c33ce66d62194f88f45abd2e50d052650a60",
+        "bytes": 25843
+      },
+      "guidance/": {
+        "directory": true
+      },
+      "guidance/rules/": {
+        "directory": true
+      },
+      "guidance/rules/boundaries.md": {
+        "sha256": "b6f370ede8d300794f2fd62591bbbb79cf17ae7f5c22c36d2f436637bf7869a2",
+        "bytes": 1526
+      },
+      "guidance/rules/changes.md": {
+        "sha256": "bc3a2b53fbec86cac997eb187dd7a02c164d55ed83b2bb9d0020e49400397540",
+        "bytes": 941
+      },
+      "guidance/rules/documentation.md": {
+        "sha256": "bce7e04c29b247cc8635b0a03c92b63960ed0a15db06f6a31ede0f3f529bd693",
+        "bytes": 1560
+      },
+      "guidance/rules/evidence.md": {
+        "sha256": "ba02386e677e81b7706f0c0df07b2ea0e61b25c5a05e4ec75e1a310c78b41d01",
+        "bytes": 812
+      },
+      "guidance/rules/index.md": {
+        "sha256": "40f890b5282ca2bf362a4d5d18ba93c6e8f02a15df01178666b536ee48751d88",
+        "bytes": 2223
+      },
+      "guidance/rules/interfaces.md": {
+        "sha256": "013b84c644d0c16b687dbe03aa7b65fd50fa9bcfc55749e11335a16ed3905b03",
+        "bytes": 871
+      },
+      "guidance/rules/journaling.md": {
+        "sha256": "aab84e7ef0c0ec740ff985785afdf90c1bf7c03230b6421e60c5e35fa4f06c7f",
+        "bytes": 959
+      },
+      "guidance/rules/verification.md": {
+        "sha256": "e8ab894309bde541d0383262b837f06af934a5d5eda282e576025c4162a5248f",
+        "bytes": 854
+      },
+      "infrastructure/": {
+        "directory": true
+      },
+      "infrastructure/.gitkeep": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "packages/": {
+        "directory": true
+      },
+      "packages/README.md": {
+        "sha256": "53ebfb29bd79db1994c4e8f467500e26d0b52b65721abf1ef352cfa534f38063",
+        "bytes": 250
+      },
+      "tools/": {
+        "directory": true
+      },
+      "tools/README.md": {
+        "sha256": "5b40a7fe5d0ba3af2747aa43b9bea49bb3c1dd8097d5b4a9c8f4c7686a214f71",
+        "bytes": 197
+      },
+      "workbench/": {
+        "directory": true
+      },
+      "workbench/README.md": {
+        "sha256": "0a5a9802450fdad70aeb0ca55f0916189b829b64f89d62eca323ca2498a13ce3",
+        "bytes": 481
+      },
+      "workspace.json": {
+        "sha256": "e95219885d52e9bf0d980e42180448084793a2893dc1512d6f19aea41b350a7b",
+        "bytes": 63
+      }
+    }
+  }
+}

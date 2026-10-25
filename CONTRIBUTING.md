@@ -62,6 +62,12 @@ For a focused test run, use the existing unittest runner:
 python3 -B -m unittest discover -s tests -p 'test_services.py'
 ```
 
+The [Python migration contracts](testdata/python-baseline/README.md) preserve
+synthetic command behavior and inventories from the immutable checkpoint.
+Normal tests replay committed expectations; they never recapture them.
+Run `python3 -B tests/migration_baseline.py --verify-archives` to verify their
+provenance against the recorded Git commits before using them for the Go port.
+
 The configured suite covers standalone generation and update safety. Check
 reports are local under ignored `.wsup/reports/`; keep development notes and
 disposable artifacts in ignored `workbench/.local/`. Use temporary destinations outside

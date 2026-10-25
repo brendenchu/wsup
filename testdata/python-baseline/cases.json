@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "registry-and-editor",
+      "steps": [
+        {"args": ["--version"]},
+        {"args": ["validate"]},
+        {"args": ["projects"]},
+        {"args": ["config"]},
+        {"args": ["editor"]},
+        {"args": ["editor"]},
+        {"args": ["editor", "--output", "../escape"]},
+        {"args": ["guidance", "--project", "missing"]},
+        {"args": ["check", "--project", "app"]},
+        {"args": ["validate"], "set": {"projects.0.typo": true}},
+        {"args": ["validate"], "delete": ["projects.0.typo"], "set": {"projects.0.dependencies": ["app"]}},
+        {"args": ["validate"], "set": {"projects.0.dependencies": ["missing"]}},
+        {"args": ["validate"], "set": {"projects.0.dependencies": [], "projects.0.path": "../outside"}},
+        {"args": ["validate"], "symlinks": {"outside": "."}, "set": {"projects.0.path": "outside"}}
+      ]
+    },
+    {
+      "id": "settings-precedence",
+      "steps": [
+        {"args": ["config"], "files": {"wsup.json": "{\"version\":1,\"settings\":{\"timeout_seconds\":20}}"}},
+        {"args": ["config"], "files": {"wsup.local.json": "{\"version\":1,\"settings\":{\"timeout_seconds\":30}}"}},
+        {"args": ["config"], "env": {"WSUP_TIMEOUT_SECONDS": "40"}},
+        {"args": ["config"], "files": {"wsup.local.json": "{\"version\":1,\"settings\":{\"timeout_seconds\":false}}"}},
+        {"args": ["config"], "files": {"wsup.local.json": "{\"version\":1,\"settings\":{\"report_dir\":\"../outside\"}}"}},
+        {"args": ["config"], "files": {"wsup.local.json": "{\"version\":1,\"settings\":{\"unknown\":1}}"}}
+      ]
+    },
+    {
+      "id": "check-execution",
+      "steps": [
+        {
+          "args": ["check", "--project", "app", "--show-output"],
+          "set": {"projects.0.checks": {
+            "fail": ["{python}", "-c", "raise SystemExit(7)"],
+            "record": ["{python}", "-c", "import json,sys;open('result.json','w').write(json.dumps(sys.argv[1:]));print('SYNTHETIC-CANARY')", "$(touch unsafe)", "", "space value"]
+          }}
+        },
+        {"args": ["check", "--project", "app", "--check", "record", "--check", "missing"]},
+        {
+          "args": ["check", "--project", "app"],
+          "set": {"projects.0.checks": {"advisory": {"command": ["{python}", "-c", "raise SystemExit(1)"], "mode": "report"}}}
+        },
+        {
+          "args": ["check", "--project", "app"],
+          "set": {"projects.0.checks": {"skip": {"command": ["unused"], "enabled": false, "reason": "Synthetic disabled check"}}}
+        },
+        {
+          "args": ["check", "--project", "app"],
+          "set": {"projects.0.checks": {"missing": {"command": ["./nonexistent-wsup-fixture-command"], "mode": "report"}}}
+        },
+        {
+          "args": ["check", "--project", "app", "--show-output"],
+          "files": {"wsup.local.json": "{\"version\":1,\"settings\":{\"output_limit_bytes\":8}}"},
+          "set": {"projects.0.checks": {"overflow": ["{python}", "-c", "import sys;sys.stdout.write('x'*200000);sys.stderr.write('y'*200000)"]}}
+        },
+        {
+          "args": ["check", "--project", "app", "--timeout", "1"],
+          "set": {"projects.0.checks": {"timeout": ["{python}", "-c", "import time;time.sleep(5)"]}}
+        }
+      ]
+    },
+    {
+      "id": "guidance-errors",
+      "steps": [
+        {"args": ["guidance"]},
+        {"args": ["guidance"], "files": {"AI.md": "[missing](missing.md)\n", "guidance/rules/index.md": "Synthetic rules\n"}},
+        {"args": ["guidance"], "files": {".agents/skills/example/SKILL.md": "---\nname: wrong-name\ndescription: Synthetic\n---\nBody\n"}}
+      ]
+    },
+    {
+      "id": "workspace-lifecycle",
+      "generated": true,
+      "steps": [
+        {"args": ["init", "$ROOT"]},
+        {"args": ["validate"]},
+        {"args": ["guidance"]},
+        {"args": ["collections"]},
+        {"args": ["collections", "--add", "archive"]},
+        {"args": ["collections", "--add", "archive", "--apply"]},
+        {"args": ["collections", "--add", "archive", "--apply"]},
+        {"args": ["update"]},
+        {"args": ["update", "--apply"]},
+        {"args": ["update"], "files": {"README.md": "Owner customization\n"}},
+        {"args": ["update", "--apply"]},
+        {"args": ["update", "--apply", "--keep", "README.md"]},
+        {"args": ["collections", "--add", "artifacts", "--add", "private", "--apply"], "files": {"private/README.md": "Unmanaged private scaffold\n"}},
+        {"args": ["init", "$ROOT"]}
+      ]
+    },
+    {
+      "id": "project-lifecycle",
+      "generated": true,
+      "steps": [
+        {"args": ["init", "$ROOT", "--template", "project"]},
+        {"args": ["guidance"]},
+        {"args": ["update"]},
+        {"args": ["collections", "--add", "archive", "--apply"]}
+      ]
+    },
+    {
+      "id": "missing-and-invalid-state",
+      "generated": true,
+      "steps": [
+        {"args": ["init", "$ROOT"]},
+        {"args": ["update", "--apply"], "remove": ["AI.md"]},
+        {"args": ["update", "--apply"], "document": ".wsup/template-state.json", "set": {"files": {"../escape": "invalid"}}}
+      ]
+    },
+    {
+      "id": "symlinked-scaffold",
+      "generated": true,
+      "steps": [
+        {"args": ["init", "$ROOT"]},
+        {"args": ["collections", "--add", "archive", "--apply"], "symlinks": {"archive": "."}}
+      ]
+    },
+    {
+      "id": "explicit-root",
+      "steps": [
+        {"args": ["validate"], "root": false},
+        {"args": ["validate"]},
+        {"args": ["init", "relative-project", "--template", "project"]},
+        {"args": ["update"], "root": false}
+      ]
+    }
+  ]
+}
