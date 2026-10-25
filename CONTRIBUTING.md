@@ -17,6 +17,9 @@ and setup.
 
 ## Making a change
 
+- Edit authoritative implementation and templates in `src/`, not generated
+  `.wsup/` output. Preview `python3 -B src/wsup.py update` to refresh the local
+  installation; preserve source-specific docs with explicit `--keep` decisions.
 - Inspect the implementation, callers, and tests before editing.
 - Keep behavior changes focused and add regression coverage for observable
   behavior. Update directly related documentation.
@@ -25,7 +28,7 @@ and setup.
   Never write upward workspace relationships into descendant documentation or
   make local guidance depend on context outside its root.
 - Root `guidance/rules/` and `.agents/skills/` are canonical. Keep their
-  corresponding copies under `.wsup/templates/workspace/` synchronized.
+  corresponding copies under `src/templates/workspace/` synchronized.
   Development guidance routes to local rules, not the distribution catalogue.
 - Keep durable documentation with its owning project, use one canonical copy,
   and link rather than duplicate. Visible `workbench/` drafts may be tracked
@@ -42,9 +45,9 @@ and setup.
 From this repository's root, run:
 
 ```sh
-python3 -B .wsup/wsup.py validate
-python3 -B .wsup/wsup.py guidance
-python3 -B .wsup/wsup.py check --project wsup --show-output
+python3 -B src/wsup.py validate
+python3 -B src/wsup.py guidance
+python3 -B src/wsup.py check --project wsup --show-output
 git diff --check
 ```
 

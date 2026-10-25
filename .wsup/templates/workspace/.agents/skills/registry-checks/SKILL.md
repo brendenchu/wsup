@@ -31,5 +31,5 @@ Complete when registry validation passes and the affected checks or effective
 settings have been verified. Report skipped executions and unresolved tool
 requirements; a valid registry alone does not prove a check works.
 
-Commands use the same `.wsup/wsup.py` entry point in development and generated
-workspaces. Run them from the owning workspace root.
+Commands above target generated workspaces. In the WSUP development checkout,
+use `src/wsup.py` instead. Run commands from the owning workspace root.

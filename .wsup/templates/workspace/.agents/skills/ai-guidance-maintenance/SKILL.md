@@ -36,5 +36,5 @@ Complete when the procedure is reachable from its owner, structural checks pass,
 and portable copies match where applicable. State whether client loading was
 tested; file presence alone does not establish invocation.
 
-Commands use the same `.wsup/wsup.py` entry point in development and generated
-workspaces. Run them from the owning workspace root.
+Commands above target generated workspaces. In the WSUP development checkout,
+use `src/wsup.py` instead. Run commands from the owning workspace root.

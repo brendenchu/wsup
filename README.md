@@ -29,16 +29,16 @@ WSUP compatibility does not extend upstream Python security maintenance.
 Run these from this directory:
 
 ```sh
-python3 -B .wsup/wsup.py validate
-python3 -B .wsup/wsup.py projects
-python3 -B .wsup/wsup.py check --project wsup
+python3 -B src/wsup.py validate
+python3 -B src/wsup.py projects
+python3 -B src/wsup.py check --project wsup
 ```
 
 Create a workspace or a project starter at a new path:
 
 ```sh
-python3 -B .wsup/wsup.py init /path/to/workspace
-python3 -B .wsup/wsup.py init /path/to/project --template project
+python3 -B src/wsup.py init /path/to/workspace
+python3 -B src/wsup.py init /path/to/project --template project
 ```
 
 `init` never overwrites an existing destination. A workspace starter includes
@@ -51,7 +51,7 @@ collections selected explicitly; see the workspace layout below.
 
 ## Use the CLI
 
-Run `python3 -B .wsup/wsup.py --help` for command options. The main commands:
+Run `python3 -B src/wsup.py --help` for command options. The main commands:
 
 | Command | Purpose |
 | --- | --- |
@@ -99,9 +99,9 @@ required instructions.
 Select optional collections during initialization, or add them later:
 
 ```sh
-python3 -B .wsup/wsup.py init /path/to/workspace --collection archive --collection artifacts
-python3 -B .wsup/wsup.py --root /path/to/workspace collections --add private
-python3 -B .wsup/wsup.py --root /path/to/workspace collections --add private --apply
+python3 -B src/wsup.py init /path/to/workspace --collection archive --collection artifacts
+python3 -B src/wsup.py --root /path/to/workspace collections --add private
+python3 -B src/wsup.py --root /path/to/workspace collections --add private --apply
 ```
 
 Each collection creates a purpose-and-boundaries README; journal also includes
@@ -129,30 +129,35 @@ for setup and existing-file precautions.
 
 ## This development checkout
 
-The source root uses the same six development homes and `.wsup/` layout as
-generated workspaces. The implementation and catalogue here are authoritative
-product sources, not a separately refreshed installation:
+The source root separates product development from generated installation output:
 
 | Directory | Role here |
 | --- | --- |
-| [apps](apps/), [packages](packages/), [infrastructure](infrastructure/) | Baseline homes, currently without projects or services. Their READMEs explain the boundaries; no example projects are required. |
-| [tools](tools/) | Baseline home for developer-tool projects, currently without separate projects. |
 | [docs](docs/) | Maintained WSUP product and contributor documentation. |
 | [workbench](workbench/) | Reviewed human-authored development drafts, separate from maintained docs and disposable local notes. |
-| [.wsup](.wsup/) | Authoritative CLI implementation, template catalogue, managed-file state, and ignored check reports. |
+| [src](src/) | Authoritative CLI implementation and template catalogue. |
+| [.wsup](.wsup/) | Generated workspace installation, managed-file state, and ignored check reports. Refresh from source; do not hand-edit generated runtime or catalogue files. |
 | [tests](tests/) | CLI and starter regression tests. |
 
 The registry describes this repository as one WSUP tool project. Guidance and
-portable skills live at the root. Edit runtime code in `.wsup/wsup_core/` and
-starters in `.wsup/templates/`; do not create a second copy under visible
-project homes. Use ignored `workbench/.local/` for session logs and disposable investigations.
+portable skills live at the root. Edit runtime code in `src/wsup_core/` and
+starters in `src/templates/`. Refresh generated installation output with
+`python3 -B src/wsup.py update`, reviewing conflicts and explicitly keeping
+source-specific documentation before applying. Never overwrite customizations
+merely to refresh the runtime. Use ignored `workbench/.local/` for local notes.
 
 The unused legacy research and journal scaffolds have been retired from this
 checkout; their distributable versions remain in the optional catalogue.
 No learning, reference, archive, artifacts, or private collection is needed
 merely because WSUP offers one. Introduce optional homes here only for actual
-development work, with an explicit purpose and owner. Do not run consumer
-template updates over the source root.
+development work, with an explicit purpose and owner. An optional `dist/`
+directory would hold release bundles, not active workspace tooling.
+
+The unused apps, packages, tools, and infrastructure collection scaffolds are
+also absent from this product repository. They remain defaults in
+`src/templates/workspace/`. This repository's template state records
+`omitted_home_files` so installation refreshes do not recreate them; generated
+workspaces retain the full default layout.
 
 ## Optional AI skills
 
@@ -161,7 +166,8 @@ Clients supporting this shared location need no installation command. Open the
 workspace root and inspect the client's available skills; otherwise explicitly
 ask the assistant to read a skill's `SKILL.md` and follow its procedure.
 
-Run `python3 -B .wsup/wsup.py guidance` in any workspace to check
+Run `python3 -B src/wsup.py guidance` in development or
+`python3 -B .wsup/wsup.py guidance` in a generated workspace to check
 local structure and links.
 That does not prove a client loaded or invoked a skill. Read
 [AI.md](AI.md) and the rule index separately for workspace instructions.

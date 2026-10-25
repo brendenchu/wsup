@@ -8,6 +8,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- Remove unused project-home scaffolds from the product repository, retaining
+  them in generated starters. Explicit template-state `omitted_home_files`
+  preserves local scaffold omissions during updates without deleting contents.
 - Consolidate human working material under workbench: ignored `workbench/.local/`
   holds local notes and handoffs, created on demand. Retain legacy `.work/`
   ignore rules without treating ignored content as disposable or confidential.
@@ -18,8 +21,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
   onboarding self-contained with no upward workspace relationship or inheritance.
 - Deliberate pre-1.0 installation layout: all workspaces use `.wsup/wsup.py`,
   with runtime and one authoritative template catalogue under `.wsup/`.
-  The source checkout uses the same layout with authoritative sources under
-  `.wsup/`, without a duplicate runtime or template catalogue.
+  The development checkout keeps authoritative implementation and templates
+  under `src/`, root `tests/`, and generated installation output under `.wsup/`.
 - Move shared rules to visible `guidance/rules/`, retaining `AI.md`, the
   `AGENTS.md` pointer, and discoverable `.agents/skills/`.
 - Store verification reports under ignored `.wsup/reports/`; enforce report

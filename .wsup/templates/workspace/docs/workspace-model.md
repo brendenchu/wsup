@@ -26,9 +26,12 @@ their documentation. Directory nesting does not create policy inheritance.
 Generated workspaces retain no relationship to their generating workspace and
 must remain usable after relocation.
 
-Development and generated workspaces run `python3 -B .wsup/wsup.py ...`
-from their own workspace root. Runtime and the authoritative template catalogue
-live under `.wsup/` in both; there is no second implementation or catalogue.
+Development uses `python3 -B src/wsup.py ...`, with authoritative implementation
+and catalogue in `src/`. Generated workspaces use `python3 -B .wsup/wsup.py ...`,
+with installed runtime and catalogue under `.wsup/`. The development checkout
+also carries generated `.wsup/` output; refresh it from `src/`, never edit it as
+source. Root `tests/` remains development-only. `dist/`, if introduced, is for
+release bundles, not workspace installations.
 Commands target the current directory unless `--root PATH` is supplied.
 
 The generated installation contains:
@@ -73,6 +76,16 @@ collisions and relative links; never sweep descendant projects or move historica
 WSUP reports here. Machine check reports remain in `.wsup/reports/`.
 
 ## Default layout and optional collections
+
+The WSUP product repository is not a demonstration collection of projects.
+It keeps `src/`, `tests/`, generated `.wsup/` output, documentation, guidance,
+skills, and local working material, but omits unused project homes. Template
+state may record `omitted_home_files`, a list of exact default home scaffold
+paths: `apps/.gitkeep`, `infrastructure/.gitkeep`, `packages/README.md`,
+`tools/README.md`, or `workbench/README.md`. Updates preserve these omissions
+without deleting existing contents or changing the bundled catalogue.
+This is an explicit local customization, not an inherited generation default.
+New workspaces still receive the full baseline.
 
 Every new workspace starts with these directories. They establish a practical
 default, not a requirement to populate or use each one. Project purpose
@@ -121,7 +134,7 @@ is WSUP-owned runtime content, not a user project grouping.
 WSUP provides `archive`, `artifacts`, `journal`, `learning`, `private`,
 `reference`, and `research` scaffolds, each containing a README that describes
 its purpose and limitations; journal also includes an entry template. Use the
-same command in development and generated workspaces:
+installed command below; in development substitute `src/wsup.py`:
 
 ```sh
 python3 -B .wsup/wsup.py init /path/to/new-workspace --collection archive --collection artifacts

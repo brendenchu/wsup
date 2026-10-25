@@ -8,8 +8,8 @@ description: Create workspace or project starters, maintain template content, or
 1. Read the [workspace model](../../../docs/workspace-model.md) and affected
    starter guidance. Identify the operation: generate a new destination, change
    starter content, or update an existing workspace. Inspect CLI help and locate
-   the authoritative template source under `.wsup/templates/` in both development
-   and generated workspaces. Generated workspaces carry their catalogue and
+   the authoritative template source: `src/templates/` in development and
+   `.wsup/templates/` in generated workspaces. Generated workspaces carry their catalogue and
    must work without the generator checkout.
 2. For generation, use `python3 -B .wsup/wsup.py init DESTINATION` with
    `--template project` when appropriate. Choose a new destination and preserve
@@ -36,5 +36,5 @@ Complete when the requested output or update is inspected and portable, existing
 files remain preserved, and relevant checks pass. Report unresolved conflicts
 and clean up only disposable paths created for verification.
 
-Commands use the same `.wsup/wsup.py` entry point in development and generated
-workspaces. Run them from the owning workspace root.
+Commands above target generated workspaces. In the WSUP development checkout,
+use `src/wsup.py` instead. Run commands from the owning workspace root.

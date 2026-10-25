@@ -55,8 +55,9 @@ Do not copy over customized guidance or fabricate baselines. Structural
 validation checks `guidance/rules/index.md`; client discovery and invocation
 must still be verified separately.
 
-Development and generated workspaces run `python3 -B .wsup/wsup.py` and use the
-same runtime and catalogue layout. User-edited installed skills are not implicit
+Development runs `python3 -B src/wsup.py`; generated workspaces run
+`python3 -B .wsup/wsup.py`. Source lives in `src/`; installed output lives in
+`.wsup/`. User-edited installed skills are not implicit
 starter overrides: initialization uses the installed catalogue.
 
 | Experience | Documented discovery | Precedence and refresh | WSUP evidence |

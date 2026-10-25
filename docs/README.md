@@ -10,6 +10,6 @@ Maintain durable product and contributor documentation here:
 
 Keep drafts in the [development workbench](../workbench/). Session logs and
 disposable evidence belong in ignored `workbench/.local/`, not public product docs.
-The [template catalogue](../.wsup/templates/) contains distributable starter content;
+The [source template catalogue](../src/templates/) contains distributable starter content;
 this directory documents the product itself. The workspace model is also
 bundled into the workspace starter and must remain synchronized.

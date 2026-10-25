@@ -34,5 +34,5 @@ description: Onboard a new or existing workspace project. Use when adding or reg
 Complete when the project is registered, validation passes, and Git ownership
 matches intent. Report pending repository setup or migration explicitly.
 
-Commands use the same `.wsup/wsup.py` entry point in development and generated
-workspaces. Run them from the owning workspace root.
+Commands above target generated workspaces. In the WSUP development checkout,
+use `src/wsup.py` instead. Run commands from the owning workspace root.

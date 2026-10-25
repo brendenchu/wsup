@@ -4,7 +4,7 @@
 
 WSUP uses one version for its CLI, bundled workspace/project templates, and
 portable skills. The authoritative value is `VERSION` in
-[.wsup/wsup_core/__init__.py](../.wsup/wsup_core/__init__.py). It supplies CLI
+[src/wsup_core/__init__.py](../src/wsup_core/__init__.py). It supplies CLI
 `--version` output and template-version reporting.
 
 Template-state schema `version` is a separate format identifier; a product
@@ -52,10 +52,10 @@ actually verified.
 
    ```sh
    python3 --version
-   python3 -B .wsup/wsup.py --version
-   python3 -B .wsup/wsup.py validate
-   python3 -B .wsup/wsup.py guidance
-   python3 -B .wsup/wsup.py check --project wsup --show-output
+   python3 -B src/wsup.py --version
+   python3 -B src/wsup.py validate
+   python3 -B src/wsup.py guidance
+   python3 -B src/wsup.py check --project wsup --show-output
    git diff --check
    ```
 

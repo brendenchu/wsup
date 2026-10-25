@@ -23,5 +23,5 @@ Report each outcome, existing findings and missing prerequisites separately.
 A passing command certifies only its configured coverage. Do not apply fixes,
 change exclusions or add a workflow just to make a check pass.
 
-Commands use the same `.wsup/wsup.py` entry point in development and generated
-workspaces. Run them from the owning workspace root.
+Commands above target generated workspaces. In the WSUP development checkout,
+use `src/wsup.py` instead. Run commands from the owning workspace root.
