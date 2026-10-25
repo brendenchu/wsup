@@ -13,8 +13,8 @@ description: Configure workspace registry entries, dependencies, check commands,
    describes intent, not proof of Git setup; use
    [project-onboarding](../project-onboarding/SKILL.md) for ownership changes.
 3. Inspect project commands and required executables. Encode literal argv
-   launched in the project directory. Exact `{python}` arguments resolve to
-   `python3` on PATH, not the CLI's interpreter; missing tools are launch errors.
+   launched in the project directory. Executables must be available by explicit
+   path or on PATH; missing tools are launch errors. Arguments are not substituted.
    Choose required/report policy and finding exit codes deliberately, preserving
    genuine failures. Disabled checks need concrete reasons.
 4. Select shared/local settings deliberately. Follow documented precedence and

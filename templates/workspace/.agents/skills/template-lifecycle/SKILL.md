@@ -28,16 +28,11 @@ description: Create workspace or project starters, maintain template content, or
    existing same-path customizations; their original baselines remain unchanged.
    Preserve missing files for manual resolution and never regenerate the
    user-owned registry. I/O failures may leave partial content with old state;
-   inspect failures rather than retrying blindly. Explicit `update --migrate-native`
-   previews Python conversion, exact-byte report moves, and runtime retirement.
-   Add `--apply` only when authorized, backed up, and conflict-free. Review legacy
-   report settings even when overrides hide them; never delete settings/evidence
-   to bypass conflicts. Native content/state precede exact-source retirement.
-   Failures distinguish uncommitted state from committed native state with
-   incomplete cleanup; restore matched files/state from backup before retrying.
-   No automatic backup, rollback, or retirement resume is provided.
-   Do not use Python to update schema-2 state or change its version
-   to force compatibility.
+   inspect failures rather than retrying blindly. Restore matched files/state
+   from backup before retrying. No automatic backup or rollback is provided.
+   Only schema-2 state is supported; never change schema numbers to force
+   compatibility. Unsupported workspaces need a new destination and explicit
+   owner-managed transfer of project content, not an in-place conversion.
 5. Verify source changes in a disposable destination outside the checkout.
    Run `wsup --root DESTINATION validate` and `guidance` for workspaces; inspect
    project guidance separately. Relocate output and generate another workspace

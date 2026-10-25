@@ -21,7 +21,7 @@ wsup guidance
 wsup editor
 ```
 
-No Python, Go toolchain, package installation, service, or AI client is needed
+No Go toolchain, package installation, service, or AI client is needed
 to initialize or inspect this workspace. Project checks supply their own tools.
 Native check execution is verified on macOS ARM64. Other runtime platforms are
 not certified; non-Unix check execution explicitly refuses launch.
@@ -48,8 +48,8 @@ wsup config
 Review commands before running them: checks run with your permissions. They use
 literal arguments, no interactive stdin, and bounded captured output; dependencies
 are not automatically selected. Reports live under ignored `.wsup/reports/`.
-An exact `{python}` argument resolves to `python3` on PATH; missing tools are
-explicit launch errors, never installed automatically.
+Arguments are never substituted; missing tools are explicit launch errors,
+never installed automatically.
 
 ## Layout and local work
 
@@ -92,36 +92,22 @@ No runtime, executable, or catalogue is installed in the workspace. Relocation
 requires a compatible separately installed binary on the new machine.
 
 The `.wsup/template-state.json` schema is version 2. Track it with the workspace
-files; ignore reports only. Python cannot update this native state. Native `update` previews managed content from the invoked binary; `update --apply`
+files; ignore reports only. `update` previews managed content from the invoked
+binary; `update --apply`
 writes only a conflict-free plan. Repeat `--keep PATH` for eligible same-path
 customizations, preserving their old baseline hashes. Registry bytes are
 workspace-owned; omitted homes and unknown/report/local/project bytes survive.
-Explicit `wsup --root PYTHON_WORKSPACE update --migrate-native` is a read-only
-Python migration preview. After preserving a reviewed matched backup of files,
-state, ignored reports and owner data, add `--apply` only when conflict-free.
-It blocks on unsafe runtime sources, unknown
-installation files, report destination collisions, and explicitly legacy report
-settings requiring owner review. Legacy report files are planned for exact-byte
-relocation; valid native configuration is preserved without a blanket conflict;
-do not delete settings or reports to bypass these blockers. Do not use Python's
-update command on this native workspace. Binary replacement and
-workspace-content updates are separate operations, never automatic downloads.
-
-Migration installs required content and native state before retiring exact
-unchanged manifest-owned legacy sources. Sources and report destinations are
-rechecked; only empty source ancestors are removed. I/O failure before state
-commit retains legacy sources but can leave partial new content. Retirement
-failure explicitly reports committed native state and incomplete cleanup; some
-legacy sources may already be gone. Restore matched files/state from backup,
-not a schema-number edit or blind retry. No automatic backup, transaction,
-rollback, or interrupted-retirement resume is provided.
+Only schema-2 workspaces are supported. Unsupported state fails without writes;
+there is no in-place conversion. Do not edit schema numbers to force compatibility.
+Binary replacement and workspace-content updates are separate operations,
+never automatic downloads.
 
 Update I/O failures may leave partial content with old state and explicitly
 report that possibility; no multi-file transaction is promised. Initialization
 failures explicitly identify a partial destination. Inspect and
 recover it before retrying; partial output is retained to avoid deleting
 concurrent owner content. Back up customizations and state before any future
-migration or update. Nothing is committed, installed globally, or published
+update. Nothing is committed, installed globally, or published
 automatically.
 
 ## Guidance

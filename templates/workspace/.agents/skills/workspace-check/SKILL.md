@@ -17,8 +17,8 @@ wsup check --project PROJECT_ID
 Replace PROJECT_ID with a registered ID. Use `--check NAME` to select check names
 and repeat `--project` for multiple owners. All selections validate before
 execution. Dependencies are not automatic selections; tools are never installed.
-An exact `{python}` argument requires `python3` on PATH. Native Unix check
-execution is verified on macOS ARM64; non-Unix execution refuses launch.
+Arguments are passed literally without substitution. Unix check execution is
+verified on macOS ARM64; non-Unix execution refuses launch.
 
 Report outcomes, findings, skips, failures, and missing prerequisites separately.
 Default output is hidden; `--show-output` prints bounded retained output and may

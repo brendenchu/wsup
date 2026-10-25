@@ -10,7 +10,7 @@ Descendant projects/workspaces retain self-contained instructions.
 Use a separately installed native `wsup` executable with embedded templates.
 The workspace contains managed files and `.wsup/template-state.json`, not a CLI
 runtime, binary, or copied catalogue. Reports are under `.wsup/reports/`.
-The Go toolchain and Python are not runtime requirements for initialization
+The Go toolchain is not a runtime requirement for initialization
 or inspection. Checks require their configured executables. macOS ARM64 is the
 verified runtime; cross-compilation is not certification. Unix checks have
 process-group supervision; non-Unix checks refuse launch pending equivalent
@@ -39,8 +39,7 @@ for product changes. Binary replacement and managed-content updates are separate
 
 Use `--help`, `COMMAND --help`, and `--version` for options and product version.
 Invalid options fail even when help/version is also present. Unambiguous long
-option prefixes are supported. Normal operational errors print handled stderr;
-diagnostic wording need not match the Python CLI.
+option prefixes are supported. Normal operational errors print handled stderr.
 
 Initialization requires a new destination, including when an existing directory
 is empty. Relative destinations use the current process directory, not `--root`.
@@ -168,7 +167,7 @@ when converting ownership. Never force-add independent projects or create
 submodules implicitly.
 
 The starter ignores `.wsup/reports/`, `wsup.local.json`, `.env`/`.env.*` except
-`.env.example`, Python caches, `.DS_Store`, `workbench/.local/`, and legacy `.work/`.
+`.env.example`, `.DS_Store`, `workbench/.local/`, and `.work/`.
 Every repository owns its ignore rules; these are staging hygiene, not security.
 Do not ignore template state or all of `.wsup/`.
 
@@ -259,50 +258,21 @@ Omitted default homes remain omitted; orphan bytes are retained but cease to be
 managed. Unknown files, project contents, reports, and local settings survive.
 There are no runtime files to update or retire in native schema 2.
 
-Explicit `wsup --root PYTHON_WORKSPACE update --migrate-native` previews schema-1 to
-schema-2 content, guidance relocation, and exact manifest-owned runtime retirement.
-Preview never writes. After a reviewed matched backup of files/state, ignored
-reports, and owner data, add `--apply` to execute a conflict-free migration. Customized/missing
-runtime sources, unknown installation-tree files, and relocated destination
-collisions block migration. Legacy `.work/quality/` files are planned as exact
-`move-report` actions to corresponding `.wsup/reports/` paths, without rewriting
-provenance or adopting evidence as templates. Destination collisions block even
-when bytes match. Symlinks, special files, and non-directory ancestors fail.
-Empty legacy report directories need no move.
-
-Existing `wsup.json`/`wsup.local.json` remain owner-owned. Valid native settings
-no longer block preview. Each explicitly recorded `.work*` report policy requires
-an owner-reviewed configuration change, even if a local override hides it.
-Malformed settings or unsafe native report paths fail explicitly. Migration
-ignores environment overrides while inspecting persistent policy. Do not delete
-settings or evidence to bypass conflicts. `--keep` cannot bypass runtime
-retirement or relocation safety checks. Ordinary update never implicitly migrates.
-Apply rechecks scoped tree inventories and all observed inputs before writes.
-Required content and exact report copies are written first, native state second,
-and legacy sources retired only after state/output verification. Changes to tree
-inventories, configuration, kept files, or exact sources block progress.
-Each retirement rechecks native state and exact source; report/guidance moves also
-verify the new destination. Only empty ancestors of removed sources are cleaned.
-No unknown files or independent projects are recursively removed.
-
-Failure before state commit can leave partial native content but keeps legacy
-sources. Failure during retirement explicitly reports committed native state and
-incomplete cleanup; some sources may already be removed. Restore matched files/
-state from backup before retrying. Do not edit schema numbers, downgrade via
-Python, or assume ordinary update completes interrupted retirement. There is no
-automatic backup, rollback, transaction, resume journal, concurrent-writer
-isolation, or fsync/power-loss guarantee. Python rejects native schema 2;
-do not force a downgrade by editing its version field or use Python updates here.
+Only schema-2 state is supported. Other versions fail without writes; no
+in-place conversion or obsolete installation cleanup is provided. Do not change
+schema numbers or fabricate baselines to force compatibility. For an unsupported
+workspace, initialize a new destination and explicitly transfer owner content
+after review; preserve the original workspace and its reports.
 No remote downloader or automatic binary upgrade is provided.
 
-Before any later update/migration, preserve a reviewed backup of files and state,
+Before any later update, preserve a reviewed backup of files and state,
 inspect Git status and the complete preview, and resolve conflicts deliberately.
 Native updates are not a multi-file transaction; I/O failure
 can leave partial content with old state. Concurrent mutation after rechecks is
 not isolated, and no fsync/power-loss durability guarantee is made. Inspect
 partial destinations rather than deleting owner content blindly. Recovery means
 restoring matched files and state from the same backup and using a compatible
-binary. No commit, installation, publication, or real migration is automatic.
+binary. No commit, installation, or publication is automatic.
 
 ## Guidance
 

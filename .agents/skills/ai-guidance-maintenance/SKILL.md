@@ -16,8 +16,7 @@ description: Maintain AI.md entry points, rule indexes, portable skills, or opti
    Include invocation cases, ordered actions, and observable completion criteria.
    Link to local contracts rather than duplicating schemas.
 4. Route procedures from the owner's rule index. In the product source,
-   synchronize canonical skills and distributed variants, keeping native command
-   guidance distinct from Python coexistence bundles. Generated local edits are
+   synchronize canonical skills and distributed variants. Generated local edits are
    user customizations, not changes to the binary's embedded templates.
 5. Run `wsup guidance`, or `wsup guidance --project PROJECT_ID`. Check links,
    names, frontmatter, and containment. For starter changes, generate a disposable
