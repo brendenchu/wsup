@@ -123,6 +123,23 @@ The native parser intentionally validates options before help/version:
 Normal help/version and valid option abbreviations remain supported; a dedicated
 Go test covers this approved difference rather than weakening Python expectations.
 
+The approved native installation target is a separately installed binary with
+embedded templates. Native-generated workspaces will retain state/reports, not a
+platform executable, Python runtime, or copied catalogue. Phase 5 is in progress:
+`init`, `collections`,
+and `update` are still disabled in Go while starter instructions and migration
+safety are ported.
+
+Template-state groundwork recognizes Python schema 1 for read-only inspection
+and native schema 2 for future output. Schema 2 cannot own files under `.wsup/`;
+that directory holds state/reports rather than template-owned runtime content.
+State validation rejects malformed paths/hashes, unknown schemas/fields,
+file/parent collisions, invalid selections/omissions, and symlinked state paths.
+It preserves exact input bytes for later concurrent-change checks and never
+replaces stored baseline hashes with current customized file hashes. Encoding
+native state does not silently convert Python ownership. No native migration
+or downgrade is implemented yet; preserve a reviewed pre-migration snapshot.
+
 `src/templates/` remains the authoritative starter catalogue. During coexistence,
 `internal/catalogue/assets.zip` is a generated, deterministic snapshot embedded
 in the Go binary. Refresh it after any starter change:
