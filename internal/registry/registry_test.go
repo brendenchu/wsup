@@ -118,6 +118,7 @@ func TestInvalidCheckDefinitions(t *testing.T) {
 		`{"command":["tool"],"typo":true}`, `{"command":["tool"],"enabled":null}`,
 		`{"command":["tool"],"mode":null}`, `{"command":["tool"],"reason":null}`,
 		`{"command":["tool"],"enabled":false}`, `{"command":["tool"],"timeout_seconds":true}`,
+		`{"command":["tool"],"enabled":false,"reason":""}`,
 		`{"command":["tool"],"timeout_seconds":1.0}`, `{"command":["tool"],"timeout_seconds":86401}`,
 		`{"command":["tool"],"finding_exit_codes":null}`, `{"command":["tool"],"finding_exit_codes":[true]}`,
 		`{"command":["tool"],"finding_exit_codes":[0]}`, `{"command":["tool"],"finding_exit_codes":[256]}`,

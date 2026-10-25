@@ -4,6 +4,48 @@
   "unlisted_status": "pending",
   "entries": [
     {
+      "python": "test_services.py:ServicesTest.test_report_mode_finding_codes_and_required_failure",
+      "status": "covered",
+      "tests": {"internal/cli/check_test.go": ["TestReportModesSkipsAndLaunchErrors"]},
+      "assertions": "Actual report-mode exit 1 yields findings/CLI zero; an unconfigured exit fails/CLI one. Custom and empty finding-code lists remain distinct.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_skips_are_explicit_and_required_skips_fail",
+      "status": "covered",
+      "tests": {"internal/cli/check_test.go": ["TestReportModesSkipsAndLaunchErrors"], "internal/registry/registry_test.go": ["TestInvalidCheckDefinitions"]},
+      "assertions": "Disabled required checks produce explicit skipped reason with no execution evidence and CLI one; missing/empty reason rejects validation before execution.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_missing_executable_is_error_even_in_report_mode",
+      "status": "covered",
+      "tests": {"internal/cli/check_test.go": ["TestReportModesSkipsAndLaunchErrors"], "internal/cli/check_edges_test.go": ["TestMissingPythonDoesNotPreventSubsequentExplicitTool"]},
+      "assertions": "Missing executable is sanitized launch_error:2/status error and CLI one even in report mode; missing python3 never prevents later explicit tools from running.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_cancellation_records_remaining_checks_as_skipped",
+      "status": "covered",
+      "tests": {"internal/cli/check_test.go": ["TestCheckTimeoutOverridesAndPrecancelledRun", "TestExecutableInterruptAndExitedParent"]},
+      "assertions": "Cancelled checks yield CLI 130 and remaining selections are skipped with reason cancelled; marker command does not run.",
+      "remaining": ""
+    },
+    {
+      "python": "test_services.py:ServicesTest.test_actual_interrupt_terminates_check_and_reports",
+      "status": "covered",
+      "tests": {"internal/cli/check_test.go": ["TestExecutableInterruptAndExitedParent"]},
+      "assertions": "Real SIGINT sent to compiled CLI after descendant readiness completes within five seconds, records cancelled/skipped, returns 130, and stops the descendant heartbeat.",
+      "remaining": ""
+    },
+    {
+      "python": "test_wsup.py:WsupTest.test_checks_continue_and_arguments_are_literal",
+      "status": "covered",
+      "tests": {"internal/cli/check_test.go": ["TestChecksContinueLiteralArgumentsAndSanitizedReports"]},
+      "assertions": "Exit-7 check does not stop the subsequent check; exact shell-looking/empty/space arguments reach the child without shell evaluation; CLI returns one.",
+      "remaining": ""
+    },
+    {
       "python": "test_services.py:ServicesTest.test_large_output_is_bounded",
       "status": "covered",
       "tests": {"internal/execution/run_test.go": ["TestLargeOutputIsBounded"]},
@@ -19,10 +61,10 @@
     },
     {
       "python": "test_services.py:ServicesTest.test_reports_omit_output_arguments_and_environment",
-      "status": "partial",
-      "tests": {"internal/reporting/write_test.go": ["TestPrivateSanitizedReportsAndExactEvidence", "TestInvalidEvidenceAndInputFailuresDoNotCreateReports"], "internal/reporting/contracts_test.go": ["TestCommandDigestMatchesPython"]},
-      "assertions": "Native report JSON and Markdown omit command arguments/environment; typed evidence has no output fields; input and original command hashes are exact; raw diagnostic text is rejected.",
-      "remaining": "Wire check execution and run the original secret-emitting command end to end, asserting captured stdout/stderr never enters reports."
+      "status": "covered",
+      "tests": {"internal/cli/check_test.go": ["TestChecksContinueLiteralArgumentsAndSanitizedReports"], "internal/reporting/write_test.go": ["TestPrivateSanitizedReportsAndExactEvidence", "TestInvalidEvidenceAndInputFailuresDoNotCreateReports"], "internal/reporting/contracts_test.go": ["TestCommandDigestMatchesPython"]},
+      "assertions": "End-to-end tool emits a secret argument to both streams with a secret environment canary; terminal output is visible only on request while report JSON/Markdown omit output/arguments/environment and retain exact input/command hashes.",
+      "remaining": ""
     },
     {
       "python": "test_services.py:ServicesTest.test_configuration_precedence_and_sources",
@@ -89,17 +131,17 @@
     },
     {
       "python": "test_services.py:ServicesTest.test_bad_configuration_fails_before_command",
-      "status": "partial",
-      "tests": {"internal/configuration/configuration_test.go": ["TestInvalidConfiguration"]},
-      "assertions": "Invalid setting types, unknown keys, and report escapes reject configuration loading.",
-      "remaining": "Port check execution and prove invalid configuration prevents the marker-writing command from running."
+      "status": "covered",
+      "tests": {"internal/configuration/configuration_test.go": ["TestInvalidConfiguration"], "internal/cli/check_test.go": ["TestCheckPreflightRejectsInvalidSelectionConfigAndReportParent"]},
+      "assertions": "Invalid setting types, unknown keys, report escapes, and zero CLI timeout return exit two with no command marker or report writes.",
+      "remaining": ""
     },
     {
       "python": "test_wsup.py:WsupTest.test_unknown_check_validated_before_any_execution",
-      "status": "partial",
-      "tests": {"internal/registry/registry_test.go": ["TestChecksPreserveLiteralArgsOrderAndNullTimeout"]},
-      "assertions": "Invalid check selection returns an error and no partial selection.",
-      "remaining": "Port check execution and prove no marker is created before an unknown selection is rejected."
+      "status": "covered",
+      "tests": {"internal/registry/registry_test.go": ["TestChecksPreserveLiteralArgsOrderAndNullTimeout"], "internal/cli/check_test.go": ["TestCheckPreflightRejectsInvalidSelectionConfigAndReportParent"]},
+      "assertions": "Valid marker-writing check followed by unknown check/project is rejected before any execution or report-directory creation; no partial selection is returned.",
+      "remaining": ""
     }
   ]
 }

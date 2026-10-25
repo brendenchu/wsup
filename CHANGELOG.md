@@ -54,6 +54,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Added
 
+- Native Unix `check` execution with explicit selection, timeout precedence,
+  bounded output, process-group cancellation, and sanitized schema-v2 reports.
+  Non-Unix execution remains unsupported; macOS ARM64 is the verified runtime.
 - Go migration bootstrap: pinned development toolchain, root Go module, thin
   Cobra executable with help/version, explicit failures for unported commands,
   and byte-verified embedded starter snapshot. Python remains the operational CLI.

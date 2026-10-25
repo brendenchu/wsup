@@ -14,6 +14,10 @@ func ResolveCommand(command []string) ([]string, error) {
 	return resolveCommand(command, exec.LookPath)
 }
 
+// Supported rejects platforms without verified descendant supervision before
+// a CLI creates report directories or runs any selected check.
+func Supported() error { return prepareProcess(&exec.Cmd{}) }
+
 func resolveCommand(command []string, lookup func(string) (string, error)) ([]string, error) {
 	if len(command) == 0 || command[0] == "" {
 		return nil, fmt.Errorf("check command requires a nonempty executable")

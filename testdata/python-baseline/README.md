@@ -66,13 +66,26 @@ The fixture runner also accepts an executable argv prefix:
 python3 -B tests/migration_baseline.py --command /absolute/path/to/wsup
 ```
 
-Full `--command` replay remains a future whole-port gate: the Go CLI currently
-implements inspection/editor commands only. To compare that subset while Python
+Full `--command` replay remains a future whole-port gate: Go scaffolding is not
+ported. To compare inspection/editor commands while Python
 drives setup and unported steps:
 
 ```sh
 python3 -B tests/migration_baseline.py --compare-read-only /absolute/path/to/wsup
 ```
+
+Compare native checks separately, letting Python drive other commands/setup:
+
+```sh
+python3 -B tests/migration_baseline.py --compare-checks /absolute/path/to/wsup
+```
+
+This mode changes only expected check-report schema versions from 1 to 2 and
+validates actual Go/OS/architecture runtime metadata before runtime normalization.
+All other command results, report fields, command/input hashes, literal argument
+effects, byte counts, and non-report filesystem snapshots still compare exactly.
+The Python expectations on disk remain unchanged. This mode requires `python3`
+on PATH for the synthetic application checks, not for the Go CLI itself.
 
 The subset comparison checks stdout, stderr, exits, no-write inspections, and exact
 editor bytes/overwrite protection, followed by 20 diagnostic failure contracts.

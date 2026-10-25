@@ -2,6 +2,7 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -27,9 +28,14 @@ type statusError struct{ code int }
 func (e statusError) Error() string { return fmt.Sprintf("exit status %d", e.code) }
 
 // Run constructs a fresh command tree so invocations do not share flag state.
-// It returns 0 on success, 1 for guidance findings, and 2 for invalid input or
-// operational failures. It does not exit the process.
+// It returns 0 on success, 1 for findings/failing checks, 2 for invalid input or
+// operational failures, and 130 for a cancelled check run. It does not exit.
 func Run(args []string, stdout, stderr io.Writer) int {
+	return RunContext(context.Background(), args, stdout, stderr)
+}
+
+// RunContext accepts cancellation explicitly; the executable maps Ctrl-C to it.
+func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	if _, err := catalogue.Open(); err != nil {
 		fmt.Fprintf(stderr, "Error: %v\n", err)
 		return 2
@@ -38,7 +44,7 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	command.SetArgs(args)
 	command.SetOut(stdout)
 	command.SetErr(stderr)
-	if err := command.Execute(); err != nil {
+	if err := command.ExecuteContext(ctx); err != nil {
 		if status, ok := err.(statusError); ok {
 			return status.code
 		}
@@ -52,7 +58,7 @@ func newCommand() *cobra.Command {
 	root := &cobra.Command{
 		Use:              "wsup",
 		Short:            "WSUP portable local workspace tools",
-		Long:             "WSUP Go migration bootstrap. Inspection and editor commands are available; check, init, collections, and update still require Python.",
+		Long:             "WSUP Go migration bootstrap. Inspection, editor, and Unix check commands are available; init, collections, and update still require Python.",
 		Version:          Version,
 		SilenceErrors:    true,
 		SilenceUsage:     true,
@@ -80,8 +86,14 @@ func newCommand() *cobra.Command {
 	editor := &cobra.Command{Use: "editor", Short: "Create an optional VS Code multi-root file", Args: cobra.NoArgs, RunE: inspectWorkspace}
 	editor.Flags().String("output", "workspace.code-workspace", "New filename in the workspace root")
 	root.AddCommand(editor)
+	check := &cobra.Command{Use: "check", Short: "Run explicitly selected project checks", Args: cobra.NoArgs, RunE: runChecks}
+	check.Flags().StringArray("project", nil, "Project ID (required; repeat to select more)")
+	check.Flags().StringArray("check", nil, "Check name (repeat; defaults to all configured checks)")
+	check.Flags().Int("timeout", 0, "Override timeout in seconds (1..86400)")
+	check.Flags().Bool("show-output", false, "Print retained stdout/stderr to the terminal")
+	root.AddCommand(check)
 	for _, name := range []string{
-		"check", "init", "collections", "update",
+		"init", "collections", "update",
 	} {
 		root.AddCommand(&cobra.Command{
 			Use:                name,

@@ -30,10 +30,10 @@ go run ./cmd/wsup --version
 Use `go build -o /path/to/local/output/wsup ./cmd/wsup` to build outside the
 tracked tree. Do not commit executables. A compiled binary carries its assets
 and does not need Go installed; Python is still required for actual workspace
-operations while the port is incomplete.
+initialization, collections, and updates while the port is incomplete.
 
-Help/version, `validate`, `projects`, `config`, `guidance`, and `editor` are
-implemented in Go. Every unported execution/scaffolding command
+Help/version, `validate`, `projects`, `config`, `guidance`, `editor`, and Unix
+`check` are implemented in Go. Every unported scaffolding command
 returns exit 2 with a Python invocation hint; it never forwards automatically or
 pretends to succeed. The bootstrap retains the product version 0.1.0, not a new
 release or parity claim. A test checks it against the Python version authority.
@@ -42,6 +42,7 @@ Compare ported commands against the frozen scenarios with a compiled binary:
 
 ```sh
 python3 -B tests/migration_baseline.py --compare-read-only /absolute/path/to/wsup
+python3 -B tests/migration_baseline.py --compare-checks /absolute/path/to/wsup
 ```
 
 Python drives synthetic setup and unported operations. Ported inspections must
@@ -67,14 +68,22 @@ Current assertion mappings live in `testdata/python-baseline/go-coverage.json`;
 the original Python test inventory remains frozen. Run both the Python migration
 tests (reference integrity) and Go tests (actual assertions) when changing mappings.
 
-Native execution foundations are implemented but not wired to `check` yet:
+Native `check` requires repeatable `--project`; optional repeatable `--check`
+selects named checks, and `--timeout` overrides per-check and workspace timeouts.
+Selections are validated completely and deduplicated before any commands or
+reports run. Dependencies are not selected implicitly. Required failures/skips,
+launch errors, and timeouts return 1; configured report findings return 0 unless
+other checks fail. Ctrl-C cancels the active check, skips remaining checks, writes
+the report, and returns 130. Invalid input or report-writing failure returns 2.
+Output stays transient; `--show-output` prints only retained output to the
+terminal, never to reports.
+
 `{python}` resolves exact argument tokens through `python3` on PATH, with a missing
-interpreter returned as an explicit error. Explicit tool commands do not perform
+interpreter recorded as a launch error. Explicit tool commands do not perform
 Python lookup. The original, unsubstituted argument array defines command identity;
 hash bytes retain Python's default JSON spaces and ASCII escaping.
 Native reports use schema 2 and `runtime.go`, `runtime.os` (Go OS name),
-and `runtime.arch`, rather than claiming a Python CLI runtime. The report writer
-and Unix process runner are implemented independently; `check` remains unported.
+and `runtime.arch`, rather than claiming a Python CLI runtime.
 It stores typed status/metrics, input hashes, original-command hashes, selection,
 configuration sources, and optional Git evidence, but no raw output, environment,
 or command arguments. Missing Git is explicitly unavailable; an unknown dirty
@@ -106,8 +115,8 @@ limits/counts, launch errors, nonzero/signal exits, timeout, cancellation,
 descendant heartbeat shutdown, and inherited/escaped pipe retention. Unix
 behavior is verified on macOS ARM64. Non-Unix execution refuses to launch until
 equivalent descendant cleanup is implemented; Windows is not certified by
-cross-compilation. OS-signal-to-context wiring and end-to-end reports await the
-`check` integration.
+cross-compilation. Compiled CLI tests send real SIGINT and verify status 130,
+cancelled/skipped report results, and stopped descendant heartbeats.
 
 The native parser intentionally validates options before help/version:
 `--help --invalid` fails with exit 2 instead of Python's immediate help success.

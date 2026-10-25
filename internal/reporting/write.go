@@ -144,32 +144,9 @@ func write(root, version string, config configuration.Result, selected []registr
 	for _, result := range data.Results {
 		markdown += fmt.Sprintf("- %s:%s: %s\n", result.Project, result.Check, result.Status)
 	}
-	directory, err := configuration.ReportDirectory(root, config.Settings.ReportDir)
+	target, directory, err := openDirectory(root, config.Settings.ReportDir)
 	if err != nil {
 		return "", err
-	}
-	resolvedDirectory, err := registry.Resolve(directory)
-	if err != nil {
-		return "", err
-	}
-	relative, err := filepath.Rel(root, resolvedDirectory)
-	if err != nil {
-		return "", err
-	}
-	owner, err := os.OpenRoot(root)
-	if err != nil {
-		return "", err
-	}
-	defer owner.Close()
-	if err := owner.MkdirAll(relative, 0755); err != nil {
-		return "", fmt.Errorf("create report directory: %w", err)
-	}
-	if _, err := configuration.ReportDirectory(root, config.Settings.ReportDir); err != nil {
-		return "", err
-	}
-	target, err := owner.OpenRoot(relative)
-	if err != nil {
-		return "", fmt.Errorf("open report directory: %w", err)
 	}
 	defer target.Close()
 	for _, file := range []struct {
@@ -183,6 +160,51 @@ func write(root, version string, config configuration.Result, selected []registr
 		}
 	}
 	return filepath.Join(directory, stem+".json"), nil
+}
+
+// PrepareDirectory creates and opens the confined report directory before a
+// check runs. Write rechecks it again; this is not a long-lived policy lock.
+func PrepareDirectory(root, name string) error {
+	root, err := registry.Resolve(root)
+	if err != nil {
+		return err
+	}
+	directory, _, err := openDirectory(root, name)
+	if err != nil {
+		return err
+	}
+	return directory.Close()
+}
+
+func openDirectory(root, name string) (*os.Root, string, error) {
+	directory, err := configuration.ReportDirectory(root, name)
+	if err != nil {
+		return nil, "", err
+	}
+	resolvedDirectory, err := registry.Resolve(directory)
+	if err != nil {
+		return nil, "", err
+	}
+	relative, err := filepath.Rel(root, resolvedDirectory)
+	if err != nil {
+		return nil, "", err
+	}
+	owner, err := os.OpenRoot(root)
+	if err != nil {
+		return nil, "", err
+	}
+	defer owner.Close()
+	if err := owner.MkdirAll(relative, 0755); err != nil {
+		return nil, "", fmt.Errorf("create report directory: %w", err)
+	}
+	if _, err := configuration.ReportDirectory(root, name); err != nil {
+		return nil, "", err
+	}
+	target, err := owner.OpenRoot(relative)
+	if err != nil {
+		return nil, "", fmt.Errorf("open report directory: %w", err)
+	}
+	return target, directory, nil
 }
 
 func build(version string, sources map[string]string, selected []registry.Selection, results []Result) (report, error) {

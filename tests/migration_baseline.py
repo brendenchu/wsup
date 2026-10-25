@@ -135,7 +135,7 @@ def compare_diagnostics(reference, candidate):
     return len(cases)
 
 
-def replay(command, compare_read_only=None):
+def replay(command, compare_read_only=None, check_candidate=None):
     cases = json.loads((DATA / "cases.json").read_text())["cases"]
     results = {}
     for case in cases:
@@ -176,7 +176,8 @@ def replay(command, compare_read_only=None):
                        if not key.startswith("WSUP_")}
                 env.update(step.get("env", {}))
                 env["PYTHONDONTWRITEBYTECODE"] = "1"
-                invoked = command + (["--root", str(root)] if step.get("root", True) else []) + args
+                prefix = check_candidate if check_candidate and step["args"][0] == "check" else command
+                invoked = prefix + (["--root", str(root)] if step.get("root", True) else []) + args
                 editor_result = None
                 editor_after = None
                 if compare_read_only and step["args"][0] == "editor":
@@ -221,6 +222,15 @@ def replay(command, compare_read_only=None):
                 after = snapshot(base)
                 reports = report_files(root, paths)
                 new_reports = [body for name, body in reports.items() if name not in old_reports]
+                if check_candidate and step["args"][0] == "check":
+                    for report in new_reports:
+                        if report["version"] != 2:
+                            raise AssertionError("Native check must write report schema 2")
+                    for name in set(reports) - set(old_reports):
+                        raw = json.loads((root / ".wsup/reports" / (name + ".json")).read_text())
+                        if (set(raw["runtime"]) != {"go", "os", "arch"}
+                                or any(not value for value in raw["runtime"].values())):
+                            raise AssertionError("Native report must identify Go, OS, and architecture")
                 writes = {name: body for name, body in after.items() if before.get(name) != body}
                 # Raw report hashes vary; compare parsed evidence and Markdown separately.
                 for name in list(writes):
@@ -421,21 +431,36 @@ def main():
                         help="Replay pinned archives and both historical generation inventories")
     parser.add_argument("--compare-read-only", nargs=argparse.REMAINDER,
                         help="Compare ported inspection/editor commands while Python drives setup")
+    parser.add_argument("--compare-checks", nargs=argparse.REMAINDER,
+                        help="Replay with native checks and the approved report schema-2 difference")
     args = parser.parse_args()
     if args.verify_archives:
-        if args.capture or args.command or args.compare_read_only:
+        if args.capture or args.command or args.compare_read_only or args.compare_checks:
             parser.error("--verify-archives cannot use --capture or --command")
         verify_archives()
         return
     if args.capture:
-        if args.command or args.compare_read_only:
+        if args.command or args.compare_read_only or args.compare_checks:
             parser.error("--capture cannot use --command")
         capture()
         print("Captured immutable Python command, test-map, and historical inventories.")
     else:
         command = args.command or [sys.executable, "-B", str(SOURCE / "src/wsup.py")]
         expected = json.loads((DATA / "expected.json").read_text())
-        actual = replay(command, args.compare_read_only)
+        if args.compare_checks:
+            if args.compare_read_only or args.command:
+                parser.error("--compare-checks cannot combine with --command or --compare-read-only")
+            # Schema version/runtime metadata are approved native differences.
+            # Everything else, including hashes and error content, stays exact.
+            cases = {item["id"]: item["steps"] for item in json.loads(
+                (DATA / "cases.json").read_text())["cases"]}
+            for case, records in expected.items():
+                steps = cases[case]
+                for step, record in zip(steps, records):
+                    if step["args"][0] == "check":
+                        for report in record["reports"]:
+                            report["version"] = 2
+        actual = replay(command, args.compare_read_only, args.compare_checks)
         if actual != expected:
             for case in actual:
                 for index, (want, got) in enumerate(zip(expected[case], actual[case])):
