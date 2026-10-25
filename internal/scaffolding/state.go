@@ -12,6 +12,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/brendenchu/wsup/internal/catalogue"
 	"github.com/brendenchu/wsup/internal/registry"
 )
 
@@ -22,7 +23,7 @@ const (
 )
 
 var (
-	collections   = []string{"archive", "artifacts", "journal", "learning", "private", "reference", "research"}
+	collections   = catalogue.CollectionNames()
 	defaultHomes  = []string{"apps/.gitkeep", "infrastructure/.gitkeep", "packages/README.md", "tools/README.md", "workbench/README.md"}
 	digestPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
 )

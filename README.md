@@ -26,8 +26,9 @@ Unix `check` execution with sanitized schema-v2 reports, and workspace/project
 `init DESTINATION` (`--template project` for projects). Native checks are
 verified on macOS ARM64; non-Unix execution explicitly refuses launch until
 descendant cleanup is implemented. Native `update` previews/applies embedded
-managed-content changes to schema-2 workspaces/projects. Collection selection/
-additions and Python migration still fail explicitly. Native starters contain schema-v2 state and no
+managed-content changes to schema-2 workspaces/projects. Repeatable `init
+--collection NAME` and preview/apply `collections --add NAME` support explicit
+optional homes. Python migration still fails explicitly. Native starters contain schema-v2 state and no
 bundled runtime/catalogue; project starters also omit a registry. Python cannot
 update native state. Python remains the reference CLI for Python-managed
 workspaces, and is required by any application check that requests it. See

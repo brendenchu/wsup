@@ -18,11 +18,20 @@ func InitialiseProject(destination, version string) (string, error) {
 
 // Initialise creates a native workspace or project using embedded templates.
 func Initialise(destination, version, kind string) (string, error) {
-	files, err := catalogue.Bundle(kind)
+	return InitialiseSelected(destination, version, kind, nil)
+}
+
+// InitialiseSelected creates only explicitly selected optional workspace homes.
+func InitialiseSelected(destination, version, kind string, names []string) (string, error) {
+	selected, err := catalogue.SelectCollections(names)
 	if err != nil {
 		return "", err
 	}
-	return initialise(destination, version, kind, files, writeManaged)
+	files, err := catalogue.BundleSelected(kind, selected)
+	if err != nil {
+		return "", err
+	}
+	return initialiseSelected(destination, version, kind, files, selected, writeManaged)
 }
 
 func initialiseProject(destination, version string, files map[string][]byte, write func(*os.Root, string, []byte, bool) error) (string, error) {
@@ -30,10 +39,14 @@ func initialiseProject(destination, version string, files map[string][]byte, wri
 }
 
 func initialise(destination, version, kind string, files map[string][]byte, write func(*os.Root, string, []byte, bool) error) (string, error) {
+	return initialiseSelected(destination, version, kind, files, nil, write)
+}
+
+func initialiseSelected(destination, version, kind string, files map[string][]byte, selected []string, write func(*os.Root, string, []byte, bool) error) (string, error) {
 	if len(files) == 0 {
 		return "", fmt.Errorf("embedded starter catalogue is empty")
 	}
-	state := State{Version: StateVersion, TemplateVersion: version, Template: kind, Files: make(map[string]string, len(files))}
+	state := State{Version: StateVersion, TemplateVersion: version, Template: kind, Files: make(map[string]string, len(files)), Collections: selected}
 	names := make([]string, 0, len(files))
 	for name, body := range files {
 		if kind == "project" && name == "workspace.json" {

@@ -59,7 +59,7 @@ func newCommand() *cobra.Command {
 	root := &cobra.Command{
 		Use:              "wsup",
 		Short:            "WSUP portable local workspace tools",
-		Long:             "WSUP Go migration bootstrap. Inspection, editor, Unix checks, workspace/project init, and native content updates are available; collections and Python migration are not yet ported.",
+		Long:             "WSUP Go migration bootstrap. Inspection, editor, Unix checks, workspace/project init, collections, and native content updates are available; Python migration is not yet ported.",
 		Version:          Version,
 		SilenceErrors:    true,
 		SilenceUsage:     true,
@@ -108,10 +108,7 @@ func newCommand() *cobra.Command {
 			if kind != "workspace" && kind != "project" {
 				return fmt.Errorf("template must be workspace or project")
 			}
-			if len(collections) != 0 {
-				return fmt.Errorf("native init collection selection is not yet implemented")
-			}
-			destination, err := scaffolding.Initialise(args[0], Version, kind)
+			destination, err := scaffolding.InitialiseSelected(args[0], Version, kind, collections)
 			if err != nil {
 				return err
 			}
@@ -120,7 +117,7 @@ func newCommand() *cobra.Command {
 		},
 	}
 	init.Flags().String("template", "workspace", "Starter kind (workspace or project)")
-	init.Flags().StringArray("collection", nil, "Optional workspace collection (not yet ported)")
+	init.Flags().StringArray("collection", nil, "Optional workspace collection (repeatable)")
 	root.AddCommand(init)
 	update := &cobra.Command{
 		Use: "update", Short: "Preview native managed-content updates; --apply writes",
@@ -154,19 +151,38 @@ func newCommand() *cobra.Command {
 	update.Flags().Bool("apply", false, "Apply a conflict-free native content update")
 	update.Flags().StringArray("keep", nil, "Preserve an existing same-path customization (repeatable)")
 	root.AddCommand(update)
-	for _, name := range []string{
-		"collections",
-	} {
-		root.AddCommand(&cobra.Command{
-			Use:                name,
-			Short:              "Not yet ported; use the Python CLI",
-			DisableFlagParsing: true,
-			RunE: func(command *cobra.Command, args []string) error {
-				return fmt.Errorf("%s is not yet implemented in Go; Python commands only support "+
-					"Python-managed schema-1 workspaces, not native schema-2 state", command.Name())
-			},
-		})
+	collections := &cobra.Command{
+		Use: "collections", Short: "List or preview optional collection additions",
+		Args: cobra.NoArgs,
+		RunE: func(command *cobra.Command, args []string) error {
+			root, err := command.Root().Flags().GetString("root")
+			if err != nil {
+				return err
+			}
+			names, err := command.Flags().GetStringArray("add")
+			if err != nil {
+				return err
+			}
+			apply, err := command.Flags().GetBool("apply")
+			if err != nil {
+				return err
+			}
+			result, err := scaffolding.AddCollections(root, names, apply)
+			if err != nil {
+				return err
+			}
+			if err := writeJSON(command.OutOrStdout(), result); err != nil {
+				return err
+			}
+			if len(result.Conflicts) != 0 {
+				return statusError{1}
+			}
+			return nil
+		},
 	}
+	collections.Flags().StringArray("add", nil, "Collection name to add (repeatable)")
+	collections.Flags().Bool("apply", false, "Apply conflict-free collection additions")
+	root.AddCommand(collections)
 	return root
 }
 

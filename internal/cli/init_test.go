@@ -16,7 +16,7 @@ func TestProjectInitCLIAndRejectedArguments(t *testing.T) {
 	parent := t.TempDir()
 	for _, args := range [][]string{
 		{"init"}, {"init", "a", "b"},
-		{"init", filepath.Join(parent, "workspace"), "--collection", "archive"},
+		{"init", filepath.Join(parent, "workspace"), "--collection", "unknown"},
 		{"init", filepath.Join(parent, "bad"), "--template", "unknown"},
 		{"init", filepath.Join(parent, "bad"), "--template", "project", "--collection", "archive"},
 		{"init", filepath.Join(parent, "bad"), "--template", "project", "--invalid"},
@@ -122,5 +122,23 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	owner, err := os.ReadFile(filepath.Join(movedWorkspace, "README.md"))
 	if err != nil || string(owner) != "Local customization, not a child default" {
 		t.Fatal("standalone update replaced kept owner bytes")
+	}
+	run("init", "selected-workspace", "--collection", "archive", "--collection", "journal")
+	selected := filepath.Join(directory, "selected-workspace")
+	previewCollections := run("--root", selected, "collections", "--add", "private")
+	if !strings.Contains(string(previewCollections), `"applied": false`) {
+		t.Fatalf("collection preview: %s", previewCollections)
+	}
+	run("--root", selected, "collections", "--add", "private", "--apply")
+	run("--root", selected, "update", "--apply")
+	run("--root", selected, "guidance")
+	selectedState, err := scaffolding.LoadState(selected)
+	if err != nil || !reflect.DeepEqual(selectedState.State.Collections, []string{"archive", "journal", "private"}) {
+		t.Fatalf("standalone selections: %+v %v", selectedState.State, err)
+	}
+	run("--root", selected, "init", "unselected-child")
+	childState, err := scaffolding.LoadState(filepath.Join(directory, "unselected-child"))
+	if err != nil || len(childState.State.Collections) != 0 {
+		t.Fatalf("child inherited collection defaults: %+v %v", childState.State, err)
 	}
 }

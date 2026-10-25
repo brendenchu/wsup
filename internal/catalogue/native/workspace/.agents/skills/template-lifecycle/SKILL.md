@@ -12,7 +12,11 @@ description: Create workspace or project starters, maintain template content, or
 2. For generation, use `wsup init DESTINATION`, adding `--template project` for a
    project. Choose a new destination. Inspect guidance, registry where applicable,
    state, and local links. Relative destinations use cwd, not `--root`.
-   Collection selection is not yet available.
+   Use repeatable `--collection NAME` only for explicit optional workspace homes.
+   `wsup collections --add NAME` previews existing-workspace additions; apply
+   only when authorized and conflict-free with `--apply`. Never adopt pre-existing
+   unmanaged scaffold files, even if identical, or assume parent selections carry
+   into child generation. Selection creates no security/backup/retention controls.
 3. Maintain product starters in their trusted owning source checkout, not
    generated output. Synchronize canonical rules/skills with their distributed
    variants; keep native-specific installation instructions consistent. Keep

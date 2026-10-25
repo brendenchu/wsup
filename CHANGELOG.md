@@ -59,8 +59,11 @@ See the [release guide](docs/releases.md) for version and tag policy.
   catalogue; projects also omit a registry. Native workspace docs and skills
   describe the separately installed binary and current command limits. Existing
   destinations are refused; I/O failures explicitly retain partial output for
-  inspection. Native collection workflows and Python migration are not yet
-  available; Python cannot update native state.
+  inspection. Python migration is not yet available; Python cannot update native state.
+- Native collection selection and additions: repeatable `init --collection NAME`,
+  listing/preview `collections --add NAME`, and explicit conflict-free `--apply`.
+  Unmanaged scaffold files are never adopted or overwritten; selections persist
+  in state without becoming child-generation defaults.
 - Native `update` previews and explicitly applies embedded managed-content
   changes for schema-2 workspaces/projects, preserving registry ownership,
   selected collections, omitted homes, and kept baseline hashes. Conflicts block

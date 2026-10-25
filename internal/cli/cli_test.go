@@ -51,23 +51,6 @@ func TestHelpVersionAndErrors(t *testing.T) {
 	}
 }
 
-func TestUnportedCommandsNeverSucceed(t *testing.T) {
-	for _, name := range []string{
-		"collections",
-	} {
-		t.Run(name, func(t *testing.T) {
-			var stdout, stderr bytes.Buffer
-			if code := Run([]string{"--root", t.TempDir(), name, "--apply"}, &stdout, &stderr); code != 2 {
-				t.Fatalf("exit %d, want 2", code)
-			}
-
-			if stdout.Len() != 0 || !strings.Contains(stderr.String(), "not yet implemented in Go") {
-				t.Fatalf("stdout=%q stderr=%q", &stdout, &stderr)
-			}
-		})
-	}
-}
-
 func TestEditorExclusiveCreationAndReadOnlyErrors(t *testing.T) {
 	root := t.TempDir()
 	document := `{"version":1,"name":"Synthetic","projects":[{"id":"app","path":".","kind":"tool","repository":"workspace","purpose":"Fixture","owner":"Test"}]}`

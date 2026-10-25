@@ -24,6 +24,24 @@ var assets []byte
 //go:embed all:native
 var native embed.FS
 
+// CollectionNames returns a fresh ordered list of supported optional homes.
+func CollectionNames() []string {
+	return []string{"archive", "artifacts", "journal", "learning", "private", "reference", "research"}
+}
+
+// SelectCollections validates, sorts, and deduplicates explicit selections.
+func SelectCollections(names []string) ([]string, error) {
+	selected := append([]string{}, names...)
+	slices.Sort(selected)
+	selected = slices.Compact(selected)
+	for _, name := range selected {
+		if !slices.Contains(CollectionNames(), name) {
+			return nil, fmt.Errorf("unknown collection %q; select from %s", name, strings.Join(CollectionNames(), ", "))
+		}
+	}
+	return selected, nil
+}
+
 // Bundle returns starter bytes, applying explicit native installation overrides.
 // Neither workspace customizations nor checkout files are read at runtime.
 func Bundle(kind string) (map[string][]byte, error) {
@@ -38,13 +56,9 @@ func BundleSelected(kind string, collections []string) (map[string][]byte, error
 	if kind != "workspace" && len(collections) != 0 {
 		return nil, fmt.Errorf("optional collections require a workspace template")
 	}
-	selected := slices.Clone(collections)
-	slices.Sort(selected)
-	selected = slices.Compact(selected)
-	for _, name := range selected {
-		if !slices.Contains([]string{"archive", "artifacts", "journal", "learning", "private", "reference", "research"}, name) {
-			return nil, fmt.Errorf("unknown collection %q", name)
-		}
+	selected, err := SelectCollections(collections)
+	if err != nil {
+		return nil, err
 	}
 	tree, err := Open()
 	if err != nil {

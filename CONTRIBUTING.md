@@ -33,8 +33,8 @@ and does not need Go or Python installed for workspace/project initialization
 or inspection. Checks still require their configured tools.
 
 Help/version, `validate`, `projects`, `config`, `guidance`, `editor`, and Unix
-`check`, workspace/project `init`, and native `update` are implemented in Go.
-Unported collection operations return exit 2; Python only supports Python-managed state,
+`check`, workspace/project `init`, `collections`, and native `update` are
+implemented in Go. Python only supports Python-managed state,
 not native output. Nothing forwards automatically or pretends to succeed.
 The bootstrap retains the product version 0.1.0, not a new
 release or parity claim. A test checks it against the Python version authority.
@@ -129,8 +129,9 @@ embedded templates. Native-generated workspaces will retain state/reports, not a
 platform executable, Python runtime, or copied catalogue. Phase 5 is in progress:
 `init DESTINATION` creates a workspace, and `--template project` creates a
 project. Native `update` previews and applies managed content from the invoked
-binary's embedded catalogue. Collection selection/additions and Python migration
-remain disabled while their behavior and safety are ported.
+binary's embedded catalogue. Repeatable `init --collection NAME` and
+`collections --add NAME` support explicit optional homes. Python migration
+remains disabled while its safety is ported.
 
 Native project initialization reads embedded project assets without a source
 checkout, Python, Go, or an existing workspace registry at runtime. Its destination
@@ -150,11 +151,11 @@ For example, after building the executable:
 ```
 
 Workspace output includes its empty registry, full default development homes,
-local guidance, all 12 skills, and native installation documentation. No optional
-collection homes are created. Its `.wsup/` initially contains only template state;
+local guidance, all 12 skills, and native installation documentation. Optional
+collection homes are created only when selected explicitly. Its `.wsup/` initially contains only template state;
 reports are created by explicit checks later. Both starter kinds preserve license
 notices. Generated instructions explicitly distinguish current native behavior
-from pending collection/migration operations.
+from pending Python migration operations.
 
 An initialization I/O failure explicitly identifies the partial destination.
 Partial files/directories are retained for inspection, not recursively removed,
@@ -207,7 +208,21 @@ prints JSON and returns 1; conflicting apply returns an operational error/exit 2
 without writes, matching Python's command shape. Repeatable `--keep PATH` accepts
 literal paths, not CSV or shell expansions. Update does not require or parse the
 user-owned registry/local configuration and works for standalone project starters.
-Collection workflows, legacy migration, and Python runtime retirement remain pending.
+Legacy migration and Python runtime retirement remain pending.
+
+Collection names share one validated, sorted/deduplicated catalogue contract.
+`collections` lists available names without requiring state; additions require a
+native managed workspace. Preview is read-only, reports conflicts with exit 1,
+and `--apply` blocks with exit 2 on any conflict. Existing unmanaged files are
+never adopted, even if identical; missing selected managed files conflict.
+Already-selected managed regular files retain customized bytes and original
+hashes. Former default-managed journal/learning/reference/research files can be
+explicitly selected while preserving their baselines; other unselected managed
+scaffolds conflict. Additions share the update service's stale-state/path checks,
+exclusive creation, state-last write, and explicit partial-I/O errors. They
+preserve template version, prior hashes/selections, and home omissions.
+Children never inherit parent selections; collection scaffolds set up no
+permissions, ignores, backups, or retention controls.
 
 `src/templates/` remains the authoritative starter catalogue. During coexistence,
 `internal/catalogue/assets.zip` is a generated, deterministic snapshot embedded

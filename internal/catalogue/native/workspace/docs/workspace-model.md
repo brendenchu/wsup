@@ -33,9 +33,9 @@ for product changes. Binary replacement and managed-content updates are separate
 | `guidance` | Prints structural findings as JSON; optional `--project ID` selects a registered owner. |
 | `editor` | Creates a relative-path VS Code workspace file; `--output NAME` must be a new file directly in the root. |
 | `check` | Requires repeatable `--project ID`; optional repeatable `--check NAME`, `--timeout SECONDS`, `--show-output`. |
-| `init DESTINATION` | Creates a new workspace immediately; `--template project` creates a project without a registry/runtime. |
+| `init DESTINATION` | Creates a new workspace immediately; repeatable `--collection NAME` selects optional homes. `--template project` creates a project without a registry/runtime; collections are workspace-only. |
 | `update` | Prints a managed-content plan; `--apply` writes when conflict-free, repeatable `--keep PATH` retains eligible same-path customizations. |
-| `collections` | Not yet available in this native build; fails explicitly. |
+| `collections` | Lists available names; repeatable `--add NAME` previews additions, `--apply` writes when conflict-free. |
 
 Use `--help`, `COMMAND --help`, and `--version` for options and product version.
 Invalid options fail even when help/version is also present. Unambiguous long
@@ -76,11 +76,36 @@ Promote accepted knowledge to its maintained owner rather than keeping competing
 canonical copies. A journal is optional.
 
 Optional collection homes are `archive`, `artifacts`, `journal`, `learning`,
-`private`, `reference`, and `research`. Native collection selection/addition is
-not yet implemented; none are created by default. These are organizational
+`private`, `reference`, and `research`. None are created by default. These are organizational
 choices, not permissions, encryption, sync, backup, or retention controls.
 Restricted material belongs outside documentation and Git unless appropriate
 controls are separately established. Ignored does not mean confidential.
+
+```sh
+wsup init /path/to/new-workspace --collection archive --collection journal
+wsup collections
+wsup collections --add artifacts --add private
+wsup collections --add artifacts --add private --apply
+```
+
+Names are validated, sorted, and deduplicated. The binary carries all seven
+scaffold sources; only explicitly selected ones are installed and managed.
+A child workspace starts with no collections unless selected explicitly.
+Listing needs no managed state; additions require a native managed workspace.
+Unknown names, project selections, and symlink destinations fail explicitly.
+
+Unmanaged existing scaffold files are conflicts even when identical; they are
+never adopted or overwritten. Missing selected managed files are conflicts.
+Already-selected regular managed files, including customizations, are left
+unchanged with their original hashes; use update to review those customizations.
+Former default-managed journal/learning/reference/research files can be explicitly
+selected without accepting customized bytes as baselines. Other unselected
+managed collection files conflict rather than being implicitly adopted.
+All conflicts block additions. State and observed paths are rechecked before
+exclusive writes; state is replaced last, preserving unrelated hashes, template
+version, omitted homes, and previous selections. I/O failures can leave new files
+with old state and are explicit; inspect partial results before retrying.
+These commands configure no permissions, ACLs, ignores, sync, backups, or retention.
 
 ## Register projects
 
@@ -234,8 +259,8 @@ Omitted default homes remain omitted; orphan bytes are retained but cease to be
 managed. Unknown files, project contents, reports, and local settings survive.
 There are no runtime files to update or retire in native schema 2.
 
-Native collection additions and Python-to-native migration are
-not yet available. Python rejects native schema 2; do not force a downgrade by
+Python-to-native migration is not yet available. Python rejects native schema 2;
+do not force a downgrade by
 editing its version field or use Python updates here. Future migration must be
 explicit, preserve owner bytes, and retire only verified unchanged managed
 runtime files. No remote downloader or automatic binary upgrade is provided.

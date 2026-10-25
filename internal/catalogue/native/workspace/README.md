@@ -61,10 +61,22 @@ not mean backed up, disposable, or secure. Promote approved knowledge to the
 owning project's maintained documentation.
 
 Knowledge and lifecycle homes (`archive`, `artifacts`, `journal`, `learning`,
-`private`, `reference`, `research`) are not created by default. Collection CLI
-selection/additions are not yet available in this native build. A directory or
-ignore rule is not an access-control boundary; keep restricted records out of
-documentation and Git.
+`private`, `reference`, `research`) are not created by default. Select explicitly:
+
+```sh
+wsup init /path/to/new-workspace --collection archive --collection journal
+wsup collections
+wsup collections --add private --add artifacts
+wsup collections --add private --add artifacts --apply
+```
+
+Selections are deduplicated and retained for template updates, not inherited by
+child workspaces. Existing unmanaged scaffold files are conflicts even when
+identical; all conflicts block additions. Already-selected managed files retain
+customizations; review them with `update`. Additions create documentation (journal
+also includes a template), not permissions, ignore rules, backups, encryption,
+or retention policies. A directory or ignore rule is not an access-control
+boundary; keep restricted records out of documentation and Git.
 
 ## Generation, updates, and recovery
 
