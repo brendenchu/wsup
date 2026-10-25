@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-ci:
+    name: native-ci
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      GOTOOLCHAIN: local
+      CGO_ENABLED: "1"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pinned Go toolchain
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Verify native target and toolchain
+        run: |
+          test "$(uname -s)" = Darwin
+          test "$(uname -m)" = arm64
+          test "$(go env GOVERSION)" = "go$(awk '$1 == "go" { print $2 }' go.mod)"
+          go version
+          git --version
+
+      - name: Download and verify dependencies
+        id: dependencies
+        run: |
+          go mod download
+          go mod verify
+
+      # Run independent checks after failures, but never after dependency failure
+      # or cancellation. Any failed step keeps the required job unsuccessful.
+      - name: Run race tests
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: go test -race ./...
+
+      - name: Run vet
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: go vet ./...
+
+      - name: Validate registry
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: go run ./cmd/wsup validate
+
+      - name: Validate guidance
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: go run ./cmd/wsup guidance

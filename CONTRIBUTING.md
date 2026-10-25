@@ -160,6 +160,25 @@ prove client discovery or invocation; see [AI guidance](docs/ai-guidance.md).
 
 ## Preparing a contribution
 
+Open a pull request targeting `main`. The repository's solo-maintainer policy
+requires a PR without requiring another person's approval. Resolve review
+conversations and keep the branch up to date before merging. Reviews remain
+welcome; the required approval count can increase when another maintainer joins.
+
+The [CI workflow](.github/workflows/ci.yml) defines the stable `native-ci` job on
+macOS ARM64 with the exact Go version from `go.mod`. It verifies module checksums,
+runs race tests and vet, and checks the registry and guidance. All PRs run it,
+including documentation changes. Configure it as a required GitHub Actions check
+only after its first successful remote run; changing a required job name needs
+a coordinated ruleset update. Local checks do not replace the remote gate.
+
+CI uses read-only repository permissions and actions pinned to full commit SHAs.
+Keep credentials out of the checkout and avoid privileged workflows that execute
+contributor code. [Dependabot](.github/dependabot.yml) checks Go modules and Actions
+weekly, groups minor/patch updates, and leaves major updates separate. Updates
+use the same PR and CI process; they are not automatically approved or merged.
+These GitHub configurations belong to this repository, not generated starters.
+
 Explain behavior, compatibility effects, and actual verification. Review the
 complete diff, including new files. Keep local settings, reports, secrets, and
 unrelated formatting out of contributions. Add user-visible changes to
