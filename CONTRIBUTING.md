@@ -29,13 +29,14 @@ go run ./cmd/wsup --version
 
 Use `go build -o /path/to/local/output/wsup ./cmd/wsup` to build outside the
 tracked tree. Do not commit executables. A compiled binary carries its assets
-and does not need Go installed; Python is still required for actual workspace
-initialization, collections, and updates while the port is incomplete.
+and does not need Go or Python installed for workspace/project initialization
+or inspection. Checks still require their configured tools.
 
 Help/version, `validate`, `projects`, `config`, `guidance`, `editor`, and Unix
-`check` are implemented in Go. Every unported scaffolding command
-returns exit 2 with a Python invocation hint; it never forwards automatically or
-pretends to succeed. The bootstrap retains the product version 0.1.0, not a new
+`check`, and workspace/project `init` are implemented in Go. Unported collection
+and update operations return exit 2; Python only supports Python-managed state,
+not native output. Nothing forwards automatically or pretends to succeed.
+The bootstrap retains the product version 0.1.0, not a new
 release or parity claim. A test checks it against the Python version authority.
 
 Compare ported commands against the frozen scenarios with a compiled binary:
@@ -126,9 +127,9 @@ Go test covers this approved difference rather than weakening Python expectation
 The approved native installation target is a separately installed binary with
 embedded templates. Native-generated workspaces will retain state/reports, not a
 platform executable, Python runtime, or copied catalogue. Phase 5 is in progress:
-`init DESTINATION --template project` is available; workspace initialization,
-`collections`, and CLI `update` remain disabled while starter instructions and
-migration safety are ported.
+`init DESTINATION` creates a workspace, and `--template project` creates a
+project. Collection selection/additions and CLI `update` remain disabled while
+their behavior and migration safety are ported.
 
 Native project initialization reads embedded project assets without a source
 checkout, Python, Go, or an existing workspace registry at runtime. Its destination
@@ -142,18 +143,30 @@ For example, after building the executable:
 ```sh
 /path/to/wsup init /path/to/new-project --template project
 /path/to/wsup --root /path/to/new-project guidance
+/path/to/wsup init /path/to/new-workspace
+/path/to/wsup --root /path/to/new-workspace validate
+/path/to/wsup --root /path/to/new-workspace guidance
 ```
+
+Workspace output includes its empty registry, full default development homes,
+local guidance, all 12 skills, and native installation documentation. No optional
+collection homes are created. Its `.wsup/` initially contains only template state;
+reports are created by explicit checks later. Both starter kinds preserve license
+notices. Generated instructions explicitly distinguish current native behavior
+from pending collection/update/migration operations.
 
 An initialization I/O failure explicitly identifies the partial destination.
 Partial files/directories are retained for inspection, not recursively removed,
 to avoid deleting concurrently created owner content. Inspect and recover that
 destination manually before retrying; no transactional rollback is promised.
 This differs from Python's attempted destination cleanup on initialization failure.
-Standalone tests run with an empty PATH outside the checkout, relocate the
-project, and generate another project from the external binary.
+Standalone tests run with an empty PATH outside the checkout, relocate projects
+and workspaces, and generate children using the external binary. Workspace
+validation and guidance pass before/after relocation; children use the binary's
+baseline, never parent customizations.
 
 Template-state groundwork recognizes Python schema 1 for read-only inspection
-and native schema 2 for project output. Schema 2 cannot own files under `.wsup/`;
+and native schema 2 for workspace/project output. Schema 2 cannot own files under `.wsup/`;
 that directory holds state/reports rather than template-owned runtime content.
 State validation rejects malformed paths/hashes, unknown schemas/fields,
 file/parent collisions, invalid selections/omissions, and symlinked state paths.
@@ -187,9 +200,8 @@ new directories with old state, and errors explicitly report that possibility.
 Rooted operations contain paths, but concurrent writers can still race after a
 per-file recheck; concurrent mutation is not an isolation guarantee. There is no
 fsync/power-loss durability guarantee. Native apply is tested with synthetic
-schema-2 fixtures only and is not exposed by the CLI. Native workspace starter
-adaptation/initialization, legacy migration, and Python runtime retirement remain
-pending.
+schema-2 fixtures only and is not exposed by the CLI. Collection workflows, CLI
+updates, legacy migration, and Python runtime retirement remain pending.
 
 `src/templates/` remains the authoritative starter catalogue. During coexistence,
 `internal/catalogue/assets.zip` is a generated, deterministic snapshot embedded
@@ -203,7 +215,20 @@ go test ./internal/catalogue/...
 Generation includes hidden files, excludes Python caches, rejects symlinks, and
 preserves exact asset bytes. Tests compare the complete embedded inventory to
 source; normal builds/tests never silently regenerate it. This archive is not
-another editable catalogue. At cutover, move the authoritative templates once
+another editable catalogue.
+
+Native-only installation variants live in `internal/catalogue/native/` and are
+embedded directly. They replace exactly nine existing surfaces: workspace/project
+READMEs, workspace docs index/model, and the five skills that contain Python CLI
+or catalogue instructions. Shared rules and the remaining skills keep exact
+canonical bytes. Skill discovery metadata remains identical; only procedures
+adapt to native installation. Tests pin the override inventory and reject stale
+Python invocation/catalogue instructions in native output. Do not edit Python
+bundles or root skills to advertise unsupported native behavior during coexistence.
+These explicit temporary variants avoid modifying the frozen operational starter
+or blindly replacing command text at runtime.
+
+At cutover, consolidate native variants, move the authoritative templates once,
 and retire the transitional archive/generator. Do not move the Python runtime
 or tests while they remain the reference implementation.
 

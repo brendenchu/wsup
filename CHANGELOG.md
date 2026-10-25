@@ -54,11 +54,13 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Added
 
-- Native `init DESTINATION --template project` creates an embedded project
-  starter with schema-v2 state and no bundled runtime or registry. Existing
+- Native `init DESTINATION` creates an embedded workspace starter; `--template
+  project` selects a project. Both use schema-v2 state and no bundled runtime or
+  catalogue; projects also omit a registry. Native workspace docs and skills
+  describe the separately installed binary and current command limits. Existing
   destinations are refused; I/O failures explicitly retain partial output for
-  inspection. Native workspace initialization and CLI updates are not yet
-  available; Python cannot update native state.
+  inspection. Native collection workflows and CLI updates are not yet available;
+  Python cannot update native state.
 - Native Unix `check` execution with explicit selection, timeout precedence,
   bounded output, process-group cancellation, and sanitized schema-v2 reports.
   Non-Unix execution remains unsupported; macOS ARM64 is the verified runtime.

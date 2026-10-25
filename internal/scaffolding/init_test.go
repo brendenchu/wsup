@@ -3,7 +3,6 @@ package scaffolding
 import (
 	"bytes"
 	"errors"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -21,7 +20,7 @@ func TestNativeProjectMatchesEmbeddedCatalogueAndRelocates(t *testing.T) {
 	if err != nil || actual != destination {
 		t.Fatalf("init: %s %v", actual, err)
 	}
-	tree, err := catalogue.Open()
+	files, err := catalogue.Bundle("project")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,25 +28,14 @@ func TestNativeProjectMatchesEmbeddedCatalogueAndRelocates(t *testing.T) {
 	if err != nil || state.State.Version != StateVersion || state.State.Template != "project" {
 		t.Fatalf("native state: %+v %v", state.State, err)
 	}
-	count := 0
-	err = fs.WalkDir(tree, "project", func(name string, entry fs.DirEntry, err error) error {
-		if err != nil || entry.IsDir() {
-			return err
-		}
-		count++
-		want, err := fs.ReadFile(tree, name)
-		if err != nil {
-			return err
-		}
-		relative := strings.TrimPrefix(name, "project/")
+	for relative, want := range files {
 		got, err := os.ReadFile(filepath.Join(destination, filepath.FromSlash(relative)))
 		if err != nil || !bytes.Equal(want, got) || state.State.Files[relative] != contentDigest(want) {
-			t.Errorf("starter/hash differs: %s %v", name, err)
+			t.Errorf("starter/hash differs: %s %v", relative, err)
 		}
-		return nil
-	})
-	if err != nil || count != len(state.State.Files) {
-		t.Fatalf("inventory mismatch: %d %v", count, err)
+	}
+	if len(files) != len(state.State.Files) {
+		t.Fatalf("inventory mismatch: %d", len(files))
 	}
 	for _, name := range []string{"workspace.json", ".wsup/wsup.py", ".wsup/templates"} {
 		if _, err := os.Lstat(filepath.Join(destination, name)); !os.IsNotExist(err) {

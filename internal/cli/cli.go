@@ -59,7 +59,7 @@ func newCommand() *cobra.Command {
 	root := &cobra.Command{
 		Use:              "wsup",
 		Short:            "WSUP portable local workspace tools",
-		Long:             "WSUP Go migration bootstrap. Inspection, editor, Unix checks, and init --template project are available; workspace init, collections, and update still require Python.",
+		Long:             "WSUP Go migration bootstrap. Inspection, editor, Unix checks, and workspace/project init are available; collections and CLI update are not yet ported.",
 		Version:          Version,
 		SilenceErrors:    true,
 		SilenceUsage:     true,
@@ -94,7 +94,7 @@ func newCommand() *cobra.Command {
 	check.Flags().Bool("show-output", false, "Print retained stdout/stderr to the terminal")
 	root.AddCommand(check)
 	init := &cobra.Command{
-		Use: "init DESTINATION", Short: "Create a native project starter (--template project)",
+		Use: "init DESTINATION", Short: "Create a native workspace or project starter",
 		Args: cobra.ExactArgs(1),
 		RunE: func(command *cobra.Command, args []string) error {
 			kind, err := command.Flags().GetString("template")
@@ -108,13 +108,10 @@ func newCommand() *cobra.Command {
 			if kind != "workspace" && kind != "project" {
 				return fmt.Errorf("template must be workspace or project")
 			}
-			if kind == "workspace" {
-				return fmt.Errorf("workspace init is not yet implemented in Go; use Python or select --template project")
-			}
 			if len(collections) != 0 {
-				return fmt.Errorf("optional collections require the workspace template")
+				return fmt.Errorf("native init collection selection is not yet implemented")
 			}
-			destination, err := scaffolding.InitialiseProject(args[0], Version)
+			destination, err := scaffolding.Initialise(args[0], Version, kind)
 			if err != nil {
 				return err
 			}
@@ -122,7 +119,7 @@ func newCommand() *cobra.Command {
 			return err
 		},
 	}
-	init.Flags().String("template", "workspace", "Starter kind (currently only project is ported)")
+	init.Flags().String("template", "workspace", "Starter kind (workspace or project)")
 	init.Flags().StringArray("collection", nil, "Optional workspace collection (not yet ported)")
 	root.AddCommand(init)
 	for _, name := range []string{
@@ -133,8 +130,8 @@ func newCommand() *cobra.Command {
 			Short:              "Not yet ported; use the Python CLI",
 			DisableFlagParsing: true,
 			RunE: func(command *cobra.Command, args []string) error {
-				return fmt.Errorf("%s is not yet implemented in Go; use src/wsup.py "+
-					"(source checkout) or .wsup/wsup.py (generated workspace) with Python 3.9+", command.Name())
+				return fmt.Errorf("%s is not yet implemented in Go; Python commands only support "+
+					"Python-managed schema-1 workspaces, not native schema-2 state", command.Name())
 			},
 		})
 	}

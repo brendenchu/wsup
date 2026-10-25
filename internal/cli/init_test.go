@@ -15,7 +15,8 @@ import (
 func TestProjectInitCLIAndRejectedArguments(t *testing.T) {
 	parent := t.TempDir()
 	for _, args := range [][]string{
-		{"init"}, {"init", "a", "b"}, {"init", filepath.Join(parent, "workspace")},
+		{"init"}, {"init", "a", "b"},
+		{"init", filepath.Join(parent, "workspace"), "--collection", "archive"},
 		{"init", filepath.Join(parent, "bad"), "--template", "unknown"},
 		{"init", filepath.Join(parent, "bad"), "--template", "project", "--collection", "archive"},
 		{"init", filepath.Join(parent, "bad"), "--template", "project", "--invalid"},
@@ -78,5 +79,36 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	child, err := scaffolding.LoadState(filepath.Join(directory, "child"))
 	if err != nil || !reflect.DeepEqual(first.State, child.State) {
 		t.Fatalf("child depended on relocated parent/checkout: %+v %v", child.State, err)
+	}
+	run("--root", filepath.Join(directory, "unrelated"), "init", "workspace")
+	workspace := filepath.Join(directory, "workspace")
+	if output := run("--root", workspace, "validate"); !strings.Contains(string(output), "(0 projects)") {
+		t.Fatalf("workspace validation failed: %s", output)
+	}
+	if output := run("--root", workspace, "guidance"); !strings.Contains(string(output), `"errors": []`) {
+		t.Fatalf("workspace guidance failed: %s", output)
+	}
+	workspaceState, err := scaffolding.LoadState(workspace)
+	if err != nil || workspaceState.State.Template != "workspace" || workspaceState.State.Version != 2 {
+		t.Fatalf("workspace state: %+v %v", workspaceState.State, err)
+	}
+	movedWorkspace := filepath.Join(directory, "relocated-workspace")
+	if err := os.Rename(workspace, movedWorkspace); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(movedWorkspace, "README.md"), []byte("Local customization, not a child default"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	run("--root", movedWorkspace, "validate")
+	if output := run("--root", movedWorkspace, "guidance"); !strings.Contains(string(output), `"errors": []`) {
+		t.Fatalf("relocated workspace guidance failed: %s", output)
+	}
+	run("--root", movedWorkspace, "init", "child-workspace")
+	next, err := scaffolding.LoadState(filepath.Join(directory, "child-workspace"))
+	if err != nil || !reflect.DeepEqual(workspaceState.State, next.State) {
+		t.Fatalf("child workspace inherited local modifications: %+v %v", next.State, err)
+	}
+	if output := run("--root", filepath.Join(directory, "child-workspace"), "guidance"); !strings.Contains(string(output), `"errors": []`) {
+		t.Fatalf("child workspace guidance failed: %s", output)
 	}
 }

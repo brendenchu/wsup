@@ -22,14 +22,14 @@ project owns its dependencies and commands.
 
 The Go migration bootstrap uses Go 1.27.3, pinned in `mise.toml`. It currently
 supports help/version, `validate`, `projects`, `config`, `guidance`, `editor`,
-Unix `check` execution with sanitized schema-v2 reports, and
-`init DESTINATION --template project`. Native checks are
+Unix `check` execution with sanitized schema-v2 reports, and workspace/project
+`init DESTINATION` (`--template project` for projects). Native checks are
 verified on macOS ARM64; non-Unix execution explicitly refuses launch until
-descendant cleanup is implemented. Native workspace initialization, collections,
-and CLI updates still fail explicitly. Native project starters contain schema-v2
-state and no runtime or registry; Python cannot update that state. Python remains
-the reference CLI for workspace initialization, collections, and Python-managed
-updates, and is required by any application check that requests it. See
+descendant cleanup is implemented. Native collection selection/additions and CLI
+updates still fail explicitly. Native starters contain schema-v2 state and no
+bundled runtime/catalogue; project starters also omit a registry. Python cannot
+update native state. Python remains the reference CLI for Python-managed
+workspaces, and is required by any application check that requests it. See
 [Go development](CONTRIBUTING.md#go-migration-development) for build/test commands.
 
 An existing macOS developer-tools Python 3.9 can run WSUP; check your installed
