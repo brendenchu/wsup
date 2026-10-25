@@ -1,0 +1,11 @@
+workbench/.local/
+**/workbench/.local/
+.work/
+**/.work/
+.wsup/reports/
+wsup.local.json
+.env
+.env.*
+!.env.example
+**/__pycache__/
+.DS_Store
