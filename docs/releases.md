@@ -174,10 +174,10 @@ authorize a version bump, tag, installation, signing, or publication.
    does not publish a release. If pushing is approved, specify the intended
    remote and exact tag rather than pushing every local tag.
 
-The current 0.1.0 value is retained during unreleased development, not a published
-native release. A compatibility-
-changing native release requires the pre-1.0 minor-version policy above; no new
-version is selected automatically.
+Version 0.2.0 is selected for native release preparation under the pre-1.0
+minor-version policy. It is not yet a tagged or published native release.
+The changelog's preparation label becomes a release date only when the exact
+clean release commit is verified and release actions are separately authorized.
 
 There is no release automation, package publication, or remote self-update
 service. Keep development notes and release-preparation drafts under ignored

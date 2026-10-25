@@ -6,6 +6,12 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ## Unreleased
 
+No changes yet.
+
+## 0.2.0 (release preparation)
+
+Selected native release version; not yet tagged or published.
+
 ### Changed
 
 - Use a standalone Go executable with directly embedded workspace, project, and

@@ -135,8 +135,9 @@ func checkFixture(t *testing.T, checks map[string]any) string {
 }
 
 type checkReport struct {
-	Version int `json:"version"`
-	Results []struct {
+	Version     int    `json:"version"`
+	WsupVersion string `json:"wsup_version"`
+	Results     []struct {
 		Project string `json:"project"`
 		Check   string `json:"check"`
 		Mode    string `json:"mode"`
@@ -163,7 +164,7 @@ func readCheckReport(t *testing.T, root string) (checkReport, []byte) {
 		t.Fatal(err)
 	}
 	var data checkReport
-	if err := json.Unmarshal(body, &data); err != nil || data.Version != 2 {
+	if err := json.Unmarshal(body, &data); err != nil || data.Version != 2 || data.WsupVersion != Version {
 		t.Fatalf("invalid native report: %s %v", body, err)
 	}
 	return data, body

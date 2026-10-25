@@ -19,8 +19,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// Version is the product version; the native implementation remains unreleased.
-const Version = "0.1.0"
+// Version is the product version shared by the CLI, templates, and reports.
+const Version = "0.2.0"
 
 // statusError carries findings already printed as structured output, not operational errors.
 type statusError struct{ code int }
