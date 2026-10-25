@@ -56,9 +56,25 @@ Ordinary changes do not imply a version bump.
   copies under `templates/workspace/`; keep project-specific guidance local.
 - Keep `docs/workspace-model.md` identical to its workspace starter copy.
   Tests enforce canonical skill, rule, model, asset, and license parity.
+- `LICENSE` is the repository's license notice. Each starter retains its own
+  `WSUP-LICENSE` so generated content carries attribution without choosing the
+  owner's project license; no second root license copy is needed.
+- Record CLI, starter, and skill changes together in root `CHANGELOG.md`.
+  Starters are not independently released products and do not carry separate
+  WSUP changelogs. Owners may create changelogs for their own projects.
+- Keep WSUP repository-only material here, not in either starter: the product
+  changelog, contributor guide, release procedures, and distribution tutorials.
+  Starters carry only generated-owner documentation, guidance, configuration,
+  attribution, and scaffold files.
 - `.wsup/` contains ignored local check reports in this development checkout.
   It is not source or an installed runtime, and this repository has no managed
   starter state. Never implement source changes by editing generated output.
+- Keep generated workspaces/projects, executables, release archives, and checksum
+  manifests outside this checkout; tests use disposable temporary destinations.
+  Development-only ignore rules guard common accidental root outputs, including
+  template state. Do not copy that state exclusion into starters: generated
+  owners must track their state for managed updates. Authored files under
+  `templates/` are build inputs, not generated output.
 
 Inspect implementation, callers, and tests before editing. Add regression
 coverage for observable behavior and update directly related documentation.
