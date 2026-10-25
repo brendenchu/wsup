@@ -44,17 +44,39 @@ Review commands before running them: they execute with your permissions. The CLI
 does not install dependencies on its own or automatically check dependencies.
 Reports are local under ignored `.wsup/reports/`.
 
-Create project groupings such as `apps/`, `tools/`, or `learning/` only when
-needed. Other optional collections may separate durable docs, investigations,
-reference, drafts, archived work, or retained deliverables. No empty grouping
-directories or journal are required; see the [workspace model](docs/workspace-model.md)
-for their boundaries. Keep human-authored
-drafts in a visible `workbench/` if useful. Sanitized drafts are eligible for
-local Git tracking; review them before staging. Nothing is committed
-automatically. Keep restricted records outside documentation, workbench drafts,
-and Git repositories. Promote approved knowledge to the owning project's
-maintained documentation instead of keeping competing canonical copies. A
-`private/` folder or ignore rule is not an access-control boundary.
+WSUP creates an opinionated set of working homes in every new workspace:
+`apps/`, `packages/`, `tools/`, `infrastructure/`, `docs/`, and `workbench/`,
+alongside `guidance/`, `.agents/skills/`, and `.wsup/`. These organize
+development work without prescribing a knowledge-management workflow.
+They are defaults, not a requirement to populate every directory. See the
+[workspace model](docs/workspace-model.md#default-layout-and-optional-collections)
+for their distinct purposes.
+
+`learning/`, `research/`, `reference/`, and `journal/` are opt-in, as are
+`archive/`, `artifacts/`, and `private/`. Select only homes with a real use;
+understand lifecycle, provenance, access, and recovery needs before use. A
+`private/` folder or ignore rule is not an access-control boundary. Keep
+restricted records outside documentation, workbench drafts, and Git
+repositories. Review and sanitize human-authored drafts before staging; nothing
+is committed automatically. Promote approved knowledge to the owning project's
+maintained documentation instead of keeping competing canonical copies.
+
+Use the CLI to select optional collection scaffolds:
+
+```sh
+python3 -B .wsup/wsup.py collections
+python3 -B .wsup/wsup.py collections --add archive --add artifacts
+python3 -B .wsup/wsup.py collections --add archive --add artifacts --apply
+python3 -B .wsup/wsup.py init /path/to/another-workspace --collection archive
+```
+
+Available names are `archive`, `artifacts`, `journal`, `learning`, `private`,
+`reference`, and `research`. Existing-workspace
+additions preview by default and never replace existing files. Each scaffold
+creates a README (journal also includes an entry template), not access controls, ignore rules, backups, or retention
+settings. Selected scaffolds remain managed by `update`; existing custom
+READMEs require manual resolution. A new workspace does not inherit the
+generator workspace's choices; select them explicitly with `--collection`.
 
 The bundled runtime and the single installed generation catalogue live under
 `.wsup/`. The registry, guidance, and skills remain workspace-owned. To change

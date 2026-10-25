@@ -41,7 +41,8 @@ the CLI and both templates, so it can be used without this checkout. Inside that
 generated workspace, use `python3 -B .wsup/wsup.py ...`. The installed runtime,
 single template catalogue, state, and reports live under `.wsup/`; shared rules
 live in `guidance/rules/` and portable skills remain in `.agents/skills/`.
-Empty grouping folders and journals are created only as needed.
+Generated workspaces include a standard set of project, knowledge, and working
+areas; see the workspace layout below.
 
 ## Use the CLI
 
@@ -56,6 +57,9 @@ Run `python3 -B tools/wsup.py --help` for command options. The main commands:
 | `guidance --project ID` | Check one project's instructions |
 | `editor` | Create a relative-path VS Code workspace file |
 | `check --project ID` | Run only that project's configured checks |
+| `collections` | List available optional collection scaffolds |
+| `collections --add NAME` | Preview adding a collection; repeat `--add` to select more |
+| `collections --add NAME --apply` | Add scaffolds without replacing existing files |
 | `update` | Preview available template updates |
 | `update --apply` | Apply conflict-free updates |
 | `update --keep PATH` | Retain a same-path customization (repeat for each path) |
@@ -73,15 +77,40 @@ contain results and hashes rather than command output or arguments. Use
 
 ## Workspace layout
 
-`apps/`, `packages/`, `tools/`, `infrastructure/`, `learning/`, `research/`,
-`reference/`, `archive/`, `artifacts/`, and `private/` are optional collections;
-create them only when useful. Their names describe placement, not Git ownership,
-project kind, sensitivity controls, backup, or retention guarantees. See the
-[workspace model](docs/workspace-model.md#optional-collections-and-boundaries)
+Every generated workspace includes `apps/`, `packages/`, `tools/`,
+`infrastructure/`, `docs/`, and `workbench/`, alongside the workspace-owned
+`guidance/`, `.agents/skills/`, and `.wsup/` foundation. This baseline focuses
+on organizing development work, not prescribing a knowledge-management workflow.
+`learning/`, `research/`, `reference/`, and `journal/` are CLI-selectable
+additions, as are `archive/`, `artifacts/`, and `private/`. Folder
+names describe placement, not Git ownership, project kind, sensitivity
+controls, backup, or retention guarantees. See the
+[workspace model](docs/workspace-model.md#default-layout-and-optional-collections)
 for guidance. The installed template catalogue is tool-owned under
 `.wsup/templates/`, not a root project grouping. Register projects in
 `workspace.json`; projects own their code, tests, dependencies, setup and
 required instructions.
+
+Select optional collections during initialization, or add them later:
+
+```sh
+python3 -B tools/wsup.py init /path/to/workspace --collection archive --collection artifacts
+python3 -B tools/wsup.py --root /path/to/workspace collections --add private
+python3 -B tools/wsup.py --root /path/to/workspace collections --add private --apply
+```
+
+Each collection creates a purpose-and-boundaries README; journal also includes
+an entry template. Existing-workspace additions preview by default; any
+conflicting scaffold file blocks the whole apply.
+An already-managed scaffold is left untouched, including local customizations.
+Selections are recorded in template state so normal updates include them.
+They are not inherited when that workspace generates another workspace; select
+the desired collections explicitly for each new workspace. Project starters
+do not accept collection selections.
+
+These commands do not change ignore rules, permissions, encryption, backup,
+sync, indexing, or retention settings. In particular, the private scaffold is
+not protected storage.
 
 The registry does not imply a shared Git repository, build, dependency install,
 or release process. See the [workspace model](docs/workspace-model.md) for the

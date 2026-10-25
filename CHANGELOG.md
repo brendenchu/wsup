@@ -15,24 +15,30 @@ See the [release guide](docs/releases.md) for version and tag policy.
   `AGENTS.md` pointer, and discoverable `.agents/skills/`.
 - Store verification reports under ignored `.wsup/reports/`; enforce report
   containment independently from general project-local investigation evidence.
-- Omit empty project grouping and journal scaffolds from new workspaces. Create
-  collections and dated recap entries on demand.
-- Clarify source-checkout versus installed-CLI paths, optional project grouping,
-  report locations, and legacy layout migration in maintainer and starter docs.
+- Create a focused development baseline: apps, packages, tools, infrastructure,
+  docs, and workbench. Make learning, research, reference, and journal homes
+  explicit CLI opt-ins rather than prescribing a knowledge workflow.
+- Clarify source-checkout versus installed-CLI paths, default and optional
+  collections, report locations, and legacy layout migration in maintainer and
+  starter docs.
 - Carry reusable documentation ownership, draft tracking, promotion, and privacy
   conventions into generated workspace/project guidance and contributor docs.
-- Document optional workspace collections, with explicit archive, artifact,
-  reference, research, and privacy boundaries; do not create empty scaffolds.
+- Document workspace collection purposes and boundaries; keep archive,
+  artifacts, and private collections opt-in.
 
 ### Added
 
+- Optional collection CLI workflows: repeatable `init --collection NAME`
+  selections and preview/apply `collections --add NAME` for learning, research,
+  reference, journal, archive, artifacts, and private scaffolds. Selections persist in template state
+  and the standalone catalogue; existing files are never overwritten by opt-in.
 - Preview/apply migration for unchanged, manifest-owned legacy installation paths,
-  redundant template copies, and optional scaffolds. Destination collisions,
+  redundant template copies, and retired layout files. Destination collisions,
   customized relocation sources, and unmanaged legacy files block writes.
 - Byte-preserving migration of historical `.work/quality/` reports.
-- Explicit `update --keep PATH` decisions for same-path customizations and retained
-  optional scaffold files, without changing their baseline hashes to hide edits.
-- Regression coverage for minimal generation, old-layout migration, retained
+- Explicit `update --keep PATH` decisions for same-path customizations without
+  changing their baseline hashes to hide edits.
+- Regression coverage for the default layout, old-layout migration, retained
   evidence, conflict safety, report-root symlinks, and source/consumer separation.
 
 ## 0.1.0 (2026-10-24)

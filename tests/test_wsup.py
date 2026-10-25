@@ -79,7 +79,7 @@ class WsupTest(unittest.TestCase):
             (kit / "docs/workspace-model.md").read_bytes())
         for guide in kit.rglob("*.md"):
             for target in re.findall(r"\]\(([^)]+)\)", guide.read_text()):
-                linked = (guide.parent / target).resolve()
+                linked = (guide.parent / target.split("#", 1)[0]).resolve()
                 self.assertTrue(linked.is_relative_to(kit.resolve()), target)
                 self.assertTrue(linked.is_file(), target)
         skills = list((kit / ".agents/skills").glob("*/SKILL.md"))
@@ -110,7 +110,7 @@ class WsupTest(unittest.TestCase):
             self.assertTrue(body.strip())
         for guide in [*(SOURCE / "guidance").rglob("*.md"), *(SOURCE / ".agents").rglob("*.md")]:
             for target in re.findall(r"\]\(([^)]+)\)", guide.read_text()):
-                linked = (guide.parent / target).resolve()
+                linked = (guide.parent / target.split("#", 1)[0]).resolve()
                 self.assertTrue(linked.is_relative_to(SOURCE.resolve()), target)
                 self.assertTrue(linked.is_file(), target)
 
@@ -128,9 +128,11 @@ class WsupTest(unittest.TestCase):
         ]
         for relative in required_files:
             self.assertTrue((destination / relative).is_file(), relative)
-        for relative in ("apps", "packages", "research", "infrastructure", "journal",
-                         "templates", "tools", ".ai", ".work"):
+        for relative in ("archive", "artifacts", "private", "learning", "research",
+                         "reference", "journal", "templates", ".ai", ".work"):
             self.assertFalse((destination / relative).exists(), relative)
+        for relative in ("apps", "packages", "tools", "infrastructure", "workbench"):
+            self.assertTrue((destination / relative).is_dir(), relative)
         self.assertEqual(
             (SOURCE / "tools/wsup.py").read_bytes(),
             (destination / ".wsup/wsup.py").read_bytes())

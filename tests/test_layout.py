@@ -30,9 +30,6 @@ class LayoutTest(unittest.TestCase):
             previous = previous.replace("guidance/rules/", ".ai/rules/")
             files[previous] = body
         if not project:
-            for path in scaffolding.OPTIONAL_SCAFFOLDS:
-                files[path] = ("Historical scaffold: " + path).encode()
-                files["tools/wsup_templates/workspace/" + path] = files[path]
             for path, body in scaffolding.bundle("project").items():
                 previous = path.replace("guidance/rules/", ".ai/rules/")
                 files["templates/project/" + previous] = body
@@ -59,8 +56,12 @@ class LayoutTest(unittest.TestCase):
         self.assertTrue(any(item["action"] == "retire" for item in preview["actions"]))
         self.assertTrue(any(item["action"] == "move-report" for item in preview["actions"]))
         scaffolding.update(root, apply=True)
-        for path in ("tools", "templates", ".ai", "packages", "research", "journal",
-                     "infrastructure", ".work/quality"):
+        for path in ("templates", ".ai", ".work/quality"):
+            self.assertFalse((root / path).exists(), path)
+        for path in ("apps", "packages", "tools", "infrastructure", "workbench", "docs",
+                     "guidance", ".agents/skills"):
+            self.assertTrue((root / path).is_dir(), path)
+        for path in scaffolding.COLLECTIONS:
             self.assertFalse((root / path).exists(), path)
         self.assertEqual(report, (root / ".wsup/reports/historical.json").read_bytes())
         self.assertTrue((root / ".work/investigation/raw.txt").is_file())
@@ -77,6 +78,40 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertFalse(guidance.inspect(child)["errors"])
         self.assertTrue((child / ".wsup/wsup.py").is_file())
+
+    def test_workspace_starter_creates_opinionated_homes(self):
+        root = self.root / "workspace"
+        scaffolding.initialise(root)
+        expected = ("apps", "packages", "tools", "infrastructure", "workbench", "docs",
+                    "guidance/rules", ".agents/skills", ".wsup/templates")
+        for path in expected:
+            with self.subTest(path=path):
+                self.assertTrue((root / path).is_dir())
+        for path in scaffolding.COLLECTIONS:
+            with self.subTest(path=path):
+                self.assertFalse((root / path).exists())
+
+    def test_update_adds_new_default_home_markers(self):
+        root = self.root / "workspace"
+        scaffolding.initialise(root)
+        state_path = root / scaffolding.STATE
+        state = json.loads(state_path.read_text())
+        markers = ("apps/.gitkeep", "packages/README.md", "tools/README.md",
+                   "infrastructure/.gitkeep", "workbench/README.md")
+        for marker in markers:
+            (root / marker).unlink()
+            state["files"].pop(marker)
+        state_path.write_text(json.dumps(state, indent=2) + "\n")
+
+        preview = scaffolding.update(root)
+        self.assertFalse(preview["conflicts"])
+        self.assertEqual(
+            set(markers),
+            {item["path"] for item in preview["actions"] if item["action"] == "write"})
+        scaffolding.update(root, apply=True)
+        for marker in markers:
+            self.assertTrue((root / marker).is_file(), marker)
+        self.assertFalse(scaffolding.update(root)["actions"])
 
     def test_old_project_guidance_migrates_without_installing_runtime(self):
         root = self.legacy(project=True)
@@ -119,7 +154,7 @@ class LayoutTest(unittest.TestCase):
 
     def test_conflicts_are_read_only_and_cannot_be_kept_away(self):
         for case in ("edited-runtime", "missing-rule", "collision", "unknown",
-                     "edited-scaffold", "report-collision", "old-report-setting"):
+                     "edited-default-marker", "report-collision", "old-report-setting"):
             with self.subTest(case=case):
                 root = self.legacy(case)
                 if case == "edited-runtime":
@@ -130,8 +165,8 @@ class LayoutTest(unittest.TestCase):
                     scaffolding.atomic_write(root / ".wsup/wsup.py", b"Existing destination")
                 elif case == "unknown":
                     (root / ".ai/rules/custom.md").write_text("User-owned rule")
-                elif case == "edited-scaffold":
-                    (root / "journal/README.md").write_text("An actual journal policy")
+                elif case == "edited-default-marker":
+                    (root / "packages/README.md").write_text("An actual package policy")
                 elif case == "report-collision":
                     scaffolding.atomic_write(root / ".work/quality/run.json", b"old")
                     scaffolding.atomic_write(root / ".wsup/reports/run.json", b"new")
@@ -152,19 +187,22 @@ class LayoutTest(unittest.TestCase):
         registry = b'{"version":1,"name":"Personal","projects":[]}'
         (root / "workspace.json").write_bytes(registry)
         (root / "README.md").write_text("Personal workspace map")
-        (root / "apps/README.md").write_text("Maintained collection")
+        (root / "packages/README.md").write_text("Maintained collection")
         self.assertTrue(scaffolding.update(root)["conflicts"])
-        keep = ["README.md", "apps/README.md"]
+        keep = ["README.md", "packages/README.md"]
         self.assertFalse(scaffolding.update(root, keep=keep)["conflicts"])
         scaffolding.update(root, apply=True, keep=keep)
         self.assertEqual("Personal workspace map", (root / "README.md").read_text())
-        self.assertEqual("Maintained collection", (root / "apps/README.md").read_text())
+        self.assertEqual("Maintained collection", (root / "packages/README.md").read_text())
         self.assertEqual(registry, (root / "workspace.json").read_bytes())
         next_state = json.loads((root / scaffolding.STATE).read_text())
         self.assertEqual(state["files"]["README.md"], next_state["files"]["README.md"])
-        self.assertNotIn("apps/README.md", next_state["files"])
+        self.assertEqual(state["files"]["packages/README.md"], next_state["files"]["packages/README.md"])
         self.assertIn("README.md", scaffolding.update(root)["conflicts"])
-        self.assertFalse(scaffolding.update(root, keep=["README.md"])["conflicts"])
+        self.assertEqual(
+            ["packages/README.md"],
+            scaffolding.update(root, keep=["README.md"])["conflicts"])
+        self.assertFalse(scaffolding.update(root, keep=keep)["conflicts"])
 
     def test_migration_failure_preserves_old_sources_and_state(self):
         root = self.legacy()

@@ -9,7 +9,7 @@ from .execution import run
 from .guidance import inspect
 from .registry import load, select, relative_target
 from .reporting import write_report
-from .scaffolding import atomic_write, initialise, update
+from .scaffolding import COLLECTIONS, add_collections, atomic_write, initialise, update
 
 def parser():
     p = argparse.ArgumentParser(description="WSUP portable local workspace tools")
@@ -30,6 +30,11 @@ def parser():
     init = commands.add_parser("init")
     init.add_argument("destination", type=Path)
     init.add_argument("--template", choices=("workspace", "project"), default="workspace")
+    init.add_argument("--collection", choices=COLLECTIONS, action="append", default=[],
+                      help="Include an optional collection; repeat to select more (workspace only)")
+    collections = commands.add_parser("collections", help="List or scaffold optional workspace collections")
+    collections.add_argument("--add", choices=COLLECTIONS, action="append", default=[])
+    collections.add_argument("--apply", action="store_true", help="Apply the preview without overwriting existing files")
     upgrade = commands.add_parser("update")
     upgrade.add_argument("--apply", action="store_true")
     upgrade.add_argument("--keep", action="append", default=[], metavar="PATH",
@@ -77,8 +82,12 @@ def main(argv=None):
     try:
         root = args.root.resolve()
         if args.action == "init":
-            print(f"Created {initialise(args.destination, args.template)}")
+            print(f"Created {initialise(args.destination, args.template, args.collection)}")
             return 0
+        if args.action == "collections":
+            result = add_collections(root, args.add, args.apply)
+            print(json.dumps(result, indent=2))
+            return int(bool(result["conflicts"]))
         if args.action == "update":
             result = update(root, args.apply, args.keep)
             print(json.dumps(result, indent=2))

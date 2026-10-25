@@ -277,10 +277,10 @@ class ServicesTest(unittest.TestCase):
     def test_update_rechecks_state_before_writing(self):
         target = self.legacy_workspace()
         real_bundle = scaffolding.bundle
-        def change_state(kind):
+        def change_state(kind, collections=()):
             state_path = target / scaffolding.STATE
             state_path.write_text(state_path.read_text() + "\n")
-            return real_bundle(kind)
+            return real_bundle(kind, collections)
         with patch("wsup_core.scaffolding.bundle", side_effect=change_state):
             with self.assertRaisesRegex(ValueError, "state changed"):
                 scaffolding.update(target, apply=True)

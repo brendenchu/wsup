@@ -2,11 +2,12 @@
 
 The directory layout groups work by responsibility. `workspace.json` records
 project ownership and local checks. Git topology is independent: one workspace
-may contain a single repository, independent repositories, or a mixture.
-Directories are optional, and no shared build or release is implied.
-New workspaces omit empty project grouping directories and journals. Create a
-collection when it has real contents. Project `kind` classifies purpose; it does
-not require a matching directory name or mirror a personal folder taxonomy.
+may contain a single repository, independent repositories, or a mixture. No
+shared build or release is implied. New workspaces use an opinionated baseline
+informed by the WSUP prototype and its dogfooding workspace. The starter creates
+standard development homes even when they begin empty; knowledge and activity
+workflows, lifecycle collections, and sensitive-data collections remain opt-in. Project
+`kind` classifies purpose; it does not require a matching directory name.
 
 ## Installation and ownership
 
@@ -43,29 +44,97 @@ committed automatically. Keep restricted records out of documentation and Git.
 Promote approved knowledge to the owning project's maintained documentation and
 avoid competing canonical copies.
 
-## Optional collections and boundaries
+## Default layout and optional collections
 
-Create collections only when they have a real owner and contents. These names
-are examples, not required taxonomy or pre-created scaffolds. Project purpose
+Every new workspace starts with these directories. They establish a practical
+default, not a requirement to populate or use each one. Project purpose
 (`kind`), directory placement, repository ownership, lifecycle, and sensitivity
-are separate decisions.
+remain separate decisions.
 
-| Collection | Useful boundary |
+| Default home | Useful boundary |
 | --- | --- |
-| `apps/`, `packages/`, `tools/`, `infrastructure/`, `learning/` | Group projects by their primary responsibility when useful. Register actual projects and record repository ownership; a folder name does not determine `kind` or Git ownership. Shared infrastructure is opt-in, not a dependency of every project. |
-| `guidance/` | Keep shared workspace rules and policy here. Route to one canonical rule source rather than duplicating instructions across entry points. |
+| `apps/`, `packages/`, `tools/`, `infrastructure/` | Place application projects, reusable packages, developer utilities, and shared infrastructure by responsibility. Register actual projects and record repository ownership; a folder name does not determine `kind` or Git ownership. Deploying shared infrastructure remains opt-in, not a dependency of every project. |
+| `workbench/` | Keep human-authored drafts and temporary analysis. Review and sanitize before local tracking; no automatic commits. Promote accepted content to its canonical owner. |
 | `docs/` | Keep durable workspace-wide decisions and procedures here. Project-specific documentation belongs with its owning project. Maintain one canonical copy and link to it rather than duplicating it. |
-| `journal/` | Optional dated activity record. Keep it distinct from current maintained documentation, drafts, and machine-generated reports. |
-| `research/` | Use for a scoped, owned investigation with a question and evidence. Keep raw captures and project-specific investigations with their owner; link accepted decisions to the project that owns them. Research is not a required stage before documentation or reference. |
-| `reference/` | Use for reviewed, reusable knowledge with evidence and applicability. Keep project decisions with their project; a research finding does not become reference material merely by moving folders. |
-| `workbench/` | Use for human-authored drafts and temporary analysis. Review and sanitize before local tracking; no automatic commits. Promote accepted content to its canonical owner. |
-| `archive/` | Use to mark material as parked or historical, with its owner and status clear where practical. Archiving is not a backup, privacy control, or deletion instruction. Preserve repository history and inspect linked-worktree relationships before moving or retiring a checkout. |
-| `artifacts/` | Retain intentional deliverables with provenance and an owner or retention purpose. Keep caches, temporary output, and WSUP check reports separate; do not use this as a catch-all or assume an archive is safe to distribute. |
-| `private/` | If sensitive material must be kept locally, follow an approved storage and access policy. A directory name and Git ignore rule do not provide confidentiality; avoid placing restricted data where workspace tools, reports, indexing, or bundles may collect it. Prefer approved storage outside a broadly scanned workspace. |
+| `guidance/` | Keep shared workspace rules and policy here. Route to one canonical rule source rather than duplicating instructions across entry points. |
+| `.agents/skills/` | Keep portable task procedures here; project-specific required instructions remain with each project. |
 
-These boundaries do not create folders, change ignore rules, configure backups,
-or certify privacy, retention, or recovery. Decide those controls with the
-relevant owner before moving sensitive, historical, or retained material.
+The development baseline does not prescribe a knowledge-management workflow.
+These homes are available through explicit CLI selection:
+
+| Optional home | Useful boundary |
+| --- | --- |
+| `learning/` | Keep curricula, exercises, and learning projects with their owner. |
+| `research/` | Keep workspace-wide investigations with a question, owner, evidence, and limits. Keep project-specific investigations with their project. |
+| `reference/` | Keep reviewed, reusable knowledge with evidence and applicability. Moving research here does not make it reviewed. |
+| `journal/` | Keep dated activity records distinct from maintained documentation, drafts, and machine-generated reports. |
+| `archive/` | Keep deliberately retired material with ownership and recovery expectations. |
+| `artifacts/` | Keep retained outputs with provenance and a retention purpose. |
+| `private/` | Document an approved restricted-storage boundary; the scaffold itself provides no protection. |
+
+All seven are opt-in, not default scaffolds.
+Create them only when a real owner and use exist. Archive is not a backup,
+privacy control, or deletion instruction; preserve repository history and
+inspect linked-worktree relationships before moving or retiring a checkout.
+Retain artifacts with provenance and a clear owner or retention purpose, not as
+a catch-all for caches or reports. Sensitive material requires an approved
+storage and access policy: a `private/` name and Git ignore rule do not provide
+confidentiality. Avoid placing restricted data where workspace tools, reports,
+indexing, or bundles may collect it; prefer approved storage outside a broadly
+scanned workspace.
+
+These boundaries do not change ignore rules, configure backups, or certify
+privacy, retention, or recovery. Decide those controls with the relevant owner
+before moving sensitive, historical, or retained material. `.wsup/templates/`
+is WSUP-owned runtime content, not a user project grouping.
+
+### Selecting optional collection scaffolds
+
+WSUP provides `archive`, `artifacts`, `journal`, `learning`, `private`,
+`reference`, and `research` scaffolds, each containing a README that describes
+its purpose and limitations; journal also includes an entry template. In a source checkout use
+`tools/wsup.py`; in an installed workspace use `.wsup/wsup.py`:
+
+```sh
+python3 -B .wsup/wsup.py init /path/to/new-workspace --collection archive --collection artifacts
+python3 -B .wsup/wsup.py collections
+python3 -B .wsup/wsup.py collections --add archive --add artifacts
+python3 -B .wsup/wsup.py collections --add archive --add artifacts --apply
+```
+
+`init` creates a new destination immediately, as usual, and accepts repeatable
+`--collection` selections for workspace starters only. `collections` lists the
+available names. Repeatable `--add` selections preview changes in an existing
+managed workspace; `--apply` is required to write. Selections are deduplicated.
+Unknown names and symlink destinations are rejected.
+
+Existing directories and unrelated contents are preserved. A pre-existing
+unmanaged scaffold file is a conflict, even if identical; WSUP does not adopt
+or overwrite it. Conflicts block all additions. Already-selected managed
+scaffolds are left untouched; use `update` and explicit `--keep` decisions to
+review their customizations. Apply uses exclusive file creation and records the
+selected collections in template state. It is not a transactional operation:
+an I/O failure can leave newly created files before state is saved; inspect
+those exact files and resolve any resulting conflicts before retrying.
+
+The standalone catalogue carries all optional scaffold sources. Only selected
+collections are created at the workspace root and included in its normal
+template updates. Selections are workspace-local, not implicit defaults for
+workspaces generated by its CLI. Existing template state without a collections
+selection continues to mean no optional scaffolds.
+
+Previously default-managed learning, research, reference, and journal files can
+be explicitly selected with `collections --add NAME --apply` before updating;
+their recorded baselines and local edits are preserved. Without selection,
+`update` preserves existing root files as unmanaged orphans rather than deleting
+them. It retires only unchanged, manifest-owned copies of those former defaults
+inside the installed workspace catalogue, so future generation uses the smaller
+baseline. Customized catalogue copies block that retirement for manual resolution.
+
+No ignore rules, permissions, ACLs, encryption, sync, indexing, backups, or
+retention settings are configured. In particular, selecting `private` creates
+documentation, not secure storage; do not add restricted records before the
+owner has separately established and verified appropriate controls.
 
 ## Register projects
 
@@ -188,8 +257,9 @@ unrecognized files are retained. The workspace registry remains user-owned.
 This is a deliberate layout break without old wrappers or duplicate catalogues.
 A trusted newer CLI at `tools/wsup.py` (or installed at `.wsup/wsup.py`)
 relocates manifest-owned `tools/wsup.py`, runtime modules, embedded templates,
-`.ai/rules/`, and legacy `.ai/skills/`. Redundant root project templates and
-unchanged optional grouping scaffolds retire. Other orphaned files and
+`.ai/rules/`, and legacy `.ai/skills/`. Redundant root project templates retire.
+Files that establish new default homes are added, and existing managed home
+files are updated in place only when unchanged. Other orphaned files and
 unrelated project contents are retained.
 
 Preview actions distinguish `relocate` (current template content at the new
@@ -208,8 +278,8 @@ Use explicit `--keep PATH`, repeated per file, to preserve existing same-path
 customizations such as a workspace map or ignore file. Their contents and
 recorded baselines are preserved, not forged to match incoming content.
 Repeat the choice on later updates until deliberately reconciled. Retained
-optional scaffolds become user-owned when they leave the catalogue. `--keep`
-cannot bypass relocation or destination conflicts.
+same-path files that are no longer in the catalogue become user-owned.
+`--keep` cannot bypass relocation or destination conflicts.
 
 Back up the workspace, including ignored evidence and customizations, then
 run a trusted newer source checkout against the old root:
