@@ -4,6 +4,13 @@
   "unlisted_status": "pending",
   "entries": [
     {
+      "python": "test_services.py:ServicesTest.test_reports_omit_output_arguments_and_environment",
+      "status": "partial",
+      "tests": {"internal/reporting/write_test.go": ["TestPrivateSanitizedReportsAndExactEvidence", "TestInvalidEvidenceAndInputFailuresDoNotCreateReports"], "internal/reporting/contracts_test.go": ["TestCommandDigestMatchesPython"]},
+      "assertions": "Native report JSON and Markdown omit command arguments/environment; typed evidence has no output fields; input and original command hashes are exact; raw diagnostic text is rejected.",
+      "remaining": "Wire check execution and run the original secret-emitting command end to end, asserting captured stdout/stderr never enters reports."
+    },
+    {
       "python": "test_services.py:ServicesTest.test_configuration_precedence_and_sources",
       "status": "covered",
       "tests": {"internal/configuration/configuration_test.go": ["TestPrecedenceAndSources"]},

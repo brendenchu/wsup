@@ -107,18 +107,35 @@ func Load(root string, timeout *int, lookup func(string) (string, bool)) (Result
 		}
 		numbers[limit.key] = value
 	}
-	report, err := registry.RelativeTarget(root, values["report_dir"])
-	if err != nil {
+	reportDir, ok := values["report_dir"].(string)
+	if !ok {
+		return Result{}, fmt.Errorf("Use a nonempty relative forward-slash path")
+	}
+	if _, err := ReportDirectory(root, reportDir); err != nil {
 		return Result{}, err
+	}
+	return Result{
+		Settings: Config{TimeoutSeconds: numbers["timeout_seconds"],
+			OutputLimitBytes: numbers["output_limit_bytes"], ReportDir: reportDir},
+		Sources: sources,
+	}, nil
+}
+
+// ReportDirectory rechecks containment without creating directories. Writers
+// call this again at write time; earlier configuration validation is not a lock.
+func ReportDirectory(root, name string) (string, error) {
+	report, err := registry.RelativeTarget(root, name)
+	if err != nil {
+		return "", err
 	}
 	resolvedReport, err := registry.Resolve(report)
 	if err != nil {
-		return Result{}, err
+		return "", err
 	}
 	reports := filepath.Join(root, ".wsup", "reports")
 	resolvedReports, err := registry.Resolve(reports)
 	if err != nil {
-		return Result{}, err
+		return "", err
 	}
 	isSymlink := func(name string) bool {
 		info, err := os.Lstat(name)
@@ -127,11 +144,7 @@ func Load(root string, timeout *int, lookup func(string) (string, bool)) (Result
 	// Resolved containment alone would accept a redirected reports root.
 	if !registry.Within(resolvedReports, resolvedReport) ||
 		isSymlink(filepath.Join(root, ".wsup")) || isSymlink(reports) {
-		return Result{}, fmt.Errorf("report_dir must be inside the local .wsup/reports directory")
+		return "", fmt.Errorf("report_dir must be inside the local .wsup/reports directory")
 	}
-	return Result{
-		Settings: Config{TimeoutSeconds: numbers["timeout_seconds"],
-			OutputLimitBytes: numbers["output_limit_bytes"], ReportDir: values["report_dir"].(string)},
-		Sources: sources,
-	}, nil
+	return report, nil
 }

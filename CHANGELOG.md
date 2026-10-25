@@ -8,6 +8,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- Native help/version do not bypass invalid-option validation, unlike Python's
+  immediate argparse help/version actions.
 - Preserve Python CLI long-option abbreviations and missing-command errors in
   the Go port. Native parser/runtime diagnostic wording may differ while failure
   exits, output roles, and no-write behavior remain compatible.

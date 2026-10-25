@@ -72,10 +72,27 @@ Native execution foundations are implemented but not wired to `check` yet:
 interpreter returned as an explicit error. Explicit tool commands do not perform
 Python lookup. The original, unsubstituted argument array defines command identity;
 hash bytes retain Python's default JSON spaces and ASCII escaping.
-Future native reports use schema 2 and `runtime.go`, `runtime.os` (Go OS name),
-and `runtime.arch`, rather than claiming a Python CLI runtime. Report writing,
-process supervision, and the `check` command remain unported; existing Python
-reports are unchanged and no reports are rewritten by these foundations.
+Native reports use schema 2 and `runtime.go`, `runtime.os` (Go OS name),
+and `runtime.arch`, rather than claiming a Python CLI runtime. The report writer
+is implemented independently; process supervision and `check` remain unported.
+It stores typed status/metrics, input hashes, original-command hashes, selection,
+configuration sources, and optional Git evidence, but no raw output, environment,
+or command arguments. Missing Git is explicitly unavailable; an unknown dirty
+state is null, not clean.
+
+JSON and Markdown files are created exclusively with mode 0600 on POSIX; Windows
+mode bits do not establish equivalent ACL privacy. Collisions never overwrite
+existing files. Failed later writes return an error naming the affected path and
+may leave a partial report pair; report creation is not transactional. Directory
+containment is checked again at write time, and rooted filesystem handles confine
+writes to the workspace and opened report directory. These checks do not make
+the whole workspace policy atomic against concurrent directory replacement.
+Existing Python reports are unchanged; no reports are rewritten or migrated.
+
+The native parser intentionally validates options before help/version:
+`--help --invalid` fails with exit 2 instead of Python's immediate help success.
+Normal help/version and valid option abbreviations remain supported; a dedicated
+Go test covers this approved difference rather than weakening Python expectations.
 
 `src/templates/` remains the authoritative starter catalogue. During coexistence,
 `internal/catalogue/assets.zip` is a generated, deterministic snapshot embedded

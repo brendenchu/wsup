@@ -108,6 +108,11 @@ python3 -B tests/test_migration_safety.py --source /path/to/extracted/python-bas
   diagnostic matrix uses failure-shape assertions instead of byte equality;
   golden validation messages still compare exactly. This does not approve
   different accepted inputs or successful behavior.
+- Help/version short-circuiting is a separate approved native parser difference:
+  Cobra validates invalid options even alongside help/version, where Python may
+  exit successfully before checking them. Direct Go tests assert exit 2 and no
+  success output for these combinations; Python golden expectations are not
+  changed to pretend the behavior is identical.
 
 The current cases cover every command, version output, settings precedence and
 invalid input, literal check arguments, failure continuation, report findings,
