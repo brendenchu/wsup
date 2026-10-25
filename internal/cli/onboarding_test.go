@@ -36,10 +36,8 @@ func TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles(t *test
 		".env.example", "apps/example/.env.example", ".wsup/template-state.json",
 		"workspace.json", "workbench/draft.md", "apps/example/README.md",
 		"private/README.md", "WSUP-LICENSE", "README.md",
-	}
-	sourceIgnore, err := os.ReadFile("../../.gitignore")
-	if err != nil {
-		t.Fatal(err)
+		"wsup", "wsup.exe", "wsup_0.2.0_darwin_arm64.tar.gz",
+		"wsup_0.2.0_windows_amd64.zip", "SHA256SUMS",
 	}
 	license, err := os.ReadFile("../../LICENSE")
 	if err != nil {
@@ -47,13 +45,16 @@ func TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles(t *test
 	}
 	for _, kind := range []string{"workspace", "project"} {
 		t.Run(kind, func(t *testing.T) {
+			sourceIgnore, err := os.ReadFile(filepath.Join("../../templates", kind, ".gitignore"))
+			if err != nil {
+				t.Fatal(err)
+			}
 			root := filepath.Join(t.TempDir(), kind)
 			if _, err := scaffolding.Initialise(root, Version, kind); err != nil {
 				t.Fatal(err)
 			}
 			body, err := os.ReadFile(filepath.Join(root, ".gitignore"))
-			if err != nil || (kind == "workspace" && !bytes.Equal(body, sourceIgnore)) ||
-				(kind == "project" && string(body) != strings.SplitN(string(sourceIgnore), "\n\n", 2)[0]+"\n") {
+			if err != nil || !bytes.Equal(body, sourceIgnore) {
 				t.Fatal("starter ignore baseline changed")
 			}
 			body, err = os.ReadFile(filepath.Join(root, "WSUP-LICENSE"))
