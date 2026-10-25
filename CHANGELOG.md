@@ -8,6 +8,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- Retire unchanged obsolete app/infrastructure README copies in legacy bundled
+  catalogues during updates; preserve user collection docs and block retirement
+  of customized catalogue copies.
 - Remove unused project-home scaffolds from the product repository, retaining
   them in generated starters. Explicit template-state `omitted_home_files`
   preserves local scaffold omissions during updates without deleting contents.

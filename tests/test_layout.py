@@ -12,6 +12,41 @@ from wsup_core import configuration, guidance, scaffolding
 
 
 class LayoutTest(unittest.TestCase):
+    def test_obsolete_bundled_home_readmes_retire_without_removing_user_homes(self):
+        root = self.legacy()
+        state_path = root / scaffolding.STATE
+        state = json.loads(state_path.read_text())
+        for home in ("apps", "infrastructure"):
+            name = f"tools/wsup_templates/workspace/{home}/README.md"
+            body = b"Historical collection guidance\n"
+            scaffolding.atomic_write(root / name, body)
+            state["files"][name] = scaffolding.digest(body)
+            scaffolding.atomic_write(root / home / "README.md", b"Owner's collection\n")
+        state_path.write_text(json.dumps(state))
+        before = self.snapshot(root)
+        preview = scaffolding.update(root)
+        self.assertFalse(preview["conflicts"])
+        self.assertEqual(before, self.snapshot(root))
+        scaffolding.update(root, apply=True)
+        for home in ("apps", "infrastructure"):
+            self.assertEqual(b"Owner's collection\n", (root / home / "README.md").read_bytes())
+            self.assertFalse((root / ".wsup/templates/workspace" / home / "README.md").exists())
+        self.assertFalse(scaffolding.update(root)["actions"])
+
+    def test_customized_obsolete_catalogue_readme_blocks_retirement(self):
+        root = self.legacy()
+        state_path = root / scaffolding.STATE
+        state = json.loads(state_path.read_text())
+        name = "tools/wsup_templates/workspace/apps/README.md"
+        state["files"][name] = scaffolding.digest(b"Original guidance\n")
+        scaffolding.atomic_write(root / name, b"Customized guidance\n")
+        state_path.write_text(json.dumps(state))
+        before = self.snapshot(root)
+        self.assertIn(name, scaffolding.update(root)["conflicts"])
+        with self.assertRaises(ValueError):
+            scaffolding.update(root, apply=True)
+        self.assertEqual(before, self.snapshot(root))
+
     def test_explicit_home_omissions_survive_updates_without_affecting_generation(self):
         root = self.root / "workspace"
         scaffolding.initialise(root)

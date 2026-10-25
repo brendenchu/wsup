@@ -39,7 +39,7 @@
     ".wsup/wsup_core/guidance.py": "52a32eb64f66a8836a47955c7756c04c4925b16a3a41d2c422d823560d27fd09",
     ".wsup/wsup_core/registry.py": "6a52eaf9fd70cd1227a444774554e4457dfa6893a95443d03fa4bcd6b48db909",
     ".wsup/wsup_core/reporting.py": "c1dd7907b5ab5c4416cfc2d6a49ce2e87e8225c37fd26ccf3d5e2ddbcd825fca",
-    ".wsup/wsup_core/scaffolding.py": "2fb6d39eb996143ba0ae7b1ad83e3c6dd38fe8f7caf4dfd15bf128a244bf0d09",
+    ".wsup/wsup_core/scaffolding.py": "14f43094dd0190f083c08206bdc6dfecad56a714dbec21a623a75a76ec7eaf69",
     ".wsup/templates/workspace/.agents/skills/ai-guidance-maintenance/SKILL.md": "3ecff40f5a0b85eafd5b0e38b84030fe1fa66a7e54dcbb2a55607725826a72ee",
     ".wsup/templates/workspace/.agents/skills/commit-message/SKILL.md": "83db51e7afe15bdb1b16b537259bf70277039ec7a7af58bf6e0139f1daa488fa",
     ".wsup/templates/workspace/.agents/skills/diagnose-issue/SKILL.md": "aec6a9690941bf8f7ec25d2431cce90296a9388de3e2626e6f72aa89c969b2d9",

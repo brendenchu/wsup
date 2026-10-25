@@ -14,6 +14,9 @@ FORMER_DEFAULT_FILES = {
     "journal/README.md", "journal/TEMPLATE.md", "learning/README.md",
     "reference/README.md", "research/README.md",
 }
+RETIRED_CATALOGUE_FILES = FORMER_DEFAULT_FILES | {
+    "apps/README.md", "infrastructure/README.md",
+}
 DEFAULT_HOME_FILES = {
     "apps/.gitkeep", "infrastructure/.gitkeep", "packages/README.md",
     "tools/README.md", "workbench/README.md",
@@ -180,7 +183,7 @@ def migrated_name(name):
         for base in ("tools/wsup_templates/", ".wsup/templates/"):
             prefix = base + family + "/"
             if name.startswith(prefix):
-                if family == "workspace" and name[len(prefix):] in FORMER_DEFAULT_FILES:
+                if family == "workspace" and name[len(prefix):] in RETIRED_CATALOGUE_FILES:
                     return None
                 inner = migrated_name(name[len(prefix):])
                 return None if inner is None else ".wsup/templates/" + family + "/" + inner

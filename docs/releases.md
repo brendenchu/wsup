@@ -41,6 +41,21 @@ Changelog entries alone are not proof of release validation. If a historical
 baseline is tagged retrospectively, identify it as such and state what was
 actually verified.
 
+### Migration checkpoint tags
+
+An annotated milestone tag such as `python-baseline` can preserve a verified
+implementation before a language rewrite. It is not a product release: keep
+the product version unchanged and leave unreleased changes under Unreleased.
+Do not reuse a `vMAJOR.MINOR.PATCH` name for this purpose.
+
+Verify the exact committed snapshot in an isolated checkout or extracted Git
+archive, including standalone generation and update compatibility. Record the
+commit ID, interpreter, platform, test outcomes, and limitations in the tag
+annotation. Local preparation notes belong in ignored `workbench/.local/`.
+If preparation changes documentation or code, commit those changes and verify
+the final target again before tagging. Commit, tag creation, and publication
+each require explicit authorization; preparation does not perform them.
+
 ## Manual release checklist
 
 1. Review the target commit and complete diff. Preserve unrelated work and
