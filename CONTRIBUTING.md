@@ -20,6 +20,11 @@ and setup.
 - Edit authoritative implementation and templates in `src/`, not generated
   `.wsup/` output. Preview `python3 -B src/wsup.py update` to refresh the local
   installation; preserve source-specific docs with explicit `--keep` decisions.
+- For CLI documentation, compare `--help` and the implementation with the
+  workspace model's command reference. Keep the root and
+  `src/templates/workspace/docs/workspace-model.md` copies identical. Change
+  starter docs at their source, then refresh generated `.wsup/` output through
+  preview/apply; do not edit its state hashes by hand.
 - Inspect the implementation, callers, and tests before editing.
 - Keep behavior changes focused and add regression coverage for observable
   behavior. Update directly related documentation.

@@ -8,6 +8,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- Refresh current Python CLI documentation: root and destination selection,
+  command options and exit codes, check selection and timeout precedence,
+  configuration examples, starter boundaries, and source-based update delivery.
 - Retire unchanged obsolete app/infrastructure README copies in legacy bundled
   catalogues during updates; preserve user collection docs and block retirement
   of customized catalogue copies.
