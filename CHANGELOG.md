@@ -46,6 +46,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Added
 
+- Go migration bootstrap: pinned development toolchain, root Go module, thin
+  Cobra executable with help/version, explicit failures for unported commands,
+  and byte-verified embedded starter snapshot. Python remains the operational CLI.
 - Optional collection CLI workflows: repeatable `init --collection NAME`
   selections and preview/apply `collections --add NAME` for learning, research,
   reference, journal, archive, artifacts, and private scaffolds. Selections persist in template state

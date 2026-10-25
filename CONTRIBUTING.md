@@ -15,6 +15,44 @@ Use Python 3.9 or newer. The CLI and test suite use the standard library; no
 package installation is required. Registered projects own their own dependencies
 and setup.
 
+## Go migration development
+
+Go development uses 1.27.3 (`mise.toml`); mise is optional if that toolchain is
+already available. The module is `github.com/brendenchu/wsup`. From this root:
+
+```sh
+go test -race ./...
+go vet ./...
+go run ./cmd/wsup --help
+go run ./cmd/wsup --version
+```
+
+Use `go build -o /path/to/local/output/wsup ./cmd/wsup` to build outside the
+tracked tree. Do not commit executables. A compiled binary carries its assets
+and does not need Go installed; Python is still required for actual workspace
+operations while the port is incomplete.
+
+Only help/version are implemented in Go. Every unported workspace command
+returns exit 2 with a Python invocation hint; it never forwards automatically or
+pretends to succeed. The bootstrap retains the product version 0.1.0, not a new
+release or parity claim. A test checks it against the Python version authority.
+
+`src/templates/` remains the authoritative starter catalogue. During coexistence,
+`internal/catalogue/assets.zip` is a generated, deterministic snapshot embedded
+in the Go binary. Refresh it after any starter change:
+
+```sh
+go generate ./internal/catalogue
+go test ./internal/catalogue/...
+```
+
+Generation includes hidden files, excludes Python caches, rejects symlinks, and
+preserves exact asset bytes. Tests compare the complete embedded inventory to
+source; normal builds/tests never silently regenerate it. This archive is not
+another editable catalogue. At cutover, move the authoritative templates once
+and retire the transitional archive/generator. Do not move the Python runtime
+or tests while they remain the reference implementation.
+
 ## Making a change
 
 - Edit authoritative implementation and templates in `src/`, not generated

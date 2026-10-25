@@ -20,6 +20,11 @@ context is discovered or inherited from outside the current root.
 Python 3.9 or newer. Registered projects may use any language or toolchain; each
 project owns its dependencies and commands.
 
+The Go migration bootstrap uses Go 1.27.3, pinned in `mise.toml`. It currently
+supports only help/version; workspace commands fail explicitly until ported.
+Continue using Python for all workspace operations. See
+[Go development](CONTRIBUTING.md#go-migration-development) for build/test commands.
+
 An existing macOS developer-tools Python 3.9 can run WSUP; check your installed
 version with `python3 --version`. There is no need to replace the system Python.
 WSUP compatibility does not extend upstream Python security maintenance.
@@ -155,6 +160,9 @@ The source root separates product development from generated installation output
 | [src](src/) | Authoritative CLI implementation and template catalogue. |
 | [.wsup](.wsup/) | Generated workspace installation, managed-file state, and ignored check reports. Refresh from source; do not hand-edit generated runtime or catalogue files. |
 | [tests](tests/) | CLI and starter regression tests. |
+| [cmd/wsup](cmd/wsup/) | Thin Go executable entry point during migration. |
+| [internal](internal/) | Go command handling and embedded catalogue bootstrap. |
+| [testdata](testdata/) | Frozen Python contracts and migration safety specifications. |
 
 The registry describes this repository as one WSUP tool project. Guidance and
 portable skills live at the root. Edit runtime code in `src/wsup_core/` and
