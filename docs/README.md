@@ -11,6 +11,8 @@ Maintain durable product and contributor documentation here:
 - [AI guidance](ai-guidance.md): portable instructions, skills, and optional
   client discovery.
 - [Releases](releases.md): versioning and manual release procedure.
+- [Native binary use](native-install.md): archive verification, explicit-path
+  invocation, replacement, uninstall, and recovery.
 - [Contributing](../CONTRIBUTING.md): authoritative sources, starter maintenance,
   and local verification.
 

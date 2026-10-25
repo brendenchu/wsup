@@ -31,6 +31,8 @@ Build from source with Go 1.27.3, pinned in `mise.toml`; see
 Git for ownership and reporting assertions. Only schema-2 workspace state is
 supported; unsupported formats fail without writes. No binary installer or published native release
 is provided yet; source build does not require a PATH change.
+See [native binary use](docs/native-install.md) for local candidate extraction,
+explicit-path invocation, replacement, and recovery.
 
 ## Try it
 

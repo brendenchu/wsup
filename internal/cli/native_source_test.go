@@ -1,10 +1,13 @@
 package cli
 
 import (
+	"bytes"
+	"debug/buildinfo"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -50,11 +53,40 @@ func TestNativeSourceBuildAndGenerationAreSelfContained(t *testing.T) {
 		}
 	}
 	binary := filepath.Join(t.TempDir(), "wsup")
-	build := exec.Command("go", "build", "-o", binary, "./cmd/wsup")
+	build := exec.Command("go", "build", "-trimpath", "-buildvcs=false", "-o", binary, "./cmd/wsup")
 	build.Dir = checkout
-	build.Env = append(os.Environ(), "GOPROXY=off", "GOSUMDB=off", "GOTOOLCHAIN=local")
+	build.Env = append(os.Environ(), "CGO_ENABLED=0", "GOPROXY=off", "GOSUMDB=off", "GOTOOLCHAIN=local")
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("offline native-only source build: %s %v", output, err)
+	}
+	second := filepath.Join(t.TempDir(), "wsup")
+	rebuild := exec.Command("go", "build", "-trimpath", "-buildvcs=false", "-o", second, "./cmd/wsup")
+	rebuild.Dir, rebuild.Env = checkout, build.Env
+	if output, err := rebuild.CombinedOutput(); err != nil {
+		t.Fatalf("repeat release-profile build: %s %v", output, err)
+	}
+	firstBody, err := os.ReadFile(binary)
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondBody, err := os.ReadFile(second)
+	if err != nil || !bytes.Equal(firstBody, secondBody) {
+		t.Fatalf("release-profile binary changed between output directories: %v", err)
+	}
+	info, err := buildinfo.ReadFile(binary)
+	if err != nil {
+		t.Fatal(err)
+	}
+	settings := map[string]string{}
+	for _, setting := range info.Settings {
+		settings[setting.Key] = setting.Value
+		if strings.HasPrefix(setting.Key, "vcs") {
+			t.Fatalf("release-profile binary contains implicit VCS metadata: %s", setting.Key)
+		}
+	}
+	if settings["CGO_ENABLED"] != "0" || settings["-trimpath"] != "true" ||
+		bytes.Contains(firstBody, []byte(checkout)) {
+		t.Fatalf("release-profile binary retained cgo or source path: %v", settings)
 	}
 	tools := t.TempDir()
 	for _, name := range []string{"go", "git"} {

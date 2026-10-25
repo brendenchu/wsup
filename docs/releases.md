@@ -41,6 +41,88 @@ Changelog entries alone are not proof of release validation. If a historical
 baseline is tagged retrospectively, identify it as such and state what was
 actually verified.
 
+## Local candidate archive
+
+The [native binary guide](native-install.md) covers extraction, explicit-path
+use, owner-selected installation, replacement, uninstall, and recovery. It is
+also the archive's self-contained `README.md`. This procedure builds a local
+macOS ARM64 candidate, not a release, and leaves product `Version` unchanged.
+Use Go 1.27.3 and cached dependencies. Packaging also uses POSIX shell tools,
+`tar`, `gzip`, and `shasum`; these are not application runtime requirements.
+
+Run from the source root. The fresh temporary output directory avoids replacing
+owner files and stays outside the tracked tree:
+
+```sh
+set -eu
+output=$(mktemp -d "${TMPDIR:-/tmp}/wsup-package.XXXXXX")
+version=$(go run ./cmd/wsup --version)
+name="wsup_${version}-local_darwin_arm64"
+package="$output/$name"
+mkdir "$package"
+mkdir "$package/licenses"
+CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local \
+  go build -trimpath -buildvcs=false -o "$package/wsup" ./cmd/wsup
+cp LICENSE "$package/LICENSE"
+cp docs/native-install.md "$package/README.md"
+goroot=$(go env GOROOT)
+cp "$goroot/LICENSE" "$package/licenses/go-LICENSE"
+cp "$goroot/PATENTS" "$package/licenses/go-PATENTS"
+for component in crypto net sys text; do
+  cp "$goroot/src/vendor/golang.org/x/$component/LICENSE" \
+    "$package/licenses/go-x-$component-LICENSE"
+  cp "$goroot/src/vendor/golang.org/x/$component/PATENTS" \
+    "$package/licenses/go-x-$component-PATENTS"
+done
+cobra=$(go list -m -f '{{.Dir}}' github.com/spf13/cobra)
+pflag=$(go list -m -f '{{.Dir}}' github.com/spf13/pflag)
+mousetrap=$(go list -m -f '{{.Dir}}' github.com/inconshreveable/mousetrap)
+cp "$cobra/LICENSE.txt" "$package/licenses/cobra-LICENSE"
+cp "$pflag/LICENSE" "$package/licenses/pflag-LICENSE"
+cp "$mousetrap/LICENSE" "$package/licenses/mousetrap-LICENSE"
+{
+  printf 'Local candidate, not a published release\nSource: '
+  git rev-parse HEAD
+  printf '\nWorking-tree status (empty means clean):\n'
+  git status --porcelain
+  printf '\nToolchain:\n'
+  go version
+  printf '\nBinary build metadata:\n'
+  go version -m "$package/wsup"
+} > "$package/BUILD.txt"
+chmod 755 "$package/wsup"
+tar -czf "$output/$name.tar.gz" -C "$output" "$name"
+(cd "$output" && shasum -a 256 "$name.tar.gz" > SHA256SUMS)
+(cd "$output" && shasum -a 256 -c SHA256SUMS)
+printf 'Local candidate output: %s\n' "$output"
+```
+
+`-trimpath` removes source paths and `-buildvcs=false` avoids implicit VCS metadata;
+the separate build record supplies provenance. Cgo is disabled. Native acceptance
+checks identical binary bytes from repeated builds of the same isolated source
+with this profile and toolchain. This is not a guarantee across Go versions or
+different source inputs. Tar metadata/compression can vary: archive hashes
+identify the actual artifact, not reproducible archive bytes.
+
+The notice set conservatively includes the pinned Go toolchain's vendored
+components and all declared external runtime modules, even modules not linked
+on macOS. Recheck it against `go list -deps ./cmd/wsup`, other selected targets,
+and upstream LICENSE/NOTICE requirements whenever toolchain/dependencies change.
+Do not substitute a dependency summary for required full notices.
+
+Extract into another fresh directory, verify its inventory and executable mode,
+and run the exact extracted binary outside the checkout with empty PATH.
+Exercise help/version, generation, guidance, relocation, collections, update
+preview/apply, and explicit checks using a separately supplied test executable.
+Confirm reports describe the native runtime and preserve owner customizations.
+Never use a real workspace as a packaging fixture.
+
+Keep outputs only as long as needed; remove only the specific disposable files
+and directories created for this exercise. A final release must rebuild from
+the selected clean commit with its newly chosen version, omit the `-local`
+candidate suffix, and repeat all target verification. Local candidates do not
+authorize a version bump, tag, installation, signing, or publication.
+
 ## Manual release checklist
 
 1. Review the target commit and complete diff. Preserve unrelated work and
@@ -63,7 +145,8 @@ actually verified.
    macOS ARM64 is currently verified. Cross-compilation is build evidence, not
    runtime certification; non-Unix checks remain unsupported. Report unavailable targets as
    missing coverage; claim client support only to the extent actually tested.
-4. Build a standalone binary outside the tracked tree. Generate a disposable
+4. Follow the local archive procedure, including required notices and checksums.
+   Build a standalone binary outside the tracked tree. Generate a disposable
    workspace outside the checkout. Run validation/guidance and child generation
    with that external binary and empty PATH. Workspaces carry state/reports, not
    their own executable or copied catalogue. For layout or

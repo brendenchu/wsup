@@ -115,11 +115,15 @@ go run ./cmd/wsup check --project wsup --check vet --show-output
 ```
 
 Native acceptance copies the source without installed state, builds offline from
-cached Go dependencies, and runs the suite with only Go/Git on PATH and cgo
+cached Go dependencies using `-trimpath -buildvcs=false` and cgo disabled, checks
+identical binary bytes across two output directories and the actual build
+metadata, and runs the suite with only Go/Git on PATH and cgo
 disabled. It excludes only that enclosing self-test to avoid recursion; the
 normal registry run covers it and runs race detection separately. Standalone
 generation, inspection, collection additions, updates, and child generation
 also run with empty PATH.
+See [local candidate archives](docs/releases.md#local-candidate-archive) for
+packaging, notices, checksum verification, and the separate release gates.
 
 For starter changes, inspect a disposable workspace/project outside the checkout,
 relocate output, and verify both safe changes and owner-byte preservation.

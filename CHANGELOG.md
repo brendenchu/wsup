@@ -29,6 +29,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Added
 
+- Manual local candidate packaging with SHA-256 verification, full runtime
+  dependency notices, build provenance, and explicit binary replacement/recovery
+  instructions. Release-profile acceptance checks repeatable binary bytes with
+  cgo disabled and source paths removed; no installation or publication occurs.
 - Native initialization, registry/configuration inspection, guidance checks,
   exclusive editor generation, collection selection/additions, and managed
   content update preview/apply with explicit conflict handling.
