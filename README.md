@@ -29,7 +29,8 @@ descendant cleanup is implemented. Native `update` previews/applies embedded
 managed-content changes to schema-2 workspaces/projects. Repeatable `init
 --collection NAME` and preview/apply `collections --add NAME` support explicit
 optional homes. `update --migrate-native` previews Python-to-native migration;
-migration apply remains disabled. Native starters contain schema-v2 state and no
+explicit `--apply` migrates only after a reviewed backup and conflict-free preview.
+Native starters contain schema-v2 state and no
 bundled runtime/catalogue; project starters also omit a registry. Python cannot
 update native state. Python remains the reference CLI for Python-managed
 workspaces, and is required by any application check that requests it. See

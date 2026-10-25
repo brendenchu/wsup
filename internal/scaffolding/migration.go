@@ -11,8 +11,8 @@ import (
 	"github.com/brendenchu/wsup/internal/registry"
 )
 
-// MigrationPlan is a read-only proposal, never permission to remove files.
-// A future apply must revalidate original state, content and tree inventories.
+// MigrationPlan is a preview or result of an explicitly requested migration.
+// Apply always revalidates original state, content and tree inventories.
 type MigrationPlan struct {
 	FromVersion string            `json:"from_version"`
 	ToVersion   string            `json:"to_version"`
@@ -27,6 +27,10 @@ type MigrationPlan struct {
 // Runtime retirement is restricted to exact manifest-owned unchanged files.
 // Unknown files in retiring trees block migration rather than being swept up.
 func PlanMigration(root, version string, keep []string) (MigrationPlan, error) {
+	return planMigration(root, version, keep, nil)
+}
+
+func planMigration(root, version string, keep []string, prepared *preparedMigration) (MigrationPlan, error) {
 	loaded, err := LoadState(root)
 	if err != nil {
 		return MigrationPlan{}, err
@@ -43,6 +47,11 @@ func PlanMigration(root, version string, keep []string) (MigrationPlan, error) {
 		return MigrationPlan{}, err
 	}
 	defer handle.Close()
+	trees, err := migrationTrees(handle)
+	if err != nil {
+		return MigrationPlan{}, err
+	}
+	observed := map[string]observation{}
 	result := MigrationPlan{
 		FromVersion: loaded.State.TemplateVersion, ToVersion: version, FromSchema: 1, ToSchema: StateVersion,
 		Actions: []MigrationAction{}, Conflicts: []string{},
@@ -76,6 +85,7 @@ func PlanMigration(root, version string, keep []string) (MigrationPlan, error) {
 		if err != nil {
 			return MigrationPlan{}, err
 		}
+		observed[name] = current
 		if !current.regular || current.digest != loaded.State.Files[name] {
 			result.Conflicts = append(result.Conflicts, name)
 			continue
@@ -88,6 +98,7 @@ func PlanMigration(root, version string, keep []string) (MigrationPlan, error) {
 		if err != nil {
 			return MigrationPlan{}, err
 		}
+		observed[destination] = target
 		_, managed := loaded.State.Files[destination]
 		if _, supplied := files[destination]; !supplied || target.exists || managed {
 			result.Conflicts = append(result.Conflicts, destination)
@@ -138,11 +149,13 @@ func PlanMigration(root, version string, keep []string) (MigrationPlan, error) {
 		if _, managed := loaded.State.Files[name]; current.exists && !managed {
 			result.Conflicts = append(result.Conflicts, name)
 		}
+		observed[name] = current
 	}
-	if err := planMigrationReports(root, handle, loaded.State.Files, files, &result); err != nil {
+	if err := planMigrationReports(root, handle, loaded.State.Files, files, &result, observed); err != nil {
 		return MigrationPlan{}, err
 	}
-	preview, err := planLoadedUpdate(root, version, files, keep, LoadedState{State: native, Original: loaded.Original}, nil)
+	var content preparedUpdate
+	preview, err := planLoadedUpdate(root, version, files, keep, LoadedState{State: native, Original: loaded.Original}, &content)
 	if err != nil {
 		return MigrationPlan{}, err
 	}
@@ -163,6 +176,41 @@ func PlanMigration(root, version string, keep []string) (MigrationPlan, error) {
 	}
 	if string(current.Original) != string(loaded.Original) {
 		return MigrationPlan{}, fmt.Errorf("template state changed during migration planning")
+	}
+	if err := checkMigrationTrees(handle, trees); err != nil {
+		return MigrationPlan{}, err
+	}
+	for name, before := range observed {
+		current, err := observeFile(handle, name)
+		if err != nil {
+			return MigrationPlan{}, err
+		}
+		if current != before {
+			return MigrationPlan{}, fmt.Errorf("migration input changed during planning: %s", name)
+		}
+		content.observed[name] = before
+	}
+	if prepared != nil {
+		content.plan.Actions = []Action{}
+		for _, action := range result.Actions {
+			switch action.Action {
+			case "write", "relocate":
+				content.plan.Actions = append(content.plan.Actions, Action{Path: action.Path, Action: "write"})
+				content.files[action.Path] = files[action.Path]
+			case "move-report":
+				body, err := handle.ReadFile(action.From)
+				if err != nil {
+					return MigrationPlan{}, err
+				}
+				if contentDigest(body) != observed[action.From].digest {
+					return MigrationPlan{}, fmt.Errorf("report changed during migration planning: %s", action.From)
+				}
+				content.plan.Actions = append(content.plan.Actions, Action{Path: action.Path, Action: "write"})
+				content.files[action.Path] = body
+			}
+		}
+		content.plan.Conflicts = result.Conflicts
+		*prepared = preparedMigration{plan: result, content: content, trees: trees}
 	}
 	return result, nil
 }

@@ -259,10 +259,10 @@ Omitted default homes remain omitted; orphan bytes are retained but cease to be
 managed. Unknown files, project contents, reports, and local settings survive.
 There are no runtime files to update or retire in native schema 2.
 
-Python-to-native migration apply is not yet available. A separately invoked
-`wsup --root PYTHON_WORKSPACE update --migrate-native` previews schema-1 to
+Explicit `wsup --root PYTHON_WORKSPACE update --migrate-native` previews schema-1 to
 schema-2 content, guidance relocation, and exact manifest-owned runtime retirement.
-It never writes; combining it with `--apply` fails explicitly. Customized/missing
+Preview never writes. After a reviewed matched backup of files/state, ignored
+reports, and owner data, add `--apply` to execute a conflict-free migration. Customized/missing
 runtime sources, unknown installation-tree files, and relocated destination
 collisions block migration. Legacy `.work/quality/` files are planned as exact
 `move-report` actions to corresponding `.wsup/reports/` paths, without rewriting
@@ -277,11 +277,23 @@ Malformed settings or unsafe native report paths fail explicitly. Migration
 ignores environment overrides while inspecting persistent policy. Do not delete
 settings or evidence to bypass conflicts. `--keep` cannot bypass runtime
 retirement or relocation safety checks. Ordinary update never implicitly migrates.
-Python rejects native schema 2;
-do not force a downgrade by
-editing its version field or use Python updates here. Future migration must be
-explicit, preserve owner bytes, and retire only verified unchanged managed
-runtime files. No remote downloader or automatic binary upgrade is provided.
+Apply rechecks scoped tree inventories and all observed inputs before writes.
+Required content and exact report copies are written first, native state second,
+and legacy sources retired only after state/output verification. Changes to tree
+inventories, configuration, kept files, or exact sources block progress.
+Each retirement rechecks native state and exact source; report/guidance moves also
+verify the new destination. Only empty ancestors of removed sources are cleaned.
+No unknown files or independent projects are recursively removed.
+
+Failure before state commit can leave partial native content but keeps legacy
+sources. Failure during retirement explicitly reports committed native state and
+incomplete cleanup; some sources may already be removed. Restore matched files/
+state from backup before retrying. Do not edit schema numbers, downgrade via
+Python, or assume ordinary update completes interrupted retirement. There is no
+automatic backup, rollback, transaction, resume journal, concurrent-writer
+isolation, or fsync/power-loss guarantee. Python rejects native schema 2;
+do not force a downgrade by editing its version field or use Python updates here.
+No remote downloader or automatic binary upgrade is provided.
 
 Before any later update/migration, preserve a reviewed backup of files and state,
 inspect Git status and the complete preview, and resolve conflicts deliberately.

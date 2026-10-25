@@ -96,15 +96,25 @@ files; ignore reports only. Python cannot update this native state. Native `upda
 writes only a conflict-free plan. Repeat `--keep PATH` for eligible same-path
 customizations, preserving their old baseline hashes. Registry bytes are
 workspace-owned; omitted homes and unknown/report/local/project bytes survive.
-Migration apply from Python-managed workspaces is not yet available. Explicit
-`wsup --root PYTHON_WORKSPACE update --migrate-native` is a read-only preview;
-its `--apply` is disabled. It blocks on unsafe runtime sources, unknown
+Explicit `wsup --root PYTHON_WORKSPACE update --migrate-native` is a read-only
+Python migration preview. After preserving a reviewed matched backup of files,
+state, ignored reports and owner data, add `--apply` only when conflict-free.
+It blocks on unsafe runtime sources, unknown
 installation files, report destination collisions, and explicitly legacy report
 settings requiring owner review. Legacy report files are planned for exact-byte
 relocation; valid native configuration is preserved without a blanket conflict;
 do not delete settings or reports to bypass these blockers. Do not use Python's
 update command on this native workspace. Binary replacement and
 workspace-content updates are separate operations, never automatic downloads.
+
+Migration installs required content and native state before retiring exact
+unchanged manifest-owned legacy sources. Sources and report destinations are
+rechecked; only empty source ancestors are removed. I/O failure before state
+commit retains legacy sources but can leave partial new content. Retirement
+failure explicitly reports committed native state and incomplete cleanup; some
+legacy sources may already be gone. Restore matched files/state from backup,
+not a schema-number edit or blind retry. No automatic backup, transaction,
+rollback, or interrupted-retirement resume is provided.
 
 Update I/O failures may leave partial content with old state and explicitly
 report that possibility; no multi-file transaction is promised. Initialization

@@ -59,7 +59,7 @@ func newCommand() *cobra.Command {
 	root := &cobra.Command{
 		Use:              "wsup",
 		Short:            "WSUP portable local workspace tools",
-		Long:             "WSUP Go migration bootstrap. Inspection, editor, Unix checks, workspace/project init, collections, and native content updates are available; Python migration is not yet ported.",
+		Long:             "WSUP Go migration bootstrap. Inspection, editor, Unix checks, workspace/project init, collections, native updates, and explicit Python migration are available.",
 		Version:          Version,
 		SilenceErrors:    true,
 		SilenceUsage:     true,
@@ -140,10 +140,13 @@ func newCommand() *cobra.Command {
 				return err
 			}
 			if migrate {
+				var result scaffolding.MigrationPlan
+				var err error
 				if apply {
-					return fmt.Errorf("native migration apply is disabled pending historical and retirement safety gates; preview without --apply")
+					result, err = scaffolding.ApplyMigration(root, Version, keep)
+				} else {
+					result, err = scaffolding.PlanMigration(root, Version, keep)
 				}
-				result, err := scaffolding.PlanMigration(root, Version, keep)
 				if err != nil {
 					return err
 				}
@@ -170,7 +173,7 @@ func newCommand() *cobra.Command {
 	}
 	update.Flags().Bool("apply", false, "Apply a conflict-free native content update")
 	update.Flags().StringArray("keep", nil, "Preserve an existing same-path customization (repeatable)")
-	update.Flags().Bool("migrate-native", false, "Preview Python-to-native migration (apply disabled)")
+	update.Flags().Bool("migrate-native", false, "Explicit Python-to-native migration (preview unless --apply)")
 	root.AddCommand(update)
 	collections := &cobra.Command{
 		Use: "collections", Short: "List or preview optional collection additions",

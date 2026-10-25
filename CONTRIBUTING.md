@@ -130,9 +130,9 @@ platform executable, Python runtime, or copied catalogue. Phase 5 is in progress
 `init DESTINATION` creates a workspace, and `--template project` creates a
 project. Native `update` previews and applies managed content from the invoked
 binary's embedded catalogue. Repeatable `init --collection NAME` and
-`collections --add NAME` support explicit optional homes. Python migration
-apply remains disabled while its safety is ported; explicit
-`update --migrate-native` provides a read-only migration preview.
+`collections --add NAME` support explicit optional homes. Explicit
+`update --migrate-native` provides a read-only Python migration preview;
+adding `--apply` performs migration after backup and review.
 
 Native project initialization reads embedded project assets without a source
 checkout, Python, Go, or an existing workspace registry at runtime. Its destination
@@ -209,7 +209,8 @@ prints JSON and returns 1; conflicting apply returns an operational error/exit 2
 without writes, matching Python's command shape. Repeatable `--keep PATH` accepts
 literal paths, not CSV or shell expansions. Update does not require or parse the
 user-owned registry/local configuration and works for standalone project starters.
-Legacy migration apply and Python runtime retirement remain pending.
+Explicit Python migration and exact-source runtime retirement are implemented;
+full Phase 5 coverage/acceptance review remains separate from command availability.
 
 `update --migrate-native` explicitly selects Python schema-1 migration preview,
 separate from ordinary native content updates. It reports schema 1 -> 2,
@@ -218,15 +219,16 @@ same-path writes/keeps/orphans, unchanged legacy guidance relocation, and
 Missing or customized retirement/relocation sources, destination collisions,
 unknown files in retiring installation trees, and symlinks block the plan.
 `--keep` cannot bypass retirement or relocation safety. No preview deletes or
-converts anything; `--migrate-native --apply` explicitly fails until acceptance.
+converts anything; `--migrate-native --apply` is a separate explicit action.
 
 Legacy `.work/quality/` files now produce exact `move-report` actions to the
 corresponding `.wsup/reports/` paths, without rewriting bytes/provenance or making
 reports template-owned. Destinations must be absent, even if existing bytes are
 identical; directory collisions, symlinks, special files, and non-directory
 parents are refused. Empty legacy directories need no move. Preview rechecks
-observed source/destination/configuration hashes before returning; future apply
-must separately recheck complete tree inventories and all observations.
+observed source/destination/configuration hashes before returning. Apply rechecks
+complete scoped retirement/report tree inventories (including directories) and
+all observed inputs before writing.
 
 Existing `wsup.json`/`wsup.local.json` no longer cause blanket conflicts.
 Configuration structure uses the same parser as normal loading; explicit
@@ -240,8 +242,28 @@ Pinned historical tests extract actual commits for v0.1.0 and python-baseline,
 generate real workspace/project starters with Python, verify complete historical
 workspace inventories against the frozen hashes/sizes, and assert native previews
 preserve all bytes, including legacy reports and valid owner configuration.
-Runtime/apply failure gates and actual historical report relocation remain
-outstanding; a conflict-free preview is not migration certification.
+Historical apply tests run the compiled binary with empty PATH to migrate both
+workspace/project starters from both commits, relocate the results, validate
+workspace/guidance, preview settled updates, and generate native children.
+
+Migration writes required content (including byte-preserving report copies)
+before native state, rechecking tree inventories and unchanged owner inputs
+again before state commit. No legacy source is deleted until native state and
+all required outputs have been verified. Retirement rechecks exact source bytes,
+native state, and report/relocation destinations before deleting exact files.
+Only empty ancestors of removed sources are cleaned up; unknown/concurrently
+added files are never swept. This is not concurrent-writer isolation or an atomic
+multi-file transaction, and filesystem durability across power loss is not promised.
+
+Before migration, preserve a reviewed matched backup of workspace files/state,
+including ignored evidence and owner data. A precommit failure reports that
+state was not committed and may leave partial new content; legacy sources remain.
+A retirement/cleanup failure explicitly reports that native state was committed
+but retirement is incomplete. Some legacy sources may already have been removed;
+do not downgrade state or retry blindly. Restore matched files/state from the
+backup before retrying. A successful native update is not proof that leftovers
+from failed retirement were cleaned up. The implementation does not automatically
+create backups, resume interrupted retirement, or roll back partial migrations.
 
 Collection names share one validated, sorted/deduplicated catalogue contract.
 `collections` lists available names without requiring state; additions require a

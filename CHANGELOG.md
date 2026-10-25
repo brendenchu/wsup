@@ -59,7 +59,7 @@ See the [release guide](docs/releases.md) for version and tag policy.
   catalogue; projects also omit a registry. Native workspace docs and skills
   describe the separately installed binary and current command limits. Existing
   destinations are refused; I/O failures explicitly retain partial output for
-  inspection. Python migration is not yet available; Python cannot update native state.
+  inspection. Python cannot update native state.
 - Native collection selection and additions: repeatable `init --collection NAME`,
   listing/preview `collections --add NAME`, and explicit conflict-free `--apply`.
   Unmanaged scaffold files are never adopted or overwritten; selections persist
@@ -69,9 +69,11 @@ See the [release guide](docs/releases.md) for version and tag policy.
   selected collections, omitted homes, and kept baseline hashes. Conflicts block
   apply; stale inputs and partial I/O failures are explicit errors. Python state
   requires a separate migration and is never converted by content updates.
-- Explicit read-only `update --migrate-native` previews Python schema-1
+- Explicit `update --migrate-native` previews Python schema-1
   conversion, legacy guidance relocation, and retirement of unchanged
-  manifest-owned runtime/catalogue files. Migration apply remains disabled;
+  manifest-owned runtime/catalogue files. Explicit `--apply` installs content and
+  native state before exact legacy-source retirement, with scoped tree/input
+  revalidation and clear precommit versus incomplete-retirement errors;
   unsafe sources, unknown installation files, report destination collisions, and
   explicitly legacy report policy needing owner review block the preview.
   Legacy report moves preserve exact bytes/provenance; valid native settings

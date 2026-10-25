@@ -12,7 +12,7 @@ import (
 	"github.com/brendenchu/wsup/internal/scaffolding"
 )
 
-func TestMigrationCLIIsExplicitReadOnlyAndApplyDisabled(t *testing.T) {
+func TestMigrationCLIIsExplicitReadOnlyAndConflictingApplyBlocked(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "workspace")
 	if _, err := scaffolding.Initialise(root, Version, "workspace"); err != nil {
 		t.Fatal(err)
@@ -36,7 +36,6 @@ func TestMigrationCLIIsExplicitReadOnlyAndApplyDisabled(t *testing.T) {
 		message string
 	}{
 		{[]string{"--migrate-native"}, 0, ""},
-		{[]string{"--migrate-native", "--apply"}, 2, "apply is disabled"},
 		{nil, 2, "explicit native migration"},
 	} {
 		var stdout, stderr bytes.Buffer
@@ -62,5 +61,23 @@ func TestMigrationCLIIsExplicitReadOnlyAndApplyDisabled(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	if code := Run([]string{"--root", root, "update", "--migrate-native"}, &stdout, &stderr); code != 1 || !strings.Contains(stdout.String(), `"README.md"`) || stderr.Len() != 0 {
 		t.Fatalf("conflict preview: %d %s %s", code, &stdout, &stderr)
+	}
+	before = workspaceBytes(t, root)
+	stdout.Reset()
+	stderr.Reset()
+	if code := Run([]string{"--root", root, "update", "--migrate-native", "--apply"}, &stdout, &stderr); code != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "conflicts") {
+		t.Fatalf("conflicting apply: %d %s %s", code, &stdout, &stderr)
+	}
+	if !reflect.DeepEqual(before, workspaceBytes(t, root)) {
+		t.Fatal("conflicting migration wrote files")
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if code := Run([]string{"--root", root, "update", "--migrate-native", "--keep", "README.md", "--apply"}, &stdout, &stderr); code != 0 || !strings.Contains(stdout.String(), `"applied": true`) || stderr.Len() != 0 {
+		t.Fatalf("explicit apply: %d %s %s", code, &stdout, &stderr)
+	}
+	migrated, err := scaffolding.LoadState(root)
+	if err != nil || migrated.State.Version != 2 {
+		t.Fatal("CLI did not commit native state")
 	}
 }

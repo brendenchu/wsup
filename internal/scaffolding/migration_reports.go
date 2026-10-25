@@ -11,11 +11,10 @@ import (
 
 // Report history is evidence, not template content. Moves retain the original
 // bytes/provenance and can never be kept away or merged with a destination.
-func planMigrationReports(root string, handle *os.Root, managed map[string]string, bundle map[string][]byte, result *MigrationPlan) error {
+func planMigrationReports(root string, handle *os.Root, managed map[string]string, bundle map[string][]byte, result *MigrationPlan, observed map[string]observation) error {
 	if _, err := configuration.ReportDirectory(root, ".wsup/reports"); err != nil {
 		return err
 	}
-	observed := map[string]observation{}
 	for _, name := range []string{"wsup.json", "wsup.local.json"} {
 		current, err := observeFile(handle, name)
 		if err != nil {
