@@ -1,264 +1,140 @@
 # Workspace model
 
-The directory layout groups work by responsibility. `workspace.json` records
-project ownership and local checks. Git topology is independent: one workspace
-may contain a single repository, independent repositories, or a mixture. No
-shared build or release is implied. New workspaces use an opinionated baseline
-focused on development responsibilities. The starter creates
-standard development homes even when they begin empty; knowledge and activity
-workflows, lifecycle collections, and sensitive-data collections remain opt-in. Project
-`kind` classifies purpose; it does not require a matching directory name.
-
 ## Installation and ownership
 
-### Workspace independence
+Each workspace knows only itself and its descendants. Its registry, guidance,
+documentation, and commands describe its own root. No parent discovery,
+configuration inheritance, or relationship to the generating workspace exists.
+Descendant projects/workspaces retain self-contained instructions.
 
-Each workspace knows only itself and its descendants. Its documentation,
-guidance, registry, and commands describe its own root and locally registered
-work. Do not discover or inherit workspace instructions or configuration from
-outside that root, record upward workspace relationships, or embed knowledge
-of where a workspace is stored or which workspace generated it.
+Use a separately installed native `wsup` executable with embedded templates.
+The workspace contains managed files and `.wsup/template-state.json`, not a CLI
+runtime, binary, or copied catalogue. Reports are under `.wsup/reports/`.
+The Go toolchain and Python are not runtime requirements for initialization
+or inspection. Checks require their configured executables. macOS ARM64 is the
+verified runtime; cross-compilation is not certification. Unix checks have
+process-group supervision; non-Unix checks refuse launch pending equivalent
+descendant cleanup.
 
-A workspace can register descendant projects or workspaces, but each keeps its
-own self-contained required guidance and explicit local configuration. Describe
-descendants from the current workspace without injecting that relationship into
-their documentation. Directory nesting does not create policy inheritance.
-Generated workspaces retain no relationship to their generating workspace and
-must remain usable after relocation.
-
-Development uses `python3 -B src/wsup.py ...`, with authoritative implementation
-and catalogue in `src/`. Generated workspaces use `python3 -B .wsup/wsup.py ...`,
-with installed runtime and catalogue under `.wsup/`. The development checkout
-also carries generated `.wsup/` output; refresh it from `src/`, never edit it as
-source. Root `tests/` remains development-only. `dist/`, if introduced, is for
-release bundles, not workspace installations.
-Commands target the current directory unless `--root PATH` is supplied.
-The script's directory does not select the workspace. There is no upward root
-discovery or configuration inheritance. Put global options before the command,
-for example `python3 -B /path/to/wsup/src/wsup.py --root /path/to/workspace projects`.
-
-Python 3.9 or newer is required for both invocation paths. WSUP uses only the
-standard library; no Python package installation or virtual environment is
-required. There is no globally installed `wsup` command or native executable
-provided by this repository. A generated workspace carries its own CLI files,
-but each machine still supplies Python and any project-check tools.
-
-The generated installation contains:
-
-```text
-.wsup/
-  wsup.py
-  wsup_core/
-  templates/
-  template-state.json
-  reports/
-```
-
-The installed `.wsup/templates/` is the single generation catalogue, not a
-second user-customization surface. Change product starters in a trusted source
-checkout, then preview updates before refreshing. Local edits become conflicts.
-Generated workspaces can generate another workspace without that checkout.
-Local workspace rules and skills are not implicit overrides for newly generated
-workspaces; initialization reads the installed catalogue. In the source checkout,
-root `.agents/skills/` remains the canonical development skill source.
-
-Keep state, runtime, and bundled templates eligible for local tracking; ignore
-only generated reports. The registry, `AI.md`, `guidance/rules/`, and
-`.agents/skills/` remain workspace-owned public surfaces. `AGENTS.md` points to
-`AI.md`. Human drafts can live in visible `workbench/`; sanitized drafts are
-eligible for local tracking. Review contents before staging; nothing is
-committed automatically. Keep restricted records out of documentation and Git.
-Promote approved knowledge to the owning project's maintained documentation and
-avoid competing canonical copies.
+Commands target the current directory unless `--root PATH` appears before the
+command. The executable's location does not select a root. Relocation requires
+a compatible separately installed binary, not the original checkout.
+Template content comes from that binary, never from local workspace overrides.
+Do not edit generated output as product source; use a trusted source checkout
+for product changes. Binary replacement and managed-content updates are separate.
 
 ## Command reference
 
-Examples below use the generated-workspace command. In a source checkout,
-substitute `src/wsup.py`. Use `--help` or `COMMAND --help` for accepted options;
-`--version` prints the CLI's product version.
-
 | Command | Options and result |
 | --- | --- |
-| `validate` | Validates the registry and effective settings without executing checks; prints a text summary. |
-| `projects` | Prints the registry's project entries as JSON. |
+| `validate` | Validates registry/settings without executing checks; prints a summary. |
+| `projects` | Prints project entries as JSON. |
 | `config` | Prints effective settings and their sources as JSON. |
-| `guidance` | Prints structural guidance findings as JSON; optional `--project ID` selects one registered project instead of the workspace. |
-| `editor` | Creates an optional VS Code multi-root file; `--output NAME` changes the default `workspace.code-workspace`. Destination must be a new file directly in the workspace root. |
-| `check` | Requires repeatable `--project ID`; optional repeatable `--check NAME`, `--timeout SECONDS`, and `--show-output`. Prints progress/status and a report path, not a JSON document. |
-| `init DESTINATION` | Creates a new workspace immediately; `--template project` selects a project starter. Repeatable `--collection NAME` is workspace-only. No preview/apply option. |
-| `collections` | Prints available/selected collections as JSON; repeatable `--add NAME` previews additions and `--apply` writes them if conflict-free. |
-| `update` | Prints a JSON plan; `--apply` writes conflict-free changes and repeatable `--keep PATH` preserves eligible same-path customizations. |
+| `guidance` | Prints structural findings as JSON; optional `--project ID` selects a registered owner. |
+| `editor` | Creates a relative-path VS Code workspace file; `--output NAME` must be a new file directly in the root. |
+| `check` | Requires repeatable `--project ID`; optional repeatable `--check NAME`, `--timeout SECONDS`, `--show-output`. |
+| `init DESTINATION` | Creates a new workspace immediately; repeatable `--collection NAME` selects optional homes. `--template project` creates a project without a registry/runtime; collections are workspace-only. |
+| `update` | Prints a managed-content plan; `--apply` writes when conflict-free, repeatable `--keep PATH` retains eligible same-path customizations. |
+| `collections` | Lists available names; repeatable `--add NAME` previews additions, `--apply` writes when conflict-free. |
 
-`--root` changes the workspace being inspected or updated; it does not change the
-process's current directory. In particular, a relative `init DESTINATION` is
-relative to the current directory, not `--root`. Initialization uses the
-catalogue beside the invoked CLI, not the target root. `init` does not require a
-registry at the current directory. Use a new destination; even an existing empty
-directory is refused.
+Use `--help`, `COMMAND --help`, and `--version` for options and product version.
+Invalid options fail even when help/version is also present. Unambiguous long
+option prefixes are supported. Normal operational errors print handled stderr;
+diagnostic wording need not match the Python CLI.
 
-A project starter does not include a CLI or `workspace.json`. To preview or apply
-its managed template updates, invoke a trusted workspace/source CLI with
-`--root /path/to/project update`. Workspace registry commands require an actual
-workspace registry.
+Initialization requires a new destination, including when an existing directory
+is empty. Relative destinations use the current process directory, not `--root`.
+No registry is required to run `init`. All files are exclusively created, state
+is written last, and existing destinations are never replaced. A write failure
+may leave partial output; it is reported and retained for inspection, not
+recursively removed. No transactional rollback or power-loss durability is promised.
 
-### Exit codes
-
-| Code | Meaning |
-| --- | --- |
-| `0` | Success, including help/version, conflict-free previews, and report-mode findings without other failing checks. |
-| `1` | Guidance errors, update/collection conflicts, or an unsuccessful check run (required failures/skips, launch errors, or timeouts). |
-| `2` | Invalid arguments, invalid registry/settings, or an operational error handled by the CLI. |
-| `130` | Cancellation by keyboard interrupt. |
-
-Finding exit codes belong to individual check definitions; they are not the
-CLI's exit codes. An interrupted check run normally records cancellation and
-skips remaining checks before returning `130`.
-
-## Local working material
-
-Keep shareable human-authored drafts in `workbench/` and local session notes,
-plans, handoffs, and investigation evidence in ignored `workbench/.local/`.
-Create the local directory on demand, not as starter content. Ignored does not
-mean disposable, backed up, or confidential. Preserve useful work and promote
-accepted knowledge to its maintained owner.
-
-Existing `.work/` ignore rules remain for compatibility, not as the recommended
-location. Move only workspace-owned scratch material after checking destination
-collisions and relative links; never sweep descendant projects or move historical
-WSUP reports here. Machine check reports remain in `.wsup/reports/`.
+Exit codes are 0 for success (including report-only findings), 1 for guidance
+findings or unsuccessful required checks, 2 for invalid input/operational errors,
+and 130 for interrupted checks. Finding exit codes are per-check policy, not
+CLI exit codes.
 
 ## Default layout and optional collections
 
-The WSUP product repository is not a demonstration collection of projects.
-It keeps `src/`, `tests/`, generated `.wsup/` output, documentation, guidance,
-skills, and local working material, but omits unused project homes. Template
-state may record `omitted_home_files`, a list of exact default home scaffold
-paths: `apps/.gitkeep`, `infrastructure/.gitkeep`, `packages/README.md`,
-`tools/README.md`, or `workbench/README.md`. Updates preserve these omissions
-without deleting existing contents or changing the bundled catalogue.
-This is an explicit local customization, not an inherited generation default.
-New workspaces still receive the full baseline.
-
-Every new workspace starts with these directories. They establish a practical
-default, not a requirement to populate or use each one. Project purpose
-(`kind`), directory placement, repository ownership, lifecycle, and sensitivity
-remain separate decisions.
-
-| Default home | Useful boundary |
+| Home | Responsibility |
 | --- | --- |
-| `apps/`, `packages/`, `tools/`, `infrastructure/` | Place application projects, reusable packages, developer utilities, and shared infrastructure by responsibility. Register actual projects and record repository ownership; a folder name does not determine `kind` or Git ownership. Deploying shared infrastructure remains opt-in, not a dependency of every project. |
-| `workbench/` | Keep human-authored drafts and temporary analysis. Review and sanitize before local tracking; no automatic commits. Promote accepted content to its canonical owner. |
-| `docs/` | Keep durable workspace-wide decisions and procedures here. Project-specific documentation belongs with its owning project. Maintain one canonical copy and link to it rather than duplicating it. |
-| `guidance/` | Keep shared workspace rules and policy here. Route to one canonical rule source rather than duplicating instructions across entry points. |
-| `.agents/skills/` | Keep portable task procedures here; project-specific required instructions remain with each project. |
+| `apps/` | Applications and user-facing deliverables |
+| `packages/` | Reusable libraries/packages |
+| `tools/` | Local developer tools |
+| `infrastructure/` | Provisioning and operations code |
+| `docs/` | Maintained workspace documentation |
+| `workbench/` | Shareable drafts and temporary analysis |
+| `guidance/`, `.agents/skills/` | Local rules and portable procedures |
+| `.wsup/` | Template state and ignored check reports |
 
-The development baseline does not prescribe a knowledge-management workflow.
-These homes are available through explicit CLI selection:
+Homes organize responsibility, not repository topology or required population.
+Project `kind` is independent of directory name.
+Local session plans/notes live in ignored `workbench/.local/`, created on demand;
+legacy `.work/` exclusions remain for compatibility. Historical reports stay
+under `.wsup/reports/`, not workbench. Review and sanitize drafts before staging.
+Promote accepted knowledge to its maintained owner rather than keeping competing
+canonical copies. A journal is optional.
 
-| Optional home | Useful boundary |
-| --- | --- |
-| `learning/` | Keep curricula, exercises, and learning projects with their owner. |
-| `research/` | Keep workspace-wide investigations with a question, owner, evidence, and limits. Keep project-specific investigations with their project. |
-| `reference/` | Keep reviewed, reusable knowledge with evidence and applicability. Moving research here does not make it reviewed. |
-| `journal/` | Keep dated activity records distinct from maintained documentation, drafts, and machine-generated reports. |
-| `archive/` | Keep deliberately retired material with ownership and recovery expectations. |
-| `artifacts/` | Keep retained outputs with provenance and a retention purpose. |
-| `private/` | Document an approved restricted-storage boundary; the scaffold itself provides no protection. |
-
-All seven are opt-in, not default scaffolds.
-Create them only when a real owner and use exist. Archive is not a backup,
-privacy control, or deletion instruction; preserve repository history and
-inspect linked-worktree relationships before moving or retiring a checkout.
-Retain artifacts with provenance and a clear owner or retention purpose, not as
-a catch-all for caches or reports. Sensitive material requires an approved
-storage and access policy: a `private/` name and Git ignore rule do not provide
-confidentiality. Avoid placing restricted data where workspace tools, reports,
-indexing, or bundles may collect it; prefer approved storage outside a broadly
-scanned workspace.
-
-These boundaries do not change ignore rules, configure backups, or certify
-privacy, retention, or recovery. Decide those controls with the relevant owner
-before moving sensitive, historical, or retained material. `.wsup/templates/`
-is WSUP-owned runtime content, not a user project grouping.
-
-### Selecting optional collection scaffolds
-
-WSUP provides `archive`, `artifacts`, `journal`, `learning`, `private`,
-`reference`, and `research` scaffolds, each containing a README that describes
-its purpose and limitations; journal also includes an entry template. Use the
-installed command below; in development substitute `src/wsup.py`:
+Optional collection homes are `archive`, `artifacts`, `journal`, `learning`,
+`private`, `reference`, and `research`. None are created by default. These are organizational
+choices, not permissions, encryption, sync, backup, or retention controls.
+Restricted material belongs outside documentation and Git unless appropriate
+controls are separately established. Ignored does not mean confidential.
 
 ```sh
-python3 -B .wsup/wsup.py init /path/to/new-workspace --collection archive --collection artifacts
-python3 -B .wsup/wsup.py collections
-python3 -B .wsup/wsup.py collections --add archive --add artifacts
-python3 -B .wsup/wsup.py collections --add archive --add artifacts --apply
+wsup init /path/to/new-workspace --collection archive --collection journal
+wsup collections
+wsup collections --add artifacts --add private
+wsup collections --add artifacts --add private --apply
 ```
 
-`init` creates a new destination immediately, as usual, and accepts repeatable
-`--collection` selections for workspace starters only. `collections` lists the
-available names. Repeatable `--add` selections preview changes in an existing
-managed workspace; `--apply` is required to write. Selections are deduplicated.
-Unknown names and symlink destinations are rejected.
+Names are validated, sorted, and deduplicated. The binary carries all seven
+scaffold sources; only explicitly selected ones are installed and managed.
+A child workspace starts with no collections unless selected explicitly.
+Listing needs no managed state; additions require a native managed workspace.
+Unknown names, project selections, and symlink destinations fail explicitly.
 
-Existing directories and unrelated contents are preserved. A pre-existing
-unmanaged scaffold file is a conflict, even if identical; WSUP does not adopt
-or overwrite it. Conflicts block all additions. Already-selected managed
-scaffolds are left untouched; use `update` and explicit `--keep` decisions to
-review their customizations. Apply uses exclusive file creation and records the
-selected collections in template state. It is not a transactional operation:
-an I/O failure can leave newly created files before state is saved; inspect
-those exact files and resolve any resulting conflicts before retrying.
-
-The standalone catalogue carries all optional scaffold sources. Only selected
-collections are created at the workspace root and included in its normal
-template updates. Selections are workspace-local, not implicit defaults for
-workspaces generated by its CLI. Existing template state without a collections
-selection continues to mean no optional scaffolds.
-
-Previously default-managed learning, research, reference, and journal files can
-be explicitly selected with `collections --add NAME --apply` before updating;
-their recorded baselines and local edits are preserved. Without selection,
-`update` preserves existing root files as unmanaged orphans rather than deleting
-them. It retires only unchanged, manifest-owned copies of those former defaults
-inside the installed workspace catalogue, so future generation uses the smaller
-baseline. Customized catalogue copies block that retirement for manual resolution.
-
-No ignore rules, permissions, ACLs, encryption, sync, indexing, backups, or
-retention settings are configured. In particular, selecting `private` creates
-documentation, not secure storage; do not add restricted records before the
-owner has separately established and verified appropriate controls.
+Unmanaged existing scaffold files are conflicts even when identical; they are
+never adopted or overwritten. Missing selected managed files are conflicts.
+Already-selected regular managed files, including customizations, are left
+unchanged with their original hashes; use update to review those customizations.
+Former default-managed journal/learning/reference/research files can be explicitly
+selected without accepting customized bytes as baselines. Other unselected
+managed collection files conflict rather than being implicitly adopted.
+All conflicts block additions. State and observed paths are rechecked before
+exclusive writes; state is replaced last, preserving unrelated hashes, template
+version, omitted homes, and previous selections. I/O failures can leave new files
+with old state and are explicit; inspect partial results before retrying.
+These commands configure no permissions, ACLs, ignores, sync, backups, or retention.
 
 ## Register projects
 
-`workspace.json` is UTF-8 JSON with `version: 1`, a nonempty `name`, and a
-`projects` array. Each project has:
+`workspace.json` is UTF-8 JSON with `version: 1`, nonempty `name`, and a `projects`
+array. Projects have:
 
-| Field | Meaning |
+| Field | Contract |
 | --- | --- |
-| `id` | Unique identifier starting with a letter or digit, followed by letters, digits, `.`, `_` or `-` |
-| `path` | Existing workspace-relative directory containing `README.md` |
-| `kind` | Coarse purpose (`app`, `package`, `tool`, `infrastructure`, `research`, `template`); independent of folder path |
-| `repository` | `workspace` or `independent`, recording intended ownership |
-| `purpose`, `owner` | Nonempty project description and responsible owner |
-| `dependencies` | Optional array of other project IDs |
+| `id` | Unique ID beginning with a letter/digit, followed by letters/digits, `.`, `_`, or `-` |
+| `path` | Unique relative forward-slash path to an existing directory with README |
+| `kind` | `app`, `package`, `tool`, `infrastructure`, `research`, or `template` |
+| `repository` | `workspace` or `independent` (intent, not proof of Git setup) |
+| `purpose`, `owner` | Nonempty descriptions |
+| `dependencies` | Optional IDs of other projects, resolving without cycles |
 | `checks` | Optional named check definitions |
 
-Paths use relative forward slashes and must remain inside the workspace, including
-through symlinks. Project paths must be unique. Dependencies must resolve and be
-acyclic. The registry describes intent; it does not create or verify Git
-repositories, clone projects, install dependencies, or release packages.
-Unknown registry/project fields are rejected. For example, after creating
-`apps/example/README.md`, a minimal workspace registry with one project is:
+Paths must stay within the workspace, including through symlinks. Unknown
+registry/project fields are rejected. The registry does not clone, initialize
+Git, install dependencies, or create a shared release. Create a project first,
+then edit its registry entry:
 
 ```json
 {
   "version": 1,
-  "name": "Example workspace",
+  "name": "Example",
   "projects": [
     {
-      "id": "example",
-      "path": "apps/example",
+      "id": "app",
+      "path": "apps/app",
       "kind": "app",
       "repository": "workspace",
       "purpose": "Example application",
@@ -268,202 +144,172 @@ Unknown registry/project fields are rejected. For example, after creating
 }
 ```
 
-Edit the registry directly, then run `validate` and `projects`. There is no
-project-add or dependency-install command.
+Run `validate` and `projects` after editing. There is no project-add command.
 
 ## Git ownership
 
-Keep workspace configuration, guidance, and any grouping-directory README files
-in the workspace repository. Projects can share that repository or use independent
-repositories side by side. Nothing under the standard grouping directories is
-ignored by default just because it is a project.
+Keep registry, configuration, grouping READMEs, state, guidance, and workspace-owned
+projects in the workspace repository. Independent projects have their own
+repositories; register them without implying shared builds or releases.
 
-The development checkout and both starters share the same Git-ignore baseline:
-local `workbench/.local/` directories (plus legacy `.work/` exclusions),
-`.wsup/reports/`, `wsup.local.json`, `.env` and
-`.env.*` files (except `.env.example`), Python `__pycache__/`, and `.DS_Store`.
-Keep that baseline aligned; add project, toolchain, or collection exclusions
-locally after it. Every repository carries its own rules rather than relying on
-ignore configuration outside its root. Ignore rules are staging hygiene, not
-access controls, and do not remove already-tracked files.
+For an independent project:
 
-For each independently owned project:
+1. Ignore its exact root-relative directory, e.g. `/apps/my-app/`, in this
+   workspace. Do not ignore a whole grouping directory or only nested `.git`.
+2. Clone/create its repository only when requested. Verify the project's Git
+   top-level is the project itself.
+3. Register its path and `"repository": "independent"`.
+4. Check `git check-ignore -v apps/my-app/` and workspace/project status before
+   staging. Commit independent project changes from their own repository.
 
-1. Add its exact, root-relative directory to the workspace's `.gitignore`, for
-   example `/apps/my-app/`. Use the same pattern for projects under `packages/`,
-   `tools/`, `infrastructure/`, `research/`, or a user-owned `templates/`
-   grouping; do not ignore the entire grouping directory.
-2. Clone the project's repository into that directory, or create it and run
-   `git -C apps/my-app init`. WSUP does not initialize Git repositories.
-3. Register it in `workspace.json` with `"path": "apps/my-app"` and
-   `"repository": "independent"`, along with the other required project fields.
-   This metadata does not change Git's tracking or ignore rules.
-4. Run `git check-ignore -v apps/my-app/` and review `git status` from the workspace
-   root before staging workspace changes. Commit project changes from the
-   project's own repository.
+Metadata and ignore rules do not untrack already-tracked content. Preserve work
+and history, get approval, and deliberately remove paths from the workspace index
+when converting ownership. Never force-add independent projects or create
+submodules implicitly.
 
-The installed generation catalogue under `.wsup/templates/` is WSUP-owned runtime
-content, not a project grouping.
-
-The ignore entry keeps the project's files and nested repository out of normal
-workspace staging, while workspace-owned sibling projects remain trackable.
-Do not force-add independent projects or add them as submodules unless you
-intentionally want a different ownership model. Ignoring only nested `.git`
-directories is not enough to exclude project contents.
-
-Ignore rules do not untrack files that the workspace repository already tracks.
-Before converting an existing project, preserve its work and history, then
-deliberately remove its paths from the workspace index (for example,
-`git rm -r --cached -- apps/my-app`) and review the staged removals. `--cached`
-leaves working files on disk; this step does not transfer their history into
-the independent repository.
-
-## Runtime and portability
-
-The CLI uses Python 3.9+ and the standard library. Registered project checks use
-executables installed locally and are not translated between operating systems.
-Commands may depend on platform-specific executables. Verify the required
-checks on each target platform; portability is not a certification claim.
+The starter ignores `.wsup/reports/`, `wsup.local.json`, `.env`/`.env.*` except
+`.env.example`, Python caches, `.DS_Store`, `workbench/.local/`, and legacy `.work/`.
+Every repository owns its ignore rules; these are staging hygiene, not security.
+Do not ignore template state or all of `.wsup/`.
 
 ## Configure checks
 
-A check can be a literal argument array:
+Checks are literal argv arrays or objects with `command` and optional `mode`,
+`enabled`, `reason`, `timeout_seconds`, and `finding_exit_codes`:
 
 ```json
 "checks": {
-  "test": ["{python}", "-B", "-m", "unittest", "discover", "-s", "tests"]
+  "test": ["{python}", "-B", "-m", "unittest", "discover", "-s", "tests"],
+  "audit": {"command": ["my-audit-tool"], "mode": "report"}
 }
 ```
 
-Or an object with `command` plus optional `mode`, `enabled`, `reason`,
-`timeout_seconds`, and `finding_exit_codes`. Check names use the same identifier
-format as project IDs. Commands are launched directly,
-without a shell, from the registered project's directory. `{python}` selects the
-interpreter running the CLI. Other executables must already be installed and
-available locally. A command can still read, write, or otherwise act with the
-current user's permissions; inspect it before execution. Shell operators,
-wildcards, and environment-variable references are literal arguments, not
-expanded by WSUP. Checks receive no interactive stdin. Retained stdout/stderr
-are bounded by the configured per-stream limit; `--show-output` prints that
-captured output after each check, not a live stream. Terminal output may contain
-secrets even though reports omit it.
+Names follow the project-ID format. An exact `{python}` token resolves to
+`python3` on PATH; no interpreter fallback or installation occurs. Other
+executables must also be installed. Arguments are not shell-expanded, stdin is
+closed, and cwd is the registered project directory. Inspect commands first:
+they execute with your permissions and are not sandboxed.
 
-Checks are `required` by default. A failed required check makes the run fail.
-`report` checks can return findings without failing the run when they exit with a
-configured finding code (default `1`). Disabled checks need a reason. Projects
-must be explicitly selected; dependencies are not run automatically. Without
-`--check`, all checks configured on the selected projects run. With repeated
-`--check`, every named check must exist on every selected project. Repeated
-selections are deduplicated. Selecting a project with no configured checks is an
-error. A disabled required check is skipped but makes the run unsuccessful;
-a disabled report-mode check does not by itself fail the run.
+Required mode fails on nonzero exit; report mode treats configured finding
+exit codes (default `[1]`) as findings, not CLI failure. Empty finding codes mean
+no advisory exits. Genuine failures, missing tools, timeout, and required skips
+still fail. Disabled checks need a nonempty reason. Dependencies are descriptive;
+only explicitly selected projects/checks run. With no `--check`, all configured
+checks run; each requested check name must exist on every selected project.
+Selection is fully validated before launching tools or creating reports.
 
 ```sh
-python3 -B .wsup/wsup.py check --project app --project library --check test --show-output
-python3 -B .wsup/wsup.py check --project app --timeout 60
+wsup check --project app --project library --check test --show-output
+wsup check --project app --timeout 60
 ```
 
-Replace those IDs and check names with actual registry entries. Effective check
-timeout precedence is `--timeout`, then the check's `timeout_seconds`, then the
-workspace setting. `config` shows workspace settings, not per-check overrides.
+Ordinary failures do not stop later checks. Ctrl-C records cancellation, skips
+remaining checks, and returns 130. Timeout/cancellation terminates the Unix
+process group. Descendants deliberately escaping that group are not guaranteed
+to be killed; inherited-pipe cleanup is bounded and cleanup failures explicit.
+Output is suppressed by default. `--show-output` prints bounded captured output
+after each check, not live output, and can reveal secrets in the terminal.
 
-## Local settings and reports
+## Settings and reports
 
-Settings have these defaults:
+Configuration precedence is defaults, shared `wsup.json`, ignored
+`wsup.local.json`, environment, then explicit CLI overrides. Configuration files
+use `{"version": 1, "settings": {...}}`; unknown fields/invalid values fail.
 
-| Setting | Default |
-| --- | --- |
-| `timeout_seconds` | `300` (range `1`-`86400`) |
-| `output_limit_bytes` | `65536` per stream (range `1`-`10485760`) |
-| `report_dir` | `.wsup/reports` (must remain inside `.wsup/reports/`) |
+| Setting | Default and bounds | Environment |
+| --- | --- | --- |
+| `timeout_seconds` | 300; 1..86400 | `WSUP_TIMEOUT_SECONDS` |
+| `output_limit_bytes` | 65536 per stream; 1..10485760 | `WSUP_OUTPUT_LIMIT_BYTES` |
+| `report_dir` | `.wsup/reports`; must remain inside it | `WSUP_REPORT_DIR` |
 
-Configuration precedence, from lowest to highest: defaults, `wsup.json`,
-`wsup.local.json`, `WSUP_TIMEOUT_SECONDS` / `WSUP_OUTPUT_LIMIT_BYTES` /
-`WSUP_REPORT_DIR`, then CLI overrides.
-Configuration files use `{ "version": 1, "settings": { ... } }`. Local settings
-and `.wsup/reports/` should not be committed. Reports are stored there and
-include check outcomes and hashes, not command arguments or captured output.
-`--show-output` prints captured output to the terminal.
-Unknown configuration fields/settings are rejected. Only timeout has a direct
-CLI override (`check --timeout`); configure the other settings through files or
-the listed environment variables. For example, shared `wsup.json` can contain:
+Check timeout overrides workspace timeout; CLI `--timeout` overrides both.
+`config` reports values and source labels. Settings are local to this workspace,
+never inherited. Symlinked `.wsup/` or reports roots are refused; contained nested
+report paths may be used. Do not use runtime/catalogue paths as reports.
 
-```json
-{
-  "version": 1,
-  "settings": {
-    "timeout_seconds": 120,
-    "output_limit_bytes": 65536,
-    "report_dir": ".wsup/reports"
-  }
-}
-```
+Checks write JSON/Markdown schema-v2 reports with Go/OS/architecture metadata,
+selection and original-command SHA-256 hashes, current input-byte hashes,
+sanitized execution metrics/statuses, and optional Git state. They do not store
+command arguments, captured output, environment values, or credentials.
+Project IDs, names, paths, and Git state can still be sensitive: reports are
+ignored local evidence, not automatically safe to publish.
 
-Use `config` to inspect effective values before running checks. Reports do not
-replace a terminal log; retain necessary investigation evidence separately and
-review it for secrets.
+Files are created exclusively, mode 0600 on POSIX. Windows mode bits do not
+establish equivalent ACLs. Collisions do not overwrite files. A later failure may
+leave a partial pair and returns an explicit error; reports are not transactional.
+No existing report is rewritten to change provenance.
 
 ## Generated files and updates
 
-`editor` creates a VS Code multi-root file with relative paths and refuses to
-overwrite an existing destination. VS Code is optional.
+Native schema-2 template state stores baseline SHA-256 hashes and product/template
+version. It owns managed starter files, never runtime/report content under
+`.wsup/`. Keep state with the files so future updates can identify customizations.
+Local rules/skills are workspace customizations, not implicit defaults for child
+generation. A new workspace always uses the binary's embedded baseline.
 
-`update` compares generated files with their recorded template versions and
-previews safe changes. `update --apply` applies changes only when there are no
-conflicts. User-edited or missing files are reported for manual review;
-unrecognized files are retained. The workspace registry remains user-owned.
+`wsup update` compares managed files with the invoked binary's embedded template
+and recorded collection selections. Preview is read-only. `wsup update --apply`
+blocks on all conflicts, rechecks observed state/files, creates new files
+exclusively, replaces existing files without in-place truncation, and writes
+next state last. Edited or missing managed files require manual resolution;
+`--keep PATH` can retain an existing same-path customization without accepting
+its current hash as a new baseline. Repeat it on later updates if still needed.
+The registry remains workspace-owned and is never regenerated by update.
+Omitted default homes remain omitted; orphan bytes are retained but cease to be
+managed. Unknown files, project contents, reports, and local settings survive.
+There are no runtime files to update or retire in native schema 2.
 
-### Pre-1.0 layout migration
+Explicit `wsup --root PYTHON_WORKSPACE update --migrate-native` previews schema-1 to
+schema-2 content, guidance relocation, and exact manifest-owned runtime retirement.
+Preview never writes. After a reviewed matched backup of files/state, ignored
+reports, and owner data, add `--apply` to execute a conflict-free migration. Customized/missing
+runtime sources, unknown installation-tree files, and relocated destination
+collisions block migration. Legacy `.work/quality/` files are planned as exact
+`move-report` actions to corresponding `.wsup/reports/` paths, without rewriting
+provenance or adopting evidence as templates. Destination collisions block even
+when bytes match. Symlinks, special files, and non-directory ancestors fail.
+Empty legacy report directories need no move.
 
-This is a deliberate layout break without old wrappers or duplicate catalogues.
-Obtain a trusted newer source checkout or generated installation first; `update`
-does not fetch a release, pull Git changes, or discover another CLI. The invoked
-CLI supplies both runtime files and its bundled catalogue, even when `--root`
-targets a different workspace. A newer CLI
-relocates manifest-owned legacy CLI files, runtime modules, embedded templates,
-`.ai/rules/`, and legacy `.ai/skills/`. Redundant root project templates retire.
-Files that establish new default homes are added, and existing managed home
-files are updated in place only when unchanged. Other orphaned files and
-unrelated project contents are retained.
+Existing `wsup.json`/`wsup.local.json` remain owner-owned. Valid native settings
+no longer block preview. Each explicitly recorded `.work*` report policy requires
+an owner-reviewed configuration change, even if a local override hides it.
+Malformed settings or unsafe native report paths fail explicitly. Migration
+ignores environment overrides while inspecting persistent policy. Do not delete
+settings or evidence to bypass conflicts. `--keep` cannot bypass runtime
+retirement or relocation safety checks. Ordinary update never implicitly migrates.
+Apply rechecks scoped tree inventories and all observed inputs before writes.
+Required content and exact report copies are written first, native state second,
+and legacy sources retired only after state/output verification. Changes to tree
+inventories, configuration, kept files, or exact sources block progress.
+Each retirement rechecks native state and exact source; report/guidance moves also
+verify the new destination. Only empty ancestors of removed sources are cleaned.
+No unknown files or independent projects are recursively removed.
 
-Preview actions distinguish `relocate` (current template content at the new
-path), `retire`, `write`, `move-report` (exact bytes), and `retain-orphan`.
-Reports under `.work/quality/` move to `.wsup/reports/` without rewriting
-historical paths or hashes. Other project-local `.work/` evidence is untouched.
-Explicit report settings under `.work/` block apply; review and change them
-before retrying.
+Failure before state commit can leave partial native content but keeps legacy
+sources. Failure during retirement explicitly reports committed native state and
+incomplete cleanup; some sources may already be removed. Restore matched files/
+state from backup before retrying. Do not edit schema numbers, downgrade via
+Python, or assume ordinary update completes interrupted retirement. There is no
+automatic backup, rollback, transaction, resume journal, concurrent-writer
+isolation, or fsync/power-loss guarantee. Python rejects native schema 2;
+do not force a downgrade by editing its version field or use Python updates here.
+No remote downloader or automatic binary upgrade is provided.
 
-Edited or missing relocation/retirement sources, unrecognized files in managed
-legacy trees, destination collisions (even identical files), and symlink paths
-require manual resolution. Conflicts block all planned writes. The registry
-remains user-owned. Only empty ancestors of exact removed files are cleaned up.
+Before any later update/migration, preserve a reviewed backup of files and state,
+inspect Git status and the complete preview, and resolve conflicts deliberately.
+Native updates are not a multi-file transaction; I/O failure
+can leave partial content with old state. Concurrent mutation after rechecks is
+not isolated, and no fsync/power-loss durability guarantee is made. Inspect
+partial destinations rather than deleting owner content blindly. Recovery means
+restoring matched files and state from the same backup and using a compatible
+binary. No commit, installation, publication, or real migration is automatic.
 
-Use explicit `--keep PATH`, repeated per file, to preserve existing same-path
-customizations such as a workspace map or ignore file. Their contents and
-recorded baselines are preserved, not forged to match incoming content.
-Repeat the choice on later updates until deliberately reconciled. Retained
-same-path files that are no longer in the catalogue become user-owned.
-`--keep` cannot bypass relocation or destination conflicts.
+## Guidance
 
-Back up the workspace, including ignored evidence and customizations, then
-run a trusted newer source checkout against the old root:
-
-```sh
-python3 -B /path/to/new-wsup/src/wsup.py --root /path/to/existing-workspace update
-python3 -B /path/to/new-wsup/src/wsup.py --root /path/to/existing-workspace update --apply
-```
-
-From a newer generated installation use `/path/to/new/.wsup/wsup.py` instead.
-After inspecting the preview and applying, use the updated `.wsup/wsup.py` for
-`validate`, `guidance`, and repeat preview. Clean migration has no further actions;
-explicit keep decisions remain visible.
-
-For customized guidance relocations, preserve edits, perform an owner-reviewed
-merge, and recover original managed sources from a trusted backup if necessary.
-Never fabricate baseline hashes. If recovery is impossible, retain the original
-workspace and plan a transfer into a fresh installation.
-
-Apply is not a filesystem transaction: new files and reports are written before
-old sources are removed, and state is saved last. An I/O failure can leave a
-partial update. Restore from backup before retrying; no automatic rollback,
-downloading, dependency installation, or publication is performed.
+Read local `AI.md` and `guidance/rules/index.md`. All 12 portable skills are
+included under `.agents/skills/`; no client, provider, credential, MCP server, or
+adapter is required. Clients may discover that shared path or need explicit skill
+paths. Verify client loading separately from file presence. `guidance` checks
+metadata, local links, owner containment, and structural findings, not whether
+an AI client invoked a skill. Findings are sorted lexically, preserving duplicates.
+Independent projects keep their required guidance themselves.

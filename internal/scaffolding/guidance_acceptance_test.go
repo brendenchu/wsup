@@ -91,6 +91,22 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 			!bytes.Contains(index, []byte("](../../.agents/skills/"+name+"/SKILL.md)")) {
 			t.Fatalf("missing canonical skill or route: %s", name)
 		}
+		want, err := os.ReadFile(filepath.Join(source, ".agents/skills", name, "SKILL.md"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		body, err := os.ReadFile(filepath.Join(workspace, ".agents/skills", name, "SKILL.md"))
+		if err != nil || !bytes.Equal(body, want) {
+			t.Fatalf("canonical native skill differs: %s", name)
+		}
+	}
+	wantModel, err := os.ReadFile(filepath.Join(source, "docs/workspace-model.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model, err := os.ReadFile(filepath.Join(workspace, "docs/workspace-model.md"))
+	if err != nil || !bytes.Equal(model, wantModel) {
+		t.Fatal("canonical native workspace model differs")
 	}
 	rules, err := os.ReadDir(filepath.Join(source, "guidance/rules"))
 	if err != nil {

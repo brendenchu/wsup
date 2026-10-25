@@ -69,8 +69,8 @@ class WsupTest(unittest.TestCase):
         self.assertFalse((self.root / "app/unexpected").exists())
     def test_ai_kit_references_and_skill_structure(self):
         import re
-        kit = SOURCE / "src/templates/workspace"
-        for template in (kit, SOURCE / "src/templates/project"):
+        kit = SOURCE / "templates/workspace"
+        for template in (kit, SOURCE / "templates/project"):
             self.assertEqual(
                 (SOURCE / "LICENSE").read_bytes(),
                 (template / "WSUP-LICENSE").read_bytes())
@@ -202,9 +202,10 @@ class WsupTest(unittest.TestCase):
         for source in (SOURCE / "src/wsup_core").rglob("*.py"):
             bundled = destination / ".wsup/wsup_core" / source.relative_to(SOURCE / "src/wsup_core")
             self.assertEqual(source.read_bytes(), bundled.read_bytes())
-        for source in (SOURCE / ".agents/skills").rglob("SKILL.md"):
+        reference_skills = SOURCE / "src/templates/workspace/.agents/skills"
+        for source in reference_skills.rglob("SKILL.md"):
             for bundled_root in (destination / ".agents/skills", destination / ".wsup/templates/workspace/.agents/skills"):
-                bundled = bundled_root / source.relative_to(SOURCE / ".agents/skills")
+                bundled = bundled_root / source.relative_to(reference_skills)
                 self.assertEqual(source.read_bytes(), bundled.read_bytes())
         for command in ["validate", "guidance", "editor"]:
             result = subprocess.run([sys.executable, "-B", ".wsup/wsup.py", command], cwd=destination, capture_output=True)

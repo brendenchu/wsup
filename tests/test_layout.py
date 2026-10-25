@@ -235,7 +235,7 @@ class LayoutTest(unittest.TestCase):
             cwd=self.root, capture_output=True)
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(
-            (SOURCE / ".agents/skills/workspace-check/SKILL.md").read_bytes(),
+            (SOURCE / "src/templates/workspace/.agents/skills/workspace-check/SKILL.md").read_bytes(),
             (workspace / ".agents/skills/workspace-check/SKILL.md").read_bytes())
         self.assertEqual(
             (SOURCE / "src/templates/project/README.md").read_bytes(),

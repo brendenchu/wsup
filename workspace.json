@@ -12,6 +12,17 @@
       "dependencies": [],
       "checks": {
         "test": [
+          "go",
+          "test",
+          "-race",
+          "./..."
+        ],
+        "vet": [
+          "go",
+          "vet",
+          "./..."
+        ],
+        "python-reference": [
           "{python}",
           "-B",
           "-m",

@@ -6,35 +6,45 @@ description: Create workspace or project starters, maintain template content, or
 # Template lifecycle
 
 1. Read the [workspace model](../../../docs/workspace-model.md) and affected
-   starter guidance. Identify the operation: generate a new destination, change
-   starter content, or update an existing workspace. Inspect CLI help and locate
-   the authoritative template source: `src/templates/` in development and
-   `.wsup/templates/` in generated workspaces. Generated workspaces carry their catalogue and
-   must work without the generator checkout.
-2. For generation, use `python3 -B .wsup/wsup.py init DESTINATION` with
-   `--template project` when appropriate. Choose a new destination and preserve
-   existing paths. Inspect generated guidance, registry, and local links; project
-   starters must remain usable outside their original workspace.
-3. For starter maintenance, edit the owning source rather than a disposable
-   generated result. In the generator repository, root `.agents/skills/` is canonical;
-   synchronize its bundled template copies. Review both workspace and project
-   surfaces if the change affects both, including embedded copies. Keep
-   framework-specific setup with its project.
-4. For an existing workspace update, inspect Git status and run
-   `python3 -B .wsup/wsup.py update` first. Review proposed changes and conflicts.
-   Apply with `update --apply` only when authorized and conflict-free. Preserve
-   user-edited or missing files for manual resolution and retain the user-owned
-   registry. The bundled template determines available updates; this is not a
-   remote release download.
-5. Verify changed starters in a disposable destination outside the source tree.
-   Run generated workspace validation and guidance checks using its own CLI.
-   When changing workspace generation, use that generated CLI to create another
-   workspace and check its guidance too. For update changes, verify both safe
-   updates and preservation of user edits with the existing tests.
+   guidance. Distinguish new generation, source-template maintenance, and updates.
+   Templates are embedded in the separately installed native binary; workspaces
+   carry state/reports only, not an editable catalogue or runtime.
+2. For generation, use `wsup init DESTINATION`, adding `--template project` for a
+   project. Choose a new destination. Inspect guidance, registry where applicable,
+   state, and local links. Relative destinations use cwd, not `--root`.
+   Use repeatable `--collection NAME` only for explicit optional workspace homes.
+   `wsup collections --add NAME` previews existing-workspace additions; apply
+   only when authorized and conflict-free with `--apply`. Never adopt pre-existing
+   unmanaged scaffold files, even if identical, or assume parent selections carry
+   into child generation. Selection creates no security/backup/retention controls.
+3. Maintain product starters in their trusted owning source checkout, not
+   generated output. Synchronize canonical rules/skills with their distributed
+   variants; keep native-specific installation instructions consistent. Keep
+   framework setup with its project. Local workspace edits are not generation
+   defaults for another workspace.
+4. For native updates, preserve a reviewed matched backup of files/state and
+   inspect Git status, then run `wsup update`. Review all actions and conflicts
+   before authorized `wsup update --apply`. Repeat `--keep PATH` only for eligible
+   existing same-path customizations; their original baselines remain unchanged.
+   Preserve missing files for manual resolution and never regenerate the
+   user-owned registry. I/O failures may leave partial content with old state;
+   inspect failures rather than retrying blindly. Explicit `update --migrate-native`
+   previews Python conversion, exact-byte report moves, and runtime retirement.
+   Add `--apply` only when authorized, backed up, and conflict-free. Review legacy
+   report settings even when overrides hide them; never delete settings/evidence
+   to bypass conflicts. Native content/state precede exact-source retirement.
+   Failures distinguish uncommitted state from committed native state with
+   incomplete cleanup; restore matched files/state from backup before retrying.
+   No automatic backup, rollback, or retirement resume is provided.
+   Do not use Python to update schema-2 state or change its version
+   to force compatibility.
+5. Verify source changes in a disposable destination outside the checkout.
+   Run `wsup --root DESTINATION validate` and `guidance` for workspaces; inspect
+   project guidance separately. Relocate output and generate another workspace
+   using the external binary with no checkout/runtime alongside it. Check both
+   safe changes and preservation cases.
 
-Complete when the requested output or update is inspected and portable, existing
-files remain preserved, and relevant checks pass. Report unresolved conflicts
-and clean up only disposable paths created for verification.
-
-Commands above target generated workspaces. In the WSUP development checkout,
-use `src/wsup.py` instead. Run commands from the owning workspace root.
+Complete when output is inspected, portable with a compatible installed binary,
+and existing owner bytes are preserved. Report failures and partial destinations;
+clean up only disposable paths created for verification. Never recursively remove
+partial destinations containing possible concurrent owner content.

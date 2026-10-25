@@ -3,8 +3,8 @@
 ## One product version
 
 WSUP uses one version for its CLI, bundled workspace/project templates, and
-portable skills. The authoritative value is `VERSION` in
-[src/wsup_core/__init__.py](../src/wsup_core/__init__.py). It supplies CLI
+portable skills. The native authoritative value is `Version` in
+[internal/cli/cli.go](../internal/cli/cli.go). It supplies CLI
 `--version` output and template-version reporting.
 
 Template-state schema `version` is a separate format identifier; a product
@@ -60,25 +60,29 @@ each require explicit authorization; preparation does not perform them.
 
 1. Review the target commit and complete diff. Preserve unrelated work and
    resolve release-blocking issues. Use a clean checkout for release validation.
-2. Choose the version using the policy above. Update `VERSION` and finalize the
+2. Choose the version using the policy above. Update native `Version` and finalize the
    corresponding [changelog](../CHANGELOG.md) entry, retaining an Unreleased
    section. Describe migrations and material limitations.
-3. On the minimum supported Python 3.9 and an available newer Python, verify:
+3. On the pinned Go toolchain and each claimed runtime target, verify:
 
    ```sh
-   python3 --version
-   python3 -B src/wsup.py --version
-   python3 -B src/wsup.py validate
-   python3 -B src/wsup.py guidance
-   python3 -B src/wsup.py check --project wsup --show-output
+   go version
+   go run ./cmd/wsup --version
+   go run ./cmd/wsup validate
+   go run ./cmd/wsup guidance
+   go run ./cmd/wsup check --project wsup --show-output
    git diff --check
    ```
 
-   A pass on Python older than 3.9 is not a substitute. Record the OS and Python
-   version for each run and report unavailable runtimes as missing coverage;
-   claim platform and client support only to the extent actually tested.
-4. Generate a disposable workspace outside the checkout. Run its own validation
-   and guidance, and use its CLI to generate another workspace. For layout or
+   Record the OS/architecture, Go version, and reference Python/Git prerequisites.
+   macOS ARM64 is currently verified. Cross-compilation is build evidence, not
+   runtime certification; non-Unix checks remain unsupported. Historical/reference
+   tests still require Python during cutover. Report unavailable targets as
+   missing coverage; claim client support only to the extent actually tested.
+4. Build a standalone binary outside the tracked tree. Generate a disposable
+   workspace outside the checkout. Run validation/guidance and child generation
+   with that external binary and empty PATH. Workspaces carry state/reports, not
+   their own executable or copied catalogue. For layout or
    update changes, exercise an actual previous-version workspace as well as
    synthetic fixtures: preview must be read-only, conflicts must preserve work,
    and successful apply must leave a stable subsequent preview.
@@ -90,17 +94,24 @@ each require explicit authorization; preparation does not perform them.
    and embedded templates retain the full MIT copyright and permission notice.
    These notices cover WSUP content, not the user's own project license.
 7. With explicit authorization, commit the release changes. From the clean,
-   validated release commit, create the annotated tag. For example, only if the
-   checked commit declares 0.1.0:
+   validated release commit, create the annotated tag for the newly selected
+   version. Replace `MAJOR.MINOR.PATCH` below with that exact version; never move
+   or reuse the historical `v0.1.0` tag for the native release:
 
    ```sh
-   git tag -a v0.1.0 -m "WSUP 0.1.0"
-   git show --no-patch v0.1.0
+   git tag -a vMAJOR.MINOR.PATCH -m "WSUP MAJOR.MINOR.PATCH"
+   git show --no-patch vMAJOR.MINOR.PATCH
    ```
 
 8. Publish or push only with explicit authorization. Tag creation is local and
    does not publish a release. If pushing is approved, specify the intended
    remote and exact tag rather than pushing every local tag.
+
+Before selecting a native release version, finish repository cutover and separate
+reference-only test dependencies from native validation. The current 0.1.0 value
+is retained during migration, not a published native release. A compatibility-
+changing native release requires the pre-1.0 minor-version policy above; no new
+version is selected automatically.
 
 There is no release automation, package publication, or remote self-update
 service. Keep development notes and release-preparation drafts under ignored

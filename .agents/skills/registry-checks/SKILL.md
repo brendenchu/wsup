@@ -6,30 +6,26 @@ description: Configure workspace registry entries, dependencies, check commands,
 # Registry and checks
 
 1. Read the [workspace model](../../../docs/workspace-model.md), registry, and
-   affected projects' local instructions. Establish whether the task changes
-   project metadata, dependency edges, check definitions, or execution settings.
-   Preserve unrelated entries and existing local overrides.
-2. For registry edits, verify each affected path and README exist inside the
-   workspace. Use unique IDs and paths, resolve dependency IDs, and check for
-   cycles. Set repository ownership as intent, not as proof of Git setup; use
+   affected projects' instructions. Identify metadata, dependency, check, or
+   execution-setting changes. Preserve unrelated entries and local overrides.
+2. Verify affected project directories and READMEs exist within the workspace.
+   Use unique IDs/paths, resolve dependencies, reject cycles. Repository metadata
+   describes intent, not proof of Git setup; use
    [project-onboarding](../project-onboarding/SKILL.md) for ownership changes.
-3. For checks, inspect the project's existing commands and required executables.
-   Encode literal argument arrays launched from the project directory; use
-   `{python}` for the CLI's interpreter. Choose required or report mode according
-   to the requested failure policy. Specify finding exit codes deliberately;
-   preserve genuine command failures. Give disabled checks a concrete reason.
-4. For settings, choose shared or local configuration deliberately. Use the
-   model's precedence and bounds, keep reports inside `.wsup/reports/`, and keep local
-   settings ignored. Inspect `python3 -B .wsup/wsup.py config` to verify effective
-   values and their sources without publishing machine-specific configuration.
-5. Run `python3 -B .wsup/wsup.py validate` before executing project code. Review
-   the selected command arguments, then use
-   [workspace-check](../workspace-check/SKILL.md) to run only affected checks.
-   Dependencies are registry relationships, not automatic check selection.
+3. Inspect project commands and required executables. Encode literal argv
+   launched in the project directory. Exact `{python}` arguments resolve to
+   `python3` on PATH, not the CLI's interpreter; missing tools are launch errors.
+   Choose required/report policy and finding exit codes deliberately, preserving
+   genuine failures. Disabled checks need concrete reasons.
+4. Select shared/local settings deliberately. Follow documented precedence and
+   bounds; keep reports within `.wsup/reports/` and local settings ignored.
+   Inspect `wsup config` for effective values/source labels without publishing
+   machine-specific configuration.
+5. Run `wsup validate` before project code. Review selected arguments, then use
+   [workspace-check](../workspace-check/SKILL.md) for explicitly affected checks.
+   Dependencies do not imply automatic execution.
 
-Complete when registry validation passes and the affected checks or effective
-settings have been verified. Report skipped executions and unresolved tool
-requirements; a valid registry alone does not prove a check works.
-
-Commands above target generated workspaces. In the WSUP development checkout,
-use `src/wsup.py` instead. Run commands from the owning workspace root.
+Complete when validation and affected checks/settings are verified. Report
+skips and missing tools separately; valid configuration does not prove execution.
+Use a compatible separately installed native `wsup` from this workspace root,
+or supply global `--root` before commands.

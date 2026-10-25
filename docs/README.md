@@ -14,12 +14,12 @@ Maintain durable product and contributor documentation here:
 - [Contributing](../CONTRIBUTING.md): authoritative sources, starter maintenance,
   and local verification.
 
-These documents describe the current Python CLI, not observed user adoption.
-Local profile/distribution proposals are discovery work, not supported features
-or approval to replace the runtime.
+These documents describe the native CLI, not observed user adoption. macOS ARM64
+is the verified runtime; other targets and distribution proposals are not support
+claims. Python reference/migration tests remain during repository cutover.
 
 Keep drafts in the [development workbench](../workbench/). Session logs and
 disposable evidence belong in ignored `workbench/.local/`, not public product docs.
-The [source template catalogue](../src/templates/) contains distributable starter content;
+The [native template catalogue](../templates/) contains distributable starter content;
 this directory documents the product itself. The workspace model is also
 bundled into the workspace starter and must remain synchronized.

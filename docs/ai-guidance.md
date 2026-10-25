@@ -8,10 +8,10 @@ starter carries its own instructions so it remains understandable outside its
 workspace.
 
 In this generator repository, root `.agents/skills/` is the canonical skill source.
-Workspace initialization copies those skills into the generated workspace and
-its embedded workspace template. Tests verify the bundled copies stay in sync.
+Native starter copies live under `templates/workspace/.agents/skills/` and are
+embedded directly in the binary. Tests verify exact canonical parity.
 Installed workspace skills are local procedures, not implicit starter overrides.
-An installed CLI generates from its bundled catalogue, even when local skills
+An installed CLI generates from its embedded catalogue, even when local skills
 have been customized.
 
 ## Domain procedures
@@ -55,10 +55,12 @@ Do not copy over customized guidance or fabricate baselines. Structural
 validation checks `guidance/rules/index.md`; client discovery and invocation
 must still be verified separately.
 
-Development runs `python3 -B src/wsup.py`; generated workspaces run
-`python3 -B .wsup/wsup.py`. Source lives in `src/`; installed output lives in
-`.wsup/`. User-edited installed skills are not implicit
-starter overrides: initialization uses the installed catalogue.
+Development runs `go run ./cmd/wsup`; generated workspaces use a compatible
+external native `wsup` binary. Product sources live in `cmd/`, `internal/`, and
+`templates/`; `.wsup/` holds managed state/reports in native workspaces.
+The development checkout's legacy installation and separate Python reference
+remain intact pending retirement. User-edited workspace skills are not implicit
+starter overrides: initialization always uses the invoked binary's catalogue.
 
 | Experience | Documented discovery | Precedence and refresh | WSUP evidence |
 | --- | --- | --- | --- |

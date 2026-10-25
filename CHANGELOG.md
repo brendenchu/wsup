@@ -54,6 +54,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Added
 
+- Native development entry points and registry checks for the Go race suite,
+  vet, and separately named Python reference tests. Maintainer docs, release
+  guidance, workspace model, and canonical skills now use the external native
+  binary contract; Python reference sources remain separate during cutover.
 - Complete native starter sources under `templates/`, embedded directly with
   hidden assets. Native builds no longer use a generated Python catalogue ZIP
   or installation overlays; generated starter bytes remain unchanged.

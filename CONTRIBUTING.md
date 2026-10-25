@@ -11,11 +11,11 @@ Read [AI.md](AI.md), the [rule index](guidance/rules/index.md), and the
 unrelated edits. For a defect, include a reproducible example; for a feature,
 describe the intended behavior and ownership boundaries before expanding scope.
 
-Use Python 3.9 or newer. The CLI and test suite use the standard library; no
-package installation is required. Registered projects own their own dependencies
-and setup.
+Use Go 1.27.3 for native development. Python 3.9+ and Git are still needed for
+historical/reference acceptance tests during cutover; native workspace commands
+do not need Python. Registered projects own their own dependencies and setup.
 
-## Go migration development
+## Go development
 
 Go development uses 1.27.3 (`mise.toml`); mise is optional if that toolchain is
 already available. The module is `github.com/brendenchu/wsup`. From this root:
@@ -36,8 +36,9 @@ Help/version, `validate`, `projects`, `config`, `guidance`, `editor`, and Unix
 `check`, workspace/project `init`, `collections`, and native `update` are
 implemented in Go. Python only supports Python-managed state,
 not native output. Nothing forwards automatically or pretends to succeed.
-The bootstrap retains the product version 0.1.0, not a new
-release or parity claim. A test checks it against the Python version authority.
+The native product version is `Version` in `internal/cli/cli.go`. It remains
+0.1.0 during unreleased migration work; a regression test also checks the
+retained Python baseline. No new release or version bump is implied by cutover.
 
 Compare ported commands against the frozen scenarios with a compiled binary:
 
@@ -80,8 +81,8 @@ under `templates/`; it no longer depends on a Python catalogue snapshot or
 installation overlays. A native-only source copy builds offline from cached Go
 dependencies, without `src/` or generated `.wsup/`, and generates/updates valid
 starters with empty PATH. This closes the original source/install-separation
-contract, not the separate Phase 6 repository-guidance/check cutover or Python
-reference retirement. Historical reference tests still require Python and Git.
+contract, not Python reference retirement. Repository guidance/checks now use
+native commands; historical reference tests still require Python and Git.
 
 Native `check` requires repeatable `--project`; optional repeatable `--check`
 selects named checks, and `--timeout` overrides per-check and workspace timeouts.
@@ -316,8 +317,8 @@ assets retain exact reference bytes. Native output rejects stale Python WSUP
 commands/catalogue instructions. These comparisons are migration evidence,
 not a mechanism for composing native starters or overriding their sources.
 
-Template consolidation is complete; final development-guidance/check cutover and
-Python reference retirement remain. Do not remove the reference runtime/tests
+Template consolidation and native development-guidance/check routing are
+complete; Python reference retirement remains. Do not remove the reference runtime/tests
 before their remaining acceptance/replacement gates are satisfied.
 
 ## Making a change
@@ -325,14 +326,14 @@ before their remaining acceptance/replacement gates are satisfied.
 - For native changes, edit `cmd/`, `internal/`, and `templates/`; Go builds embed
   starter edits directly. Do not edit generated `.wsup/` output or migrate this
   development checkout as a side effect of implementation.
-- For Python reference changes, edit implementation and templates in `src/`, not generated
-  `.wsup/` output. Preview `python3 -B src/wsup.py update` to refresh the local
-  installation; preserve source-specific docs with explicit `--keep` decisions.
+- For Python reference changes, edit implementation and templates in `src/`, not
+  generated `.wsup/` output. Do not refresh/migrate the real checkout's installation
+  as a side effect of development; use disposable fixtures for update tests.
 - For CLI documentation, compare `--help` and the implementation with the
   workspace model's command reference. Keep the root and
-  `src/templates/workspace/docs/workspace-model.md` copies identical. Change
-  starter docs at their source, then refresh generated `.wsup/` output through
-  preview/apply; do not edit its state hashes by hand.
+  `templates/workspace/docs/workspace-model.md` copies identical. Rebuild after
+  source edits; never edit installed state hashes by hand. The separate Python
+  reference model remains unchanged under `src/templates/`.
 - Inspect the implementation, callers, and tests before editing.
 - Keep behavior changes focused and add regression coverage for observable
   behavior. Update directly related documentation.
@@ -341,7 +342,8 @@ before their remaining acceptance/replacement gates are satisfied.
   Never write upward workspace relationships into descendant documentation or
   make local guidance depend on context outside its root.
 - Root `guidance/rules/` and `.agents/skills/` are canonical. Keep their
-  corresponding copies under `src/templates/workspace/` synchronized.
+  corresponding copies under `templates/workspace/` synchronized. Do not copy
+  native command changes into the separate Python reference catalogue.
   Development guidance routes to local rules, not the distribution catalogue.
 - Keep durable documentation with its owning project, use one canonical copy,
   and link rather than duplicate. Visible `workbench/` drafts may be tracked
@@ -358,16 +360,29 @@ before their remaining acceptance/replacement gates are satisfied.
 From this repository's root, run:
 
 ```sh
-python3 -B src/wsup.py validate
-python3 -B src/wsup.py guidance
-python3 -B src/wsup.py check --project wsup --show-output
+go run ./cmd/wsup validate
+go run ./cmd/wsup guidance
+go run ./cmd/wsup check --project wsup --show-output
 git diff --check
 ```
 
-For a focused test run, use the existing unittest runner:
+The registry's `test` check runs `go test -race ./...`; `vet` runs `go vet ./...`.
+The separately named `python-reference` check retains the Python unittest suite.
+The default command runs all three explicitly configured checks. Go historical
+migration tests still invoke Python and Git; this is not yet a Python-free
+development test suite. A compiled binary needs only the tools requested by
+its selected checks, while `go run` additionally requires the Go toolchain.
+
+For a focused native test run:
 
 ```sh
-python3 -B -m unittest discover -s tests -p 'test_services.py'
+go test -race ./internal/scaffolding
+```
+
+To run only the retained reference suite:
+
+```sh
+go run ./cmd/wsup check --project wsup --check python-reference --show-output
 ```
 
 The [Python migration contracts](testdata/python-baseline/README.md) preserve
@@ -382,7 +397,7 @@ disposable artifacts in ignored `workbench/.local/`. Use temporary destinations 
 the source tree for manual generation and upgrade exercises; never overwrite
 real user workspaces to test changes.
 
-Report the interpreter, operating system, checks performed, and any skipped
+Report the toolchain, reference interpreter, operating system, checks performed, and any skipped
 coverage. Structural skill validation is not proof of client discovery or
 invocation. See [AI guidance](docs/ai-guidance.md) for discovery and compatibility
 limits. Keep session logs, implementation plans, and disposable investigation

@@ -19,7 +19,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// Version mirrors the Python product version until the native-runtime cutover.
+// Version is the native product version; migration work remains unreleased.
 const Version = "0.1.0"
 
 // statusError carries findings already printed as structured output, not operational errors.
@@ -54,7 +54,7 @@ func newCommand() *cobra.Command {
 	root := &cobra.Command{
 		Use:              "wsup",
 		Short:            "WSUP portable local workspace tools",
-		Long:             "WSUP Go migration bootstrap. Inspection, editor, Unix checks, workspace/project init, collections, native updates, and explicit Python migration are available.",
+		Long:             "WSUP portable local workspace tools. Inspect projects and guidance, create workspace/project starters, run explicit Unix checks, manage collections, and preview or apply native updates and explicit Python migration.",
 		Version:          Version,
 		SilenceErrors:    true,
 		SilenceUsage:     true,

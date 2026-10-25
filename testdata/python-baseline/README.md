@@ -165,8 +165,9 @@ identify approved external-binary/state-layout differences. The development/sour
 layout is verified by an isolated offline native-only source build and empty-PATH
 generation/update checks. Complete native sources under `templates/` embed directly
 without a generated ZIP or runtime overlay; `src/templates/` serves only the
-separate Python reference. Native acceptance does not imply repository-guidance/
-check cutover is complete or Python reference tests have been retired.
+separate Python reference. Repository guidance/checks now use native commands,
+with an explicitly named Python reference check. This does not imply Python
+reference tests have been retired.
 
 Phase 1's Python behavior-freeze gate is verified on macOS ARM64/Python 3.9.6.
 This is not Go parity, a native-runtime migration test, Windows descendant-cleanup

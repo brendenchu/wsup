@@ -14,9 +14,9 @@ This file is the repository-specific entry point. The root
 Root `guidance/rules/` and `.agents/skills/` are canonical for development.
 Native starters are complete sources under `templates/`, embedded directly by
 `templates/embed.go`; no generated ZIP or installation overlay is used.
+Root skill bodies and `docs/workspace-model.md` match native starter copies.
 During cutover, `src/templates/` remains the separate Python reference catalogue;
-do not edit it for native-only changes. Keep shared guidance synchronized and
-native installation instructions consistent with the external-binary contract.
+do not synchronize native-only changes into that historical reference.
 A generated workspace uses its own `AI.md`,
 `guidance/rules/`, and `.agents/skills/`; it must not depend on this checkout.
 
@@ -39,12 +39,15 @@ index links each workflow.
 Run the configured project check after behavior changes:
 
 ```sh
-python3 -B src/wsup.py check --project wsup
+go run ./cmd/wsup validate
+go run ./cmd/wsup guidance
+go run ./cmd/wsup check --project wsup --show-output
 ```
 
-Native development uses `cmd/wsup/`, `internal/`, and `templates/`; run
-`go test -race ./...` and `go vet ./...` as well. Python reference development
-still uses `src/wsup.py`; Python-generated workspaces use `.wsup/wsup.py`.
+Native development uses `cmd/wsup/`, `internal/`, and `templates/`. Registry
+checks run the Go race suite, vet, and explicit `python-reference` suite.
+Historical migration tests still require Python and Git until reference retirement.
+Python reference development uses `src/wsup.py`; Python-generated workspaces use `.wsup/wsup.py`.
 Native workspaces use a compatible external binary and retain state/reports only.
 Never edit generated `.wsup/` output to implement source changes.
 
