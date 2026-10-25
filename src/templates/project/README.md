@@ -34,6 +34,12 @@ Keep restricted records outside documentation and Git.
 
 ## Starter attribution
 
+This project starter does not include the WSUP CLI or a workspace registry.
+Its `.wsup/template-state.json` records managed starter files. If updating that
+content, use a trusted WSUP source/workspace CLI with `--root /path/to/project update`
+to preview changes; review conflicts and back up customizations before applying.
+Project commands and runtime requirements remain this project's responsibility.
+
 The WSUP starter content is covered by [WSUP-LICENSE](WSUP-LICENSE). Retain this
 notice when redistributing that content. It does not choose a license for this
 project's own code; document that license separately.

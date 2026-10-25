@@ -33,6 +33,15 @@ also carries generated `.wsup/` output; refresh it from `src/`, never edit it as
 source. Root `tests/` remains development-only. `dist/`, if introduced, is for
 release bundles, not workspace installations.
 Commands target the current directory unless `--root PATH` is supplied.
+The script's directory does not select the workspace. There is no upward root
+discovery or configuration inheritance. Put global options before the command,
+for example `python3 -B /path/to/wsup/src/wsup.py --root /path/to/workspace projects`.
+
+Python 3.9 or newer is required for both invocation paths. WSUP uses only the
+standard library; no Python package installation or virtual environment is
+required. There is no globally installed `wsup` command or native executable
+provided by this repository. A generated workspace carries its own CLI files,
+but each machine still supplies Python and any project-check tools.
 
 The generated installation contains:
 
@@ -61,6 +70,49 @@ eligible for local tracking. Review contents before staging; nothing is
 committed automatically. Keep restricted records out of documentation and Git.
 Promote approved knowledge to the owning project's maintained documentation and
 avoid competing canonical copies.
+
+## Command reference
+
+Examples below use the generated-workspace command. In a source checkout,
+substitute `src/wsup.py`. Use `--help` or `COMMAND --help` for accepted options;
+`--version` prints the CLI's product version.
+
+| Command | Options and result |
+| --- | --- |
+| `validate` | Validates the registry and effective settings without executing checks; prints a text summary. |
+| `projects` | Prints the registry's project entries as JSON. |
+| `config` | Prints effective settings and their sources as JSON. |
+| `guidance` | Prints structural guidance findings as JSON; optional `--project ID` selects one registered project instead of the workspace. |
+| `editor` | Creates an optional VS Code multi-root file; `--output NAME` changes the default `workspace.code-workspace`. Destination must be a new file directly in the workspace root. |
+| `check` | Requires repeatable `--project ID`; optional repeatable `--check NAME`, `--timeout SECONDS`, and `--show-output`. Prints progress/status and a report path, not a JSON document. |
+| `init DESTINATION` | Creates a new workspace immediately; `--template project` selects a project starter. Repeatable `--collection NAME` is workspace-only. No preview/apply option. |
+| `collections` | Prints available/selected collections as JSON; repeatable `--add NAME` previews additions and `--apply` writes them if conflict-free. |
+| `update` | Prints a JSON plan; `--apply` writes conflict-free changes and repeatable `--keep PATH` preserves eligible same-path customizations. |
+
+`--root` changes the workspace being inspected or updated; it does not change the
+process's current directory. In particular, a relative `init DESTINATION` is
+relative to the current directory, not `--root`. Initialization uses the
+catalogue beside the invoked CLI, not the target root. `init` does not require a
+registry at the current directory. Use a new destination; even an existing empty
+directory is refused.
+
+A project starter does not include a CLI or `workspace.json`. To preview or apply
+its managed template updates, invoke a trusted workspace/source CLI with
+`--root /path/to/project update`. Workspace registry commands require an actual
+workspace registry.
+
+### Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | Success, including help/version, conflict-free previews, and report-mode findings without other failing checks. |
+| `1` | Guidance errors, update/collection conflicts, or an unsuccessful check run (required failures/skips, launch errors, or timeouts). |
+| `2` | Invalid arguments, invalid registry/settings, or an operational error handled by the CLI. |
+| `130` | Cancellation by keyboard interrupt. |
+
+Finding exit codes belong to individual check definitions; they are not the
+CLI's exit codes. An interrupted check run normally records cancellation and
+skips remaining checks before returning `130`.
 
 ## Local working material
 
@@ -184,7 +236,7 @@ owner has separately established and verified appropriate controls.
 
 | Field | Meaning |
 | --- | --- |
-| `id` | Unique identifier using letters, digits, `.`, `_` or `-` |
+| `id` | Unique identifier starting with a letter or digit, followed by letters, digits, `.`, `_` or `-` |
 | `path` | Existing workspace-relative directory containing `README.md` |
 | `kind` | Coarse purpose (`app`, `package`, `tool`, `infrastructure`, `research`, `template`); independent of folder path |
 | `repository` | `workspace` or `independent`, recording intended ownership |
@@ -196,6 +248,28 @@ Paths use relative forward slashes and must remain inside the workspace, includi
 through symlinks. Project paths must be unique. Dependencies must resolve and be
 acyclic. The registry describes intent; it does not create or verify Git
 repositories, clone projects, install dependencies, or release packages.
+Unknown registry/project fields are rejected. For example, after creating
+`apps/example/README.md`, a minimal workspace registry with one project is:
+
+```json
+{
+  "version": 1,
+  "name": "Example workspace",
+  "projects": [
+    {
+      "id": "example",
+      "path": "apps/example",
+      "kind": "app",
+      "repository": "workspace",
+      "purpose": "Example application",
+      "owner": "Application maintainers"
+    }
+  ]
+}
+```
+
+Edit the registry directly, then run `validate` and `projects`. There is no
+project-add or dependency-install command.
 
 ## Git ownership
 
@@ -262,17 +336,36 @@ A check can be a literal argument array:
 ```
 
 Or an object with `command` plus optional `mode`, `enabled`, `reason`,
-`timeout_seconds`, and `finding_exit_codes`. Commands are launched directly,
+`timeout_seconds`, and `finding_exit_codes`. Check names use the same identifier
+format as project IDs. Commands are launched directly,
 without a shell, from the registered project's directory. `{python}` selects the
 interpreter running the CLI. Other executables must already be installed and
 available locally. A command can still read, write, or otherwise act with the
-current user's permissions; inspect it before execution.
+current user's permissions; inspect it before execution. Shell operators,
+wildcards, and environment-variable references are literal arguments, not
+expanded by WSUP. Checks receive no interactive stdin. Retained stdout/stderr
+are bounded by the configured per-stream limit; `--show-output` prints that
+captured output after each check, not a live stream. Terminal output may contain
+secrets even though reports omit it.
 
 Checks are `required` by default. A failed required check makes the run fail.
 `report` checks can return findings without failing the run when they exit with a
 configured finding code (default `1`). Disabled checks need a reason. Projects
-and check names must be explicitly selected; dependencies are not run
-automatically.
+must be explicitly selected; dependencies are not run automatically. Without
+`--check`, all checks configured on the selected projects run. With repeated
+`--check`, every named check must exist on every selected project. Repeated
+selections are deduplicated. Selecting a project with no configured checks is an
+error. A disabled required check is skipped but makes the run unsuccessful;
+a disabled report-mode check does not by itself fail the run.
+
+```sh
+python3 -B .wsup/wsup.py check --project app --project library --check test --show-output
+python3 -B .wsup/wsup.py check --project app --timeout 60
+```
+
+Replace those IDs and check names with actual registry entries. Effective check
+timeout precedence is `--timeout`, then the check's `timeout_seconds`, then the
+workspace setting. `config` shows workspace settings, not per-check overrides.
 
 ## Local settings and reports
 
@@ -291,6 +384,24 @@ Configuration files use `{ "version": 1, "settings": { ... } }`. Local settings
 and `.wsup/reports/` should not be committed. Reports are stored there and
 include check outcomes and hashes, not command arguments or captured output.
 `--show-output` prints captured output to the terminal.
+Unknown configuration fields/settings are rejected. Only timeout has a direct
+CLI override (`check --timeout`); configure the other settings through files or
+the listed environment variables. For example, shared `wsup.json` can contain:
+
+```json
+{
+  "version": 1,
+  "settings": {
+    "timeout_seconds": 120,
+    "output_limit_bytes": 65536,
+    "report_dir": ".wsup/reports"
+  }
+}
+```
+
+Use `config` to inspect effective values before running checks. Reports do not
+replace a terminal log; retain necessary investigation evidence separately and
+review it for secrets.
 
 ## Generated files and updates
 
@@ -305,8 +416,11 @@ unrecognized files are retained. The workspace registry remains user-owned.
 ### Pre-1.0 layout migration
 
 This is a deliberate layout break without old wrappers or duplicate catalogues.
-A trusted newer CLI at `.wsup/wsup.py` (or installed at `.wsup/wsup.py`)
-relocates manifest-owned `.wsup/wsup.py`, runtime modules, embedded templates,
+Obtain a trusted newer source checkout or generated installation first; `update`
+does not fetch a release, pull Git changes, or discover another CLI. The invoked
+CLI supplies both runtime files and its bundled catalogue, even when `--root`
+targets a different workspace. A newer CLI
+relocates manifest-owned legacy CLI files, runtime modules, embedded templates,
 `.ai/rules/`, and legacy `.ai/skills/`. Redundant root project templates retire.
 Files that establish new default homes are added, and existing managed home
 files are updated in place only when unchanged. Other orphaned files and
@@ -335,8 +449,8 @@ Back up the workspace, including ignored evidence and customizations, then
 run a trusted newer source checkout against the old root:
 
 ```sh
-python3 -B /path/to/new-wsup/.wsup/wsup.py --root /path/to/existing-workspace update
-python3 -B /path/to/new-wsup/.wsup/wsup.py --root /path/to/existing-workspace update --apply
+python3 -B /path/to/new-wsup/src/wsup.py --root /path/to/existing-workspace update
+python3 -B /path/to/new-wsup/src/wsup.py --root /path/to/existing-workspace update --apply
 ```
 
 From a newer generated installation use `/path/to/new/.wsup/wsup.py` instead.

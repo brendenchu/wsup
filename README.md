@@ -23,6 +23,9 @@ project owns its dependencies and commands.
 An existing macOS developer-tools Python 3.9 can run WSUP; check your installed
 version with `python3 --version`. There is no need to replace the system Python.
 WSUP compatibility does not extend upstream Python security maintenance.
+The CLI uses only the Python standard library; no `pip` install, virtual
+environment, shell alias, or globally installed `wsup` command is required.
+Project checks may require their own installed tools.
 
 ## Try it
 
@@ -48,6 +51,8 @@ single template catalogue, state, and reports live under `.wsup/`; shared rules
 live in `guidance/rules/` and portable skills remain in `.agents/skills/`.
 Generated workspaces include a focused set of development homes, with optional
 collections selected explicitly; see the workspace layout below.
+The project starter contains project documentation, guidance, ignore rules, and
+template state, but no bundled CLI or workspace registry.
 
 ## Use the CLI
 
@@ -68,6 +73,18 @@ Run `python3 -B src/wsup.py --help` for command options. The main commands:
 | `update` | Preview available template updates |
 | `update --apply` | Apply conflict-free updates |
 | `update --keep PATH` | Retain a same-path customization (repeat for each path) |
+
+Run from the workspace root, or supply the global `--root` option **before**
+the command. Script location does not select the target workspace, and WSUP
+does not search parent directories:
+
+```sh
+python3 -B /path/to/wsup/src/wsup.py --root /path/to/workspace projects
+python3 -B src/wsup.py check --help
+```
+
+See the [command reference](docs/workspace-model.md#command-reference) for
+flags, output formats, exit codes, and root/destination behavior.
 
 Use `--project ID` repeatedly to select more projects and `--check NAME`
 repeatedly to choose checks. Review each configured command before running it:

@@ -28,6 +28,16 @@ python3 -B .wsup/wsup.py guidance
 python3 -B .wsup/wsup.py editor
 ```
 
+The CLI uses only the Python standard library; no package installation or
+globally installed `wsup` command is required. `editor` is optional and refuses
+to overwrite an existing file. The script location does not select the target
+root: run from this workspace, or place `--root /path/to/workspace` before the
+command. There is no parent-directory discovery.
+
+Use `python3 -B .wsup/wsup.py --help` or `COMMAND --help` for options. See the
+[command reference](docs/workspace-model.md#command-reference) for flags,
+outputs, exit codes, and source-versus-generated invocation.
+
 Add each project to `workspace.json` with a unique ID, existing directory,
 kind, repository ownership, purpose, owner, and optional dependencies and checks.
 Project directories need a `README.md` and own their setup, dependencies, tests,
@@ -48,6 +58,10 @@ python3 -B .wsup/wsup.py check --project PROJECT_ID
 Review commands before running them: they execute with your permissions. The CLI
 does not install dependencies on its own or automatically check dependencies.
 Reports are local under ignored `.wsup/reports/`.
+Without `--check`, all configured checks on the selected project run. Repeat
+`--project` or `--check` to select more; every selected check name must exist on
+each selected project. Use `--show-output` to print bounded captured output and
+`config` to inspect workspace settings.
 
 WSUP creates an opinionated set of working homes in every new workspace:
 `apps/`, `packages/`, `tools/`, `infrastructure/`, `docs/`, and `workbench/`,
@@ -90,6 +104,10 @@ there is no competing editable root template copy or implicit override tree.
 
 `editor` is an optional VS Code integration. `update` previews template updates;
 `update --apply` applies changes only when there are no conflicts.
+Obtain a newer trusted CLI separately before updating; this command uses the
+invoked CLI's catalogue and does not download releases. Back up local work and
+review the full preview before applying. See the
+[update and recovery instructions](docs/workspace-model.md#generated-files-and-updates).
 
 ## Guidance
 
