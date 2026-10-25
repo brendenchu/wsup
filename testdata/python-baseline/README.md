@@ -13,6 +13,10 @@ fixtures, not private workspace captures or proof of other-platform support.
   removed paths, preserved paths, and sanitized report evidence for every step.
 - `test-map.json`: all 65 original Python test identifiers, behavior labels, and
   intended Go package/test targets. Every Go target is **pending**, not covered.
+- `safety-contracts.json`: executable-reference test names and explicit setup,
+  stimulus, and acceptance assertions for process cleanup, concurrent-state and
+  write failures, migrations, omissions, collections, ownership, and reports.
+  Additional Go requirements are identified separately from Python evidence.
 - `generated-workspaces.json`: exact file sizes and SHA-256 digests, directory
   inventory, and source commit IDs for workspaces generated from real `v0.1.0`
   and the Python checkpoint. Regenerate the bytes from those immutable commits;
@@ -29,10 +33,20 @@ python3 -B -m unittest discover -s tests -p test_migration_baseline.py
 ```
 
 The first command replays against the working Python CLI. The second extracts
-the exact recorded Git commits into temporary directories and checks command
-expectations, the original test inventory, and both historical generated
-workspace inventories. It requires Git and the recorded objects locally.
-Neither command changes expectations or real workspaces.
+the exact recorded Git commits into temporary directories and verifies:
+
+- Command expectations, the 65-test map, and both historical generation inventories.
+- Actual upgrades of workspaces generated from both historical commits: read-only
+  preview, all-write blocking on a customized README, explicit keep, preserved
+  registry/project/local/report bytes, stable repeat preview, installed validation
+  and guidance, and further workspace generation.
+- All 65 original tests in the isolated checkpoint, requiring zero skips.
+- The additional black-box safety probes against that isolated checkpoint.
+
+It requires Git, the recorded objects locally, and a POSIX environment with
+symlink support. Neither command changes expectations or real workspaces.
+Original-test skips make archive verification fail rather than certify missing
+coverage; platform-specific probes also report their skips explicitly.
 
 The fixture runner also accepts an executable argv prefix:
 
@@ -45,6 +59,12 @@ exists or currently passes. The synthetic check commands deliberately require
 Python; they test running an application tool, not a dependency of the Go CLI.
 The original Python tests remain the executable reference for internal failure
 injection, timing/cancellation, migration, and ownership cases.
+The supplemental probes can also be run directly:
+
+```sh
+python3 -B -m unittest discover -s tests -p test_migration_safety.py
+python3 -B tests/test_migration_safety.py --source /path/to/extracted/python-baseline
+```
 
 ## Comparison policy
 
@@ -67,13 +87,24 @@ editor overwrite protection, root resolution, workspace/project initialization,
 collection preview/apply/collisions, update conflicts/keep, missing files,
 manifest traversal, and symlink escapes/destinations.
 
-Coverage is not yet equivalent to all 65 original tests. In particular, live
-Ctrl-C/descendant cleanup, mocked concurrent-state/I/O failures, Git staging,
-legacy relocation/retirement variants, omitted homes, and client-guidance details
-still rely on those existing tests and their pending Go mappings. Help text is
-not frozen: Go help formatting may differ, but help must be useful and truthful.
+The 57-step golden replay is not a replacement for all 65 original tests.
+`safety-contracts.json` specifies how to port the safety cases that need
+in-process injection or specialized probes rather than ordinary JSON fixtures.
+Archive verification executes the original concurrency/I/O-failure, Git staging,
+legacy migration, omission, and guidance tests. Supplemental black-box probes
+verify real Ctrl-C with a descendant, retained pipes after immediate-parent exit,
+and omitted-home persistence/independent child generation. Go mappings remain
+pending until their Go assertions run. Help text is not frozen: Go help formatting
+may differ, but help must be useful and truthful.
 Native installation/state changes and generated-runtime asset differences are
 intentional-change candidates, not silently ignored comparisons.
+
+Phase 1's Python behavior-freeze gate is verified on macOS ARM64/Python 3.9.6.
+This is not Go parity, a native-runtime migration test, Windows descendant-cleanup
+certification, or proof of transactional filesystem updates. Concurrent observed
+file/tree/report races and late write failures have additional Go acceptance
+requirements in the safety contracts; the existing Python tests verify only their
+stated injection cases.
 
 ## Capture policy
 

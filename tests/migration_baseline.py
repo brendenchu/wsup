@@ -239,7 +239,87 @@ def verify_archives():
                             "init", str(destination)], check=True, capture_output=True)
             if snapshot(destination) != record["files"]:
                 raise AssertionError(f"{name} generated workspace bytes differ")
-        print("Pinned archive replay, 65-test inventory, and both historical workspaces match.")
+            verify_upgrade(source, destination)
+        verify_safety(source)
+        print("Pinned command fixtures and historical inventories match; both real "
+              "workspace upgrades, 65 original tests, and supplemental safety probes pass.")
+
+
+def checked(command, cwd, expected_code=0):
+    env = {key: value for key, value in os.environ.items()
+           if not key.startswith("WSUP_")}
+    result = subprocess.run(command, cwd=cwd, env=env,
+                            capture_output=True, text=True, timeout=120)
+    if result.returncode != expected_code:
+        raise AssertionError(f"{command}\n{result.stdout}\n{result.stderr}")
+    return result.stdout, result.stderr
+
+
+def verify_upgrade(source, destination):
+    registry = b'{"version":1,"name":"Historical owner","projects":[]}\n'
+    preserved = {
+        "workspace.json": registry,
+        "README.md": b"Owner's workspace map\n",
+        "workbench/.local/retained.txt": b"Keep local material\x00\n",
+        "apps/real-project/README.md": b"Keep project\n"}
+    historical_report = b'{"recorded_at":"2020-01-01","path":"old/location"}\n'
+    legacy = (destination / "tools/wsup.py").exists()
+    report_path = (".work/quality/" if legacy else ".wsup/reports/") + "historical.json"
+    for name, body in {**preserved, report_path: historical_report}.items():
+        target = destination / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(body)
+    command = [sys.executable, "-B", str(source / "src/wsup.py"),
+               "--root", str(destination), "update"]
+    before = snapshot(destination)
+    stdout, _ = checked(command, source, expected_code=1)
+    preview = json.loads(stdout)
+    if snapshot(destination) != before or preview["conflicts"] != ["README.md"]:
+        raise AssertionError(f"Historical preview lost data or unexpected conflicts: {preview['conflicts']}")
+    # A rejected apply must not write any part of the plan.
+    failed = subprocess.run(command + ["--apply"], cwd=source,
+                            capture_output=True, text=True, timeout=20)
+    if failed.returncode != 2 or snapshot(destination) != before:
+        raise AssertionError("Conflicting historical apply did not preserve all files")
+    stdout, _ = checked(command + ["--keep", "README.md"], source)
+    if json.loads(stdout)["conflicts"] or snapshot(destination) != before:
+        raise AssertionError("Keep preview must be read-only and conflict-free")
+    checked(command + ["--keep", "README.md", "--apply"], source)
+    for name, body in preserved.items():
+        if (destination / name).read_bytes() != body:
+            raise AssertionError(f"Historical migration changed {name}")
+    if (destination / ".wsup/reports/historical.json").read_bytes() != historical_report:
+        raise AssertionError("Historical report bytes changed")
+    if legacy and (destination / ".work/quality/historical.json").exists():
+        raise AssertionError("Historical report source was not retired")
+    cli = destination / ".wsup/wsup.py"
+    for action in ("validate", "guidance"):
+        checked([sys.executable, "-B", str(cli), action], destination)
+    stdout, _ = checked(command + ["--keep", "README.md"], source)
+    settled = json.loads(stdout)
+    if settled["conflicts"] or any(item["action"] != "keep-customization"
+                                   for item in settled["actions"]):
+        raise AssertionError(f"Historical migration did not settle: {settled}")
+    child = destination.parent / (destination.name + "-child")
+    checked([sys.executable, "-B", str(cli), "init", str(child)], destination)
+    checked([sys.executable, "-B", str(child / ".wsup/wsup.py"), "guidance"], child)
+
+
+def verify_safety(source):
+    runner = (
+        "import json,sys,unittest\n"
+        "suite=unittest.defaultTestLoader.discover('tests')\n"
+        "result=unittest.TextTestRunner(verbosity=1).run(suite)\n"
+        "print(json.dumps({'run':result.testsRun,'skipped':len(result.skipped)}))\n"
+        "sys.exit(0 if result.wasSuccessful() and not result.skipped else 1)\n")
+    stdout, stderr = checked([sys.executable, "-B", "-c", runner], source)
+    if json.loads(stdout) != {"run": 65, "skipped": 0}:
+        raise AssertionError(f"Expected all 65 original tests without skips: {stdout}")
+    print(stderr.strip())
+    stdout, stderr = checked(
+        [sys.executable, "-B", str(SOURCE / "tests/test_migration_safety.py"),
+         "--source", str(source)], source)
+    print((stdout + stderr).strip())
 
 
 def main():
