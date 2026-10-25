@@ -53,7 +53,7 @@ func TestHelpVersionAndErrors(t *testing.T) {
 
 func TestUnportedCommandsNeverSucceed(t *testing.T) {
 	for _, name := range []string{
-		"init", "collections", "update",
+		"collections", "update",
 	} {
 		t.Run(name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer

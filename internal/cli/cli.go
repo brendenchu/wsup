@@ -15,6 +15,7 @@ import (
 	"github.com/brendenchu/wsup/internal/guidance"
 	"github.com/brendenchu/wsup/internal/jsoncompat"
 	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/brendenchu/wsup/internal/scaffolding"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -58,7 +59,7 @@ func newCommand() *cobra.Command {
 	root := &cobra.Command{
 		Use:              "wsup",
 		Short:            "WSUP portable local workspace tools",
-		Long:             "WSUP Go migration bootstrap. Inspection, editor, and Unix check commands are available; init, collections, and update still require Python.",
+		Long:             "WSUP Go migration bootstrap. Inspection, editor, Unix checks, and init --template project are available; workspace init, collections, and update still require Python.",
 		Version:          Version,
 		SilenceErrors:    true,
 		SilenceUsage:     true,
@@ -92,8 +93,40 @@ func newCommand() *cobra.Command {
 	check.Flags().Int("timeout", 0, "Override timeout in seconds (1..86400)")
 	check.Flags().Bool("show-output", false, "Print retained stdout/stderr to the terminal")
 	root.AddCommand(check)
+	init := &cobra.Command{
+		Use: "init DESTINATION", Short: "Create a native project starter (--template project)",
+		Args: cobra.ExactArgs(1),
+		RunE: func(command *cobra.Command, args []string) error {
+			kind, err := command.Flags().GetString("template")
+			if err != nil {
+				return err
+			}
+			collections, err := command.Flags().GetStringArray("collection")
+			if err != nil {
+				return err
+			}
+			if kind != "workspace" && kind != "project" {
+				return fmt.Errorf("template must be workspace or project")
+			}
+			if kind == "workspace" {
+				return fmt.Errorf("workspace init is not yet implemented in Go; use Python or select --template project")
+			}
+			if len(collections) != 0 {
+				return fmt.Errorf("optional collections require the workspace template")
+			}
+			destination, err := scaffolding.InitialiseProject(args[0], Version)
+			if err != nil {
+				return err
+			}
+			_, err = fmt.Fprintf(command.OutOrStdout(), "Created %s\n", destination)
+			return err
+		},
+	}
+	init.Flags().String("template", "workspace", "Starter kind (currently only project is ported)")
+	init.Flags().StringArray("collection", nil, "Optional workspace collection (not yet ported)")
+	root.AddCommand(init)
 	for _, name := range []string{
-		"init", "collections", "update",
+		"collections", "update",
 	} {
 		root.AddCommand(&cobra.Command{
 			Use:                name,

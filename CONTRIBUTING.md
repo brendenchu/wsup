@@ -126,11 +126,34 @@ Go test covers this approved difference rather than weakening Python expectation
 The approved native installation target is a separately installed binary with
 embedded templates. Native-generated workspaces will retain state/reports, not a
 platform executable, Python runtime, or copied catalogue. Phase 5 is in progress:
-`init`, `collections`, and `update` are still disabled in Go while starter
-instructions and migration safety are ported.
+`init DESTINATION --template project` is available; workspace initialization,
+`collections`, and CLI `update` remain disabled while starter instructions and
+migration safety are ported.
+
+Native project initialization reads embedded project assets without a source
+checkout, Python, Go, or an existing workspace registry at runtime. Its destination
+is relative to the process working directory, independent of `--root`. Existing
+paths (including empty directories and dangling symlinks) are refused, new files
+are exclusive, and schema-v2 state is written last. The output has no registry,
+runtime, or catalogue, and keeps the embedded project guidance and license bytes.
+Python cannot update native state; native CLI updates are not yet available.
+For example, after building the executable:
+
+```sh
+/path/to/wsup init /path/to/new-project --template project
+/path/to/wsup --root /path/to/new-project guidance
+```
+
+An initialization I/O failure explicitly identifies the partial destination.
+Partial files/directories are retained for inspection, not recursively removed,
+to avoid deleting concurrently created owner content. Inspect and recover that
+destination manually before retrying; no transactional rollback is promised.
+This differs from Python's attempted destination cleanup on initialization failure.
+Standalone tests run with an empty PATH outside the checkout, relocate the
+project, and generate another project from the external binary.
 
 Template-state groundwork recognizes Python schema 1 for read-only inspection
-and native schema 2 for future output. Schema 2 cannot own files under `.wsup/`;
+and native schema 2 for project output. Schema 2 cannot own files under `.wsup/`;
 that directory holds state/reports rather than template-owned runtime content.
 State validation rejects malformed paths/hashes, unknown schemas/fields,
 file/parent collisions, invalid selections/omissions, and symlinked state paths.
@@ -164,8 +187,9 @@ new directories with old state, and errors explicitly report that possibility.
 Rooted operations contain paths, but concurrent writers can still race after a
 per-file recheck; concurrent mutation is not an isolation guarantee. There is no
 fsync/power-loss durability guarantee. Native apply is tested with synthetic
-schema-2 workspaces only and is not exposed by the CLI. Native starter adaptation,
-initialization, legacy migration, and Python runtime retirement remain pending.
+schema-2 fixtures only and is not exposed by the CLI. Native workspace starter
+adaptation/initialization, legacy migration, and Python runtime retirement remain
+pending.
 
 `src/templates/` remains the authoritative starter catalogue. During coexistence,
 `internal/catalogue/assets.zip` is a generated, deterministic snapshot embedded
