@@ -67,6 +67,16 @@ Current assertion mappings live in `testdata/python-baseline/go-coverage.json`;
 the original Python test inventory remains frozen. Run both the Python migration
 tests (reference integrity) and Go tests (actual assertions) when changing mappings.
 
+Native execution foundations are implemented but not wired to `check` yet:
+`{python}` resolves exact argument tokens through `python3` on PATH, with a missing
+interpreter returned as an explicit error. Explicit tool commands do not perform
+Python lookup. The original, unsubstituted argument array defines command identity;
+hash bytes retain Python's default JSON spaces and ASCII escaping.
+Future native reports use schema 2 and `runtime.go`, `runtime.os` (Go OS name),
+and `runtime.arch`, rather than claiming a Python CLI runtime. Report writing,
+process supervision, and the `check` command remain unported; existing Python
+reports are unchanged and no reports are rewritten by these foundations.
+
 `src/templates/` remains the authoritative starter catalogue. During coexistence,
 `internal/catalogue/assets.zip` is a generated, deterministic snapshot embedded
 in the Go binary. Refresh it after any starter change:

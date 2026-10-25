@@ -2,18 +2,17 @@
 package cli
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
-	"unicode/utf16"
 
 	"github.com/brendenchu/wsup/internal/catalogue"
 	"github.com/brendenchu/wsup/internal/configuration"
 	"github.com/brendenchu/wsup/internal/guidance"
+	"github.com/brendenchu/wsup/internal/jsoncompat"
 	"github.com/brendenchu/wsup/internal/registry"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -241,22 +240,15 @@ func createEditor(output io.Writer, root, name string, data registry.Registry) e
 // Python's managed editor files use ensure_ascii; preserve those bytes, including
 // UTF-16 surrogate pairs for non-BMP characters, rather than just parsed equality.
 func writeEditorJSON(destination io.Writer, value any) error {
-	var encoded bytes.Buffer
-	if err := writeJSON(&encoded, value); err != nil {
+	encoded, err := jsoncompat.Marshal(value, "  ")
+	if err != nil {
 		return err
 	}
-	var ascii bytes.Buffer
-	for _, char := range encoded.String() {
-		if char < 127 {
-			ascii.WriteRune(char)
-		} else if char <= 0xffff {
-			fmt.Fprintf(&ascii, `\u%04x`, char)
-		} else {
-			high, low := utf16.EncodeRune(char)
-			fmt.Fprintf(&ascii, `\u%04x\u%04x`, high, low)
-		}
+	encoded = append(encoded, '\n')
+	written, err := destination.Write(encoded)
+	if err == nil && written != len(encoded) {
+		return io.ErrShortWrite
 	}
-	_, err := ascii.WriteTo(destination)
 	return err
 }
 
