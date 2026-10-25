@@ -16,7 +16,7 @@ Maintain durable product and contributor documentation here:
 
 These documents describe the native CLI, not observed user adoption. macOS ARM64
 is the verified runtime; other targets and distribution proposals are not support
-claims. Python reference/migration tests remain during repository cutover.
+claims. Development verification uses the native Go suite and vet.
 
 Keep drafts in the [development workbench](../workbench/). Session logs and
 disposable evidence belong in ignored `workbench/.local/`, not public product docs.

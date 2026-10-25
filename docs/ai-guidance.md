@@ -46,21 +46,15 @@ used. WSUP's structural guidance checks do not establish client or OS compatibil
 
 The canonical shared skill location for fresh workspaces is `.agents/skills/`.
 It is a shared location documented by VS Code, Codex, and Gemini CLI, rather than
-a location required by the Agent Skills format itself. Existing workspaces using
-`.ai/rules/` or `.ai/skills/` require the explicit pre-1.0 layout migration
-described in the [workspace model](workspace-model.md).
-The migration relocates only unchanged, manifest-owned content; it blocks on
-edited/missing managed files, unknown legacy files, and destination collisions.
-Do not copy over customized guidance or fabricate baselines. Structural
-validation checks `guidance/rules/index.md`; client discovery and invocation
+a location required by the Agent Skills format itself. Structural validation
+checks `guidance/rules/index.md`; client discovery and invocation
 must still be verified separately.
 
 Development runs `go run ./cmd/wsup`; generated workspaces use a compatible
 external native `wsup` binary. Product sources live in `cmd/`, `internal/`, and
 `templates/`; `.wsup/` holds managed state/reports in native workspaces.
-The development checkout's legacy installation and separate Python reference
-remain intact pending retirement. User-edited workspace skills are not implicit
-starter overrides: initialization always uses the invoked binary's catalogue.
+User-edited workspace skills are not implicit starter overrides: initialization
+always uses the invoked binary's catalogue.
 
 | Experience | Documented discovery | Precedence and refresh | WSUP evidence |
 | --- | --- | --- | --- |

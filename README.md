@@ -18,19 +18,18 @@ context is discovered or inherited from outside the current root.
 ## Requirements
 
 Use a trusted native `wsup` binary compatible with your machine. Normal
-initialization, inspection, collections, and updates need neither Python nor Go.
-Project checks require their configured tools; an exact `{python}` argument
-resolves to `python3` on PATH. WSUP never installs those tools automatically.
+initialization, inspection, collections, and updates need no development toolchain.
+Project checks require their configured tools and pass arguments literally
+without substitution. WSUP never installs those tools automatically.
 
 Runtime verification is currently macOS ARM64. Unix checks use process-group
 supervision; non-Unix checks explicitly refuse launch pending equivalent
 descendant cleanup. Cross-compilation does not establish runtime support.
 
 Build from source with Go 1.27.3, pinned in `mise.toml`; see
-[Go development](CONTRIBUTING.md#go-development). During cutover, Python 3.9+
-and Git are still required for the historical/reference test suites, not native
-workspace operations. The Python reference remains under `src/` and cannot
-update native schema-v2 state. No binary installer or published native release
+[Go development](CONTRIBUTING.md#go-development). Development tests also require
+Git for ownership and reporting assertions. Only schema-2 workspace state is
+supported; unsupported formats fail without writes. No binary installer or published native release
 is provided yet; source build does not require a PATH change.
 
 ## Try it
@@ -54,7 +53,7 @@ go run ./cmd/wsup init /path/to/project --template project
 all templates and works without this checkout. Build outside the tracked tree
 with `go build -o /path/to/wsup ./cmd/wsup`, then invoke `/path/to/wsup` (or
 `wsup` if separately made available on PATH). Workspaces contain state/reports
-under `.wsup/`, not an executable, Python runtime, or copied catalogue. Relocation
+under `.wsup/`, not an executable, runtime, or copied catalogue. Relocation
 requires a compatible external binary. Shared rules live in `guidance/rules/`
 and portable skills remain in `.agents/skills/`.
 Generated workspaces include a focused set of development homes, with optional
@@ -82,7 +81,6 @@ separately built executable. Examples below use the latter. The main commands:
 | `update` | Preview available template updates |
 | `update --apply` | Apply conflict-free updates |
 | `update --keep PATH` | Retain a same-path customization (repeat for each path) |
-| `update --migrate-native` | Preview explicit Python-to-native migration |
 
 Run from the workspace root, or supply the global `--root` option **before**
 the command. Executable location does not select the target workspace, and WSUP
@@ -107,13 +105,11 @@ Check reports are written under the ignored `.wsup/reports/` directory. They
 contain results and hashes rather than command output or arguments. Use
 `--show-output` to display output in the terminal.
 
-For a Python-managed workspace, ordinary native `update` refuses schema 1.
-Preview with `update --migrate-native`; apply only after preserving a reviewed
-matched backup of files/state, ignored reports and owner data, resolving every
-conflict, and explicitly adding `--apply`. Migration installs native content/state
-before retiring exact unchanged legacy sources. Partial retirement is not
-automatically resumable: restore matched files/state from backup before retrying.
-See [migration and recovery](docs/workspace-model.md#generated-files-and-updates).
+Only schema-2 managed workspaces can update. There is no in-place conversion of
+unsupported state. Never edit schema numbers to bypass validation; create a new
+destination and explicitly transfer reviewed owner content instead. Before
+applying updates, preserve a matched backup of files and state.
+See [updates and recovery](docs/workspace-model.md#generated-files-and-updates).
 
 ## Workspace layout
 
@@ -173,16 +169,13 @@ The source root separates product development from generated installation output
 | [cmd/wsup](cmd/wsup/) | Native executable entry point. |
 | [internal](internal/) | Go services and colocated regression tests. |
 | [templates](templates/) | Complete directly embedded native workspace/project/collection starters. |
-| [src](src/) | Separate Python reference implementation/catalogue retained during cutover. |
-| [.wsup](.wsup/) | Existing legacy installation/state and ignored check reports; not native source or build input. |
-| [tests](tests/) | Python reference and immutable migration evidence runners. |
-| [testdata](testdata/) | Frozen Python contracts and migration safety specifications. |
 
 The registry describes this repository as one WSUP tool project. Guidance and
 portable skills live at the root and match native starter procedures.
 Edit native services in `internal/` and starters in `templates/`; rebuilding embeds
-starter changes directly. The existing legacy `.wsup/` installation has not been
-migrated and must not be refreshed or deleted as an implementation side effect.
+starter changes directly. This source repository is not a generated starter and
+does not carry managed template state or an installed runtime.
+Check reports are created on demand under ignored `.wsup/reports/`.
 Use ignored `workbench/.local/` for local notes.
 
 The unused legacy research and journal scaffolds have been retired from this
@@ -194,8 +187,7 @@ directory would hold release bundles, not active workspace tooling.
 
 The unused apps, packages, tools, and infrastructure collection scaffolds are
 also absent from this product repository. They remain defaults in
-`templates/workspace/`. This repository's legacy state records `omitted_home_files`;
-new generated workspaces retain the full default layout.
+`templates/workspace/`; new generated workspaces retain the full default layout.
 
 ## Optional AI skills
 
@@ -216,7 +208,7 @@ Use the normal template-update preview/apply flow to refresh bundled content;
 it does not download a new release. To disable skill use, use the client's
 controls rather than deleting canonical files and breaking rule-index links.
 See [AI guidance](docs/ai-guidance.md) for the dated compatibility matrix and
-[workspace model](docs/workspace-model.md) for safe legacy upgrades.
+[workspace model](docs/workspace-model.md) for safe managed-content updates.
 
 ## Contributing and releases
 

@@ -41,21 +41,6 @@ Changelog entries alone are not proof of release validation. If a historical
 baseline is tagged retrospectively, identify it as such and state what was
 actually verified.
 
-### Migration checkpoint tags
-
-An annotated milestone tag such as `python-baseline` can preserve a verified
-implementation before a language rewrite. It is not a product release: keep
-the product version unchanged and leave unreleased changes under Unreleased.
-Do not reuse a `vMAJOR.MINOR.PATCH` name for this purpose.
-
-Verify the exact committed snapshot in an isolated checkout or extracted Git
-archive, including standalone generation and update compatibility. Record the
-commit ID, interpreter, platform, test outcomes, and limitations in the tag
-annotation. Local preparation notes belong in ignored `workbench/.local/`.
-If preparation changes documentation or code, commit those changes and verify
-the final target again before tagging. Commit, tag creation, and publication
-each require explicit authorization; preparation does not perform them.
-
 ## Manual release checklist
 
 1. Review the target commit and complete diff. Preserve unrelated work and
@@ -74,16 +59,15 @@ each require explicit authorization; preparation does not perform them.
    git diff --check
    ```
 
-   Record the OS/architecture, Go version, and reference Python/Git prerequisites.
+   Record the OS/architecture, Go version, and Git prerequisite for development tests.
    macOS ARM64 is currently verified. Cross-compilation is build evidence, not
-   runtime certification; non-Unix checks remain unsupported. Historical/reference
-   tests still require Python during cutover. Report unavailable targets as
+   runtime certification; non-Unix checks remain unsupported. Report unavailable targets as
    missing coverage; claim client support only to the extent actually tested.
 4. Build a standalone binary outside the tracked tree. Generate a disposable
    workspace outside the checkout. Run validation/guidance and child generation
    with that external binary and empty PATH. Workspaces carry state/reports, not
    their own executable or copied catalogue. For layout or
-   update changes, exercise an actual previous-version workspace as well as
+   update changes, exercise an actual supported schema-2 workspace as well as
    synthetic fixtures: preview must be read-only, conflicts must preserve work,
    and successful apply must leave a stable subsequent preview.
 5. Check that root and bundled skill copies agree, relative references work,
@@ -107,9 +91,8 @@ each require explicit authorization; preparation does not perform them.
    does not publish a release. If pushing is approved, specify the intended
    remote and exact tag rather than pushing every local tag.
 
-Before selecting a native release version, finish repository cutover and separate
-reference-only test dependencies from native validation. The current 0.1.0 value
-is retained during migration, not a published native release. A compatibility-
+The current 0.1.0 value is retained during unreleased development, not a published
+native release. A compatibility-
 changing native release requires the pre-1.0 minor-version policy above; no new
 version is selected automatically.
 
