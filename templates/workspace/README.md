@@ -44,13 +44,17 @@ Review commands before running them: they execute with your permissions. The CLI
 does not install dependencies on its own or automatically check dependencies.
 Reports are local under ignored `.wsup/reports/`.
 
-Create project groupings such as `apps/`, `tools/`, or `learning/` when needed.
-No empty grouping directories or journal are required. Keep human-authored
+Create project groupings such as `apps/`, `tools/`, or `learning/` only when
+needed. Other optional collections may separate durable docs, investigations,
+reference, drafts, archived work, or retained deliverables. No empty grouping
+directories or journal are required; see the [workspace model](docs/workspace-model.md)
+for their boundaries. Keep human-authored
 drafts in a visible `workbench/` if useful. Sanitized drafts are eligible for
 local Git tracking; review them before staging. Nothing is committed
 automatically. Keep restricted records outside documentation, workbench drafts,
 and Git repositories. Promote approved knowledge to the owning project's
-maintained documentation instead of keeping competing canonical copies.
+maintained documentation instead of keeping competing canonical copies. A
+`private/` folder or ignore rule is not an access-control boundary.
 
 The bundled runtime and the single installed generation catalogue live under
 `.wsup/`. The registry, guidance, and skills remain workspace-owned. To change

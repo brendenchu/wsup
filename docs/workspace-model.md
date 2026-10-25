@@ -43,6 +43,30 @@ committed automatically. Keep restricted records out of documentation and Git.
 Promote approved knowledge to the owning project's maintained documentation and
 avoid competing canonical copies.
 
+## Optional collections and boundaries
+
+Create collections only when they have a real owner and contents. These names
+are examples, not required taxonomy or pre-created scaffolds. Project purpose
+(`kind`), directory placement, repository ownership, lifecycle, and sensitivity
+are separate decisions.
+
+| Collection | Useful boundary |
+| --- | --- |
+| `apps/`, `packages/`, `tools/`, `infrastructure/`, `learning/` | Group projects by their primary responsibility when useful. Register actual projects and record repository ownership; a folder name does not determine `kind` or Git ownership. Shared infrastructure is opt-in, not a dependency of every project. |
+| `guidance/` | Keep shared workspace rules and policy here. Route to one canonical rule source rather than duplicating instructions across entry points. |
+| `docs/` | Keep durable workspace-wide decisions and procedures here. Project-specific documentation belongs with its owning project. Maintain one canonical copy and link to it rather than duplicating it. |
+| `journal/` | Optional dated activity record. Keep it distinct from current maintained documentation, drafts, and machine-generated reports. |
+| `research/` | Use for a scoped, owned investigation with a question and evidence. Keep raw captures and project-specific investigations with their owner; link accepted decisions to the project that owns them. Research is not a required stage before documentation or reference. |
+| `reference/` | Use for reviewed, reusable knowledge with evidence and applicability. Keep project decisions with their project; a research finding does not become reference material merely by moving folders. |
+| `workbench/` | Use for human-authored drafts and temporary analysis. Review and sanitize before local tracking; no automatic commits. Promote accepted content to its canonical owner. |
+| `archive/` | Use to mark material as parked or historical, with its owner and status clear where practical. Archiving is not a backup, privacy control, or deletion instruction. Preserve repository history and inspect linked-worktree relationships before moving or retiring a checkout. |
+| `artifacts/` | Retain intentional deliverables with provenance and an owner or retention purpose. Keep caches, temporary output, and WSUP check reports separate; do not use this as a catch-all or assume an archive is safe to distribute. |
+| `private/` | If sensitive material must be kept locally, follow an approved storage and access policy. A directory name and Git ignore rule do not provide confidentiality; avoid placing restricted data where workspace tools, reports, indexing, or bundles may collect it. Prefer approved storage outside a broadly scanned workspace. |
+
+These boundaries do not create folders, change ignore rules, configure backups,
+or certify privacy, retention, or recovery. Decide those controls with the
+relevant owner before moving sensitive, historical, or retained material.
+
 ## Register projects
 
 `workspace.json` is UTF-8 JSON with `version: 1`, a nonempty `name`, and a

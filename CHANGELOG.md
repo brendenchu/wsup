@@ -21,6 +21,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
   report locations, and legacy layout migration in maintainer and starter docs.
 - Carry reusable documentation ownership, draft tracking, promotion, and privacy
   conventions into generated workspace/project guidance and contributor docs.
+- Document optional workspace collections, with explicit archive, artifact,
+  reference, research, and privacy boundaries; do not create empty scaffolds.
 
 ### Added
 

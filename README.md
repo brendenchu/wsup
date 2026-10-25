@@ -73,12 +73,15 @@ contain results and hashes rather than command output or arguments. Use
 
 ## Workspace layout
 
-`apps/`, `packages/`, `tools/`, `infrastructure/`, and `research/` are optional
-responsibility groups. Create them only when needed; they do not prescribe a
-personal taxonomy. `docs/` holds durable guidance. A `journal/` is optional.
-The installed template catalogue is tool-owned under `.wsup/templates/`, not a
-root project grouping. Register projects in `workspace.json`; projects own
-their code, tests, dependencies, setup and required instructions.
+`apps/`, `packages/`, `tools/`, `infrastructure/`, `learning/`, `research/`,
+`reference/`, `archive/`, `artifacts/`, and `private/` are optional collections;
+create them only when useful. Their names describe placement, not Git ownership,
+project kind, sensitivity controls, backup, or retention guarantees. See the
+[workspace model](docs/workspace-model.md#optional-collections-and-boundaries)
+for guidance. The installed template catalogue is tool-owned under
+`.wsup/templates/`, not a root project grouping. Register projects in
+`workspace.json`; projects own their code, tests, dependencies, setup and
+required instructions.
 
 The registry does not imply a shared Git repository, build, dependency install,
 or release process. See the [workspace model](docs/workspace-model.md) for the
