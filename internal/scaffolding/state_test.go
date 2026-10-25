@@ -28,46 +28,37 @@ func encoded(t *testing.T, document map[string]any) []byte {
 	return body
 }
 
-func TestLegacyAndNativeStatePreserveBaselineAndOriginalBytes(t *testing.T) {
-	for _, version := range []int{1, StateVersion} {
-		root := t.TempDir()
-		if err := os.Mkdir(filepath.Join(root, ".wsup"), 0755); err != nil {
-			t.Fatal(err)
-		}
-		document := stateDocument(version)
-		if version == 1 {
-			document["files"] = map[string]string{
-				"README.md":                           strings.Repeat("a", 64),
-				".wsup/wsup.py":                       strings.Repeat("b", 64),
-				".wsup/templates/workspace/README.md": strings.Repeat("c", 64),
-			}
-		}
-		body := append(encoded(t, document), '\n')
-		filename := filepath.Join(root, filepath.FromSlash(StatePath))
-		if err := os.WriteFile(filename, body, 0600); err != nil {
-			t.Fatal(err)
-		}
-		custom := []byte("Owner's customized bytes\x00\n")
-		if err := os.WriteFile(filepath.Join(root, "README.md"), custom, 0600); err != nil {
-			t.Fatal(err)
-		}
-		loaded, err := LoadState(root)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if loaded.State.Version != version || !bytes.Equal(loaded.Original, body) ||
-			loaded.State.Files["README.md"] != strings.Repeat("a", 64) ||
-			!reflect.DeepEqual(loaded.State.Collections, []string{"archive", "research"}) {
-			t.Fatalf("state changed ownership: %+v", loaded)
-		}
-		current, err := os.ReadFile(filename)
-		if err != nil || !bytes.Equal(current, body) {
-			t.Fatal("state bytes changed")
-		}
-		current, err = os.ReadFile(filepath.Join(root, "README.md"))
-		if err != nil || !bytes.Equal(current, custom) {
-			t.Fatal("custom content changed")
-		}
+func TestNativeStatePreservesBaselineAndOriginalBytes(t *testing.T) {
+	root := t.TempDir()
+	if err := os.Mkdir(filepath.Join(root, ".wsup"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	document := stateDocument(StateVersion)
+	body := append(encoded(t, document), '\n')
+	filename := filepath.Join(root, filepath.FromSlash(StatePath))
+	if err := os.WriteFile(filename, body, 0600); err != nil {
+		t.Fatal(err)
+	}
+	custom := []byte("Owner's customized bytes\x00\n")
+	if err := os.WriteFile(filepath.Join(root, "README.md"), custom, 0600); err != nil {
+		t.Fatal(err)
+	}
+	loaded, err := LoadState(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.State.Version != StateVersion || !bytes.Equal(loaded.Original, body) ||
+		loaded.State.Files["README.md"] != strings.Repeat("a", 64) ||
+		!reflect.DeepEqual(loaded.State.Collections, []string{"archive", "research"}) {
+		t.Fatalf("state changed ownership: %+v", loaded)
+	}
+	current, err := os.ReadFile(filename)
+	if err != nil || !bytes.Equal(current, body) {
+		t.Fatal("state bytes changed")
+	}
+	current, err = os.ReadFile(filepath.Join(root, "README.md"))
+	if err != nil || !bytes.Equal(current, custom) {
+		t.Fatal("custom content changed")
 	}
 }
 
@@ -77,6 +68,7 @@ func TestInvalidStateContracts(t *testing.T) {
 		edit func(map[string]any)
 	}{
 		{"unknown schema", func(d map[string]any) { d["version"] = 3 }},
+		{"unsupported schema", func(d map[string]any) { d["version"] = 1 }},
 		{"boolean schema", func(d map[string]any) { d["version"] = true }},
 		{"float schema", func(d map[string]any) { d["version"] = 1.5 }},
 		{"unknown field", func(d map[string]any) { d["typo"] = true }},
@@ -119,7 +111,7 @@ func TestStateSymlinksRefusedWithoutTouchingTargets(t *testing.T) {
 	for _, link := range []string{".wsup", StatePath} {
 		t.Run(link, func(t *testing.T) {
 			root, outside := t.TempDir(), t.TempDir()
-			body := encoded(t, stateDocument(1))
+			body := encoded(t, stateDocument(StateVersion))
 			target := filepath.Join(outside, "template-state.json")
 			if err := os.WriteFile(target, body, 0600); err != nil {
 				t.Fatal(err)

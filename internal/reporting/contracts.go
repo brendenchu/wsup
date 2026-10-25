@@ -11,7 +11,7 @@ import (
 	"github.com/brendenchu/wsup/internal/jsoncompat"
 )
 
-// SchemaVersion distinguishes native runtime metadata from Python version-1 reports.
+// SchemaVersion identifies the runtime metadata and evidence format.
 const SchemaVersion = 2
 
 // Runtime identifies the actual CLI runtime, not a tool invoked by a check.

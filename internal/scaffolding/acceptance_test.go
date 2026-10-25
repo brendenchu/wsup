@@ -142,9 +142,6 @@ func TestInvalidPersistedSelectionsAndPathsBlockEveryOperation(t *testing.T) {
 				if _, err := AddCollections(root, []string{"archive"}, true); err == nil {
 					t.Fatalf("collections accepted invalid %s: %v", field, value)
 				}
-				if _, err := ApplyMigration(root, "0.2.0", nil); err == nil {
-					t.Fatalf("migration accepted invalid %s: %v", field, value)
-				}
 				if !reflect.DeepEqual(before, snapshot(t, root)) {
 					t.Fatalf("invalid %s caused writes", field)
 				}

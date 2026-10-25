@@ -138,7 +138,7 @@ func TestNativeUpdateCLIReadsEmbeddedCatalogueAndPreservesOwnerFiles(t *testing.
 	}
 }
 
-func TestNativeUpdateCLIRejectsPythonStateWithoutMigration(t *testing.T) {
+func TestNativeUpdateCLIRejectsUnsupportedStateWithoutWrites(t *testing.T) {
 	root := t.TempDir()
 	if err := os.Mkdir(filepath.Join(root, ".wsup"), 0755); err != nil {
 		t.Fatal(err)
@@ -151,11 +151,11 @@ func TestNativeUpdateCLIRejectsPythonStateWithoutMigration(t *testing.T) {
 	for _, args := range [][]string{{}, {"--apply"}} {
 		var stdout, stderr bytes.Buffer
 		code := Run(append([]string{"--root", root, "update"}, args...), &stdout, &stderr)
-		if code != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "explicit native migration") {
-			t.Fatalf("legacy state accepted: %d %s %s", code, &stdout, &stderr)
+		if code != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "unsupported template state version 1") {
+			t.Fatalf("unsupported state accepted: %d %s %s", code, &stdout, &stderr)
 		}
 	}
 	if !reflect.DeepEqual(before, workspaceBytes(t, root)) {
-		t.Fatal("legacy update changed files")
+		t.Fatal("unsupported update changed files")
 	}
 }

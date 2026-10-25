@@ -11,7 +11,7 @@ import (
 )
 
 // CollectionPlan distinguishes listing available names from explicit additions.
-// Selected is a pointer so an addition and a plain listing keep Python's JSON shape.
+// Selected is a pointer so plain listings omit the selection field.
 type CollectionPlan struct {
 	Available []string  `json:"available,omitempty"`
 	Selected  *[]string `json:"selected,omitempty"`
@@ -60,7 +60,7 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 	}
 	state := loaded.State
 	if state.Version != StateVersion || state.Template != "workspace" {
-		return result, preparedUpdate{}, fmt.Errorf("adding collections requires a native managed workspace; Python state requires explicit migration")
+		return result, preparedUpdate{}, fmt.Errorf("adding collections requires a managed workspace")
 	}
 	bundle, err := catalogue.BundleSelected("workspace", selected)
 	if err != nil {

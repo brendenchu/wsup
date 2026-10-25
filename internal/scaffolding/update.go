@@ -9,14 +9,11 @@ import (
 
 // Update selects the executable's embedded template using this workspace's
 // native state, then previews or explicitly applies same-path content changes.
-// It neither migrates Python state nor downloads templates or runtime binaries.
+// It neither converts unsupported schemas nor downloads templates or binaries.
 func Update(root, version string, keep []string, apply bool) (UpdatePlan, error) {
 	loaded, err := LoadState(root)
 	if err != nil {
 		return UpdatePlan{}, err
-	}
-	if loaded.State.Version != StateVersion {
-		return UpdatePlan{}, fmt.Errorf("Python template state requires explicit native migration, not a content update")
 	}
 	files, err := catalogue.BundleSelected(loaded.State.Template, loaded.State.Collections)
 	if err != nil {

@@ -5,17 +5,20 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
-func TestNativeSourceBuildAndGenerationDoNotNeedPythonCatalogue(t *testing.T) {
+func TestNativeSourceBuildAndGenerationAreSelfContained(t *testing.T) {
 	source, err := filepath.Abs("../..")
 	if err != nil {
 		t.Fatal(err)
 	}
 	checkout := t.TempDir()
-	for _, subtree := range []string{"cmd", "internal", "templates", "go.mod", "go.sum"} {
+	for _, subtree := range []string{
+		"cmd", "internal", "templates", "go.mod", "go.sum",
+		".gitignore", "LICENSE", "AI.md", "AGENTS.md", "README.md", "CONTRIBUTING.md", "CHANGELOG.md",
+		".agents", "guidance", "docs", "workspace.json",
+	} {
 		err := filepath.WalkDir(filepath.Join(source, subtree), func(name string, entry fs.DirEntry, err error) error {
 			if err != nil {
 				return err

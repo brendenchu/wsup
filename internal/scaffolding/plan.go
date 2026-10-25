@@ -19,14 +19,7 @@ type Action struct {
 	Action string `json:"action"`
 }
 
-// MigrationAction can additionally identify an unchanged legacy source.
-type MigrationAction struct {
-	Path   string `json:"path"`
-	Action string `json:"action"`
-	From   string `json:"from,omitempty"`
-}
-
-// UpdatePlan is a read-only native content preview, not a runtime migration.
+// UpdatePlan is a read-only managed-content preview.
 type UpdatePlan struct {
 	FromVersion string   `json:"from_version"`
 	ToVersion   string   `json:"to_version"`
@@ -38,7 +31,6 @@ type UpdatePlan struct {
 // PlanUpdate compares native state with an already selected template bundle.
 // The caller supplies the matching template/collections; omissions are applied
 // here. No registry, reports, unknown files, or orphan files are overwritten.
-// Legacy state requires a separate explicit migration rather than this planner.
 func PlanUpdate(root, version string, files map[string][]byte, keep []string) (UpdatePlan, error) {
 	return planUpdate(root, version, files, keep, nil)
 }
@@ -51,14 +43,7 @@ func planUpdate(root, version string, files map[string][]byte, keep []string, pr
 	if err != nil {
 		return UpdatePlan{}, err
 	}
-	return planLoadedUpdate(root, version, files, keep, loaded, prepared)
-}
-
-func planLoadedUpdate(root, version string, files map[string][]byte, keep []string, loaded LoadedState, prepared *preparedUpdate) (UpdatePlan, error) {
 	state := loaded.State
-	if state.Version != StateVersion {
-		return UpdatePlan{}, fmt.Errorf("Python template state requires explicit native migration, not a content update")
-	}
 	proposed := State{
 		Version: StateVersion, TemplateVersion: version, Template: state.Template,
 		Files:       make(map[string]string, len(files)),

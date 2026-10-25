@@ -72,14 +72,14 @@ func TestUnselectedManagedNonDefaultCollectionCannotBeSilentlyEnabled(t *testing
 	}
 }
 
-func TestCollectionAdditionsRejectPythonStateWithoutWrites(t *testing.T) {
+func TestCollectionAdditionsRejectUnsupportedStateWithoutWrites(t *testing.T) {
 	root := t.TempDir()
 	writeFixture(t, root, StatePath, []byte(`{"version":1,"template_version":"0.1.0","template":"workspace","files":{}}`))
 	before := snapshot(t, root)
 	if _, err := AddCollections(root, []string{"archive"}, true); err == nil {
-		t.Fatal("Python state accepted without migration")
+		t.Fatal("unsupported state accepted")
 	}
 	if !reflect.DeepEqual(before, snapshot(t, root)) {
-		t.Fatal("legacy state modified")
+		t.Fatal("unsupported state modified")
 	}
 }

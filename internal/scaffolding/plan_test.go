@@ -160,7 +160,7 @@ func TestPlanKeepAndOmissionsPreserveOriginalBaselines(t *testing.T) {
 	}
 }
 
-func TestPlanInvalidKeepBundleAndLegacyRefuseWithoutWrites(t *testing.T) {
+func TestPlanInvalidKeepBundleAndUnsupportedStateRefuseWithoutWrites(t *testing.T) {
 	root, state := nativeFixture(t, map[string][]byte{"README.md": []byte("old")})
 	valid := map[string][]byte{"README.md": []byte("new")}
 	before := snapshot(t, root)
@@ -193,11 +193,11 @@ func TestPlanInvalidKeepBundleAndLegacyRefuseWithoutWrites(t *testing.T) {
 	}
 	writeFixture(t, root, StatePath, body)
 	before = snapshot(t, root)
-	if _, err := PlanUpdate(root, "0.2.0", valid, nil); err == nil || !strings.Contains(err.Error(), "explicit native migration") {
-		t.Fatalf("legacy state not explicitly gated: %v", err)
+	if _, err := PlanUpdate(root, "0.2.0", valid, nil); err == nil || !strings.Contains(err.Error(), "unsupported template state version 1") {
+		t.Fatalf("unsupported state not explicitly gated: %v", err)
 	}
 	if !reflect.DeepEqual(before, snapshot(t, root)) {
-		t.Fatal("legacy planning changed files")
+		t.Fatal("unsupported planning changed files")
 	}
 }
 

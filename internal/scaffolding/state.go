@@ -18,7 +18,7 @@ import (
 
 const (
 	StatePath = ".wsup/template-state.json"
-	// StateVersion separates separately installed native runtimes from bundled Python.
+	// StateVersion identifies the managed-content schema.
 	StateVersion = 2
 )
 
@@ -40,7 +40,6 @@ type State struct {
 }
 
 // LoadedState carries exact original bytes for a later apply-time change check.
-// Version 1 is legacy Python state, never permission to retire runtime files.
 type LoadedState struct {
 	State    State
 	Original []byte
@@ -74,11 +73,10 @@ func LoadState(root string) (LoadedState, error) {
 	return LoadedState{State: state, Original: body}, nil
 }
 
-// EncodeNativeState serializes only native state. Legacy state requires an
-// explicit migration plan, not an implicit version bump in a serializer.
+// EncodeNativeState serializes only supported state without changing its schema.
 func EncodeNativeState(state State) ([]byte, error) {
 	if state.Version != StateVersion {
-		return nil, fmt.Errorf("encoding native state requires version 2; legacy state requires migration")
+		return nil, fmt.Errorf("encoding template state requires version %d", StateVersion)
 	}
 	body, err := json.Marshal(state)
 	if err != nil {
@@ -95,8 +93,8 @@ func EncodeNativeState(state State) ([]byte, error) {
 	return append(body, '\n'), nil
 }
 
-// ParseState accepts Python v1 for inspection and native v2. It does not convert
-// schemas, normalize ownership hashes, or inspect managed file contents.
+// ParseState accepts only the current schema. It does not convert schemas,
+// normalize ownership hashes, or inspect managed file contents.
 func ParseState(body []byte) (State, error) {
 	if !utf8.Valid(body) {
 		return State{}, fmt.Errorf("template state must be UTF-8")
@@ -117,7 +115,7 @@ func ParseState(body []byte) (State, error) {
 	if err := json.Unmarshal(body, &state); err != nil {
 		return State{}, fmt.Errorf("invalid template state fields: %w", err)
 	}
-	if state.Version != 1 && state.Version != StateVersion {
+	if state.Version != StateVersion {
 		return State{}, fmt.Errorf("unsupported template state version %d; use a compatible wsup binary", state.Version)
 	}
 	if strings.TrimSpace(state.TemplateVersion) == "" ||
@@ -128,7 +126,7 @@ func ParseState(body []byte) (State, error) {
 		if !portableFile(name) || name == StatePath || !digestPattern.MatchString(digest) {
 			return State{}, fmt.Errorf("template state contains an invalid managed path or SHA-256 baseline")
 		}
-		if state.Version == StateVersion && (name == ".wsup" || strings.HasPrefix(name, ".wsup/")) {
+		if name == ".wsup" || strings.HasPrefix(name, ".wsup/") {
 			return State{}, fmt.Errorf("native template state must not own runtime, catalogue, state, or reports")
 		}
 		for parent := path.Dir(name); parent != "."; parent = path.Dir(parent) {
