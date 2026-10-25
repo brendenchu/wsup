@@ -14,6 +14,19 @@ FORMER_DEFAULT_FILES = {
     "journal/README.md", "journal/TEMPLATE.md", "learning/README.md",
     "reference/README.md", "research/README.md",
 }
+DEFAULT_HOME_FILES = {
+    "apps/.gitkeep", "infrastructure/.gitkeep", "packages/README.md",
+    "tools/README.md", "workbench/README.md",
+}
+
+def omitted_home_files(state):
+    names = state.get("omitted_home_files", [])
+    if (not isinstance(names, list) or any(
+            not isinstance(name, str) or name not in DEFAULT_HOME_FILES for name in names)):
+        raise ValueError("omitted_home_files must list default workspace home scaffold files")
+    if names and state["template"] != "workspace":
+        raise ValueError("Home scaffold omissions require a workspace template")
+    return sorted(set(names))
 
 def selected_collections(names):
     if not isinstance(names, (list, tuple)) or any(
@@ -190,6 +203,8 @@ def update(root, apply=False, keep=()):
         raise ValueError("Unsupported template state")
     collections = selected_collections(state.get("collections", []))
     files = bundle(state["template"], collections)
+    omitted = omitted_home_files(state)
+    files = {name: body for name, body in files.items() if name not in omitted}
     old = state["files"]
     actions, conflicts, observed = [], [], {}
     kept = set(keep)
@@ -335,6 +350,8 @@ def update(root, apply=False, keep=()):
                 directory = directory.parent
         tracked = {name: body for name, body in files.items() if name != "workspace.json"}
         next_state = json.loads(state_bytes(state["template"], tracked, collections))
+        if omitted:
+            next_state["omitted_home_files"] = omitted
         if "workspace.json" in old:
             next_state["files"]["workspace.json"] = old["workspace.json"]
         for name in kept & set(files):
