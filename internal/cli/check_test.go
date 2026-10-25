@@ -176,7 +176,7 @@ func invokeCheck(root string, args ...string) (int, string, string) {
 }
 
 func TestChecksContinueLiteralArgumentsAndSanitizedReports(t *testing.T) {
-	literal := []string{"$(touch unsafe)", "", "space value", "SYNTHETIC-SECRET-CANARY"}
+	literal := []string{"$(touch unsafe)", "", "space value", "{tool}", "prefix{tool}", "SYNTHETIC-SECRET-CANARY"}
 	record := checkTool(t, "record", literal...)
 	root := checkFixture(t, map[string]any{
 		"fail":   checkTool(t, "exit", "7"),

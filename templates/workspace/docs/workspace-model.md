@@ -179,14 +179,14 @@ Checks are literal argv arrays or objects with `command` and optional `mode`,
 
 ```json
 "checks": {
-  "test": ["{python}", "-B", "-m", "unittest", "discover", "-s", "tests"],
+  "test": ["go", "test", "./..."],
   "audit": {"command": ["my-audit-tool"], "mode": "report"}
 }
 ```
 
-Names follow the project-ID format. An exact `{python}` token resolves to
-`python3` on PATH; no interpreter fallback or installation occurs. Other
-executables must also be installed. Arguments are not shell-expanded, stdin is
+Names follow the project-ID format. Executables must be installed and supplied
+by explicit path or found on PATH; there is no tool fallback or installation.
+Arguments are never substituted or shell-expanded, stdin is
 closed, and cwd is the registered project directory. Inspect commands first:
 they execute with your permissions and are not sandboxed.
 

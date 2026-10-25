@@ -108,7 +108,7 @@ func TestNativeGeneratedWorkspaceMixedGitOnboarding(t *testing.T) {
 		projects = append(projects, map[string]any{
 			"id": name, "path": "apps/" + name, "kind": "app", "repository": ownership,
 			"purpose": "Onboarding fixture", "owner": "Test",
-			"checks": map[string][]string{"test": {"{python}", "-B", "-c", "from pathlib import Path; assert Path('README.md').is_file()"}},
+			"checks": map[string][]string{"test": {binary, "-test.run=^TestOnboardingTool$", "--", project}},
 		})
 	}
 	ignore, err := os.OpenFile(filepath.Join(root, ".gitignore"), os.O_APPEND|os.O_WRONLY, 0600)

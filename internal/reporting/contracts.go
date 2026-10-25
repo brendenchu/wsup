@@ -26,9 +26,8 @@ func CurrentRuntime() Runtime {
 	return Runtime{Go: runtime.Version(), OS: runtime.GOOS, Arch: runtime.GOARCH}
 }
 
-// CommandDigest hashes the original argument array before token substitution.
-// Its bytes match Python json.dumps(command).encode(), including default spaces
-// and ASCII escapes, so interpreter lookup cannot change command identity.
+// CommandDigest hashes the literal argument array with comma-space separators
+// and ASCII escapes for a stable command identity.
 func CommandDigest(command []string) (string, error) {
 	var encoded bytes.Buffer
 	encoded.WriteByte('[')

@@ -19,19 +19,19 @@ func TestReportFailureNeverPrintsSuccessfulReportPath(t *testing.T) {
 	}
 }
 
-func TestMissingPythonDoesNotPreventSubsequentExplicitTool(t *testing.T) {
+func TestMissingToolDoesNotPreventSubsequentExplicitTool(t *testing.T) {
 	root := checkFixture(t, map[string]any{
-		"a": []string{"{python}", "-c", "pass"},
+		"a": []string{"missing-tool", "literal argument"},
 		"b": checkTool(t, "marker", "executed"),
 	})
 	t.Setenv("PATH", t.TempDir())
 	code, stdout, stderr := invokeCheck(root, "--project", "app")
 	if code != 1 || stderr != "" || !strings.Contains(stdout, "app:a: error\nRunning app:b\napp:b: passed") {
-		t.Fatalf("missing Python fallback or early exit: %d %q %q", code, stdout, stderr)
+		t.Fatalf("missing tool caused fallback or early exit: %d %q %q", code, stdout, stderr)
 	}
 	data, _ := readCheckReport(t, root)
 	if data.Results[0].Error != "launch_error:2" || data.Results[1].Status != "passed" {
-		t.Fatal("missing Python incorrectly classified")
+		t.Fatal("missing tool incorrectly classified")
 	}
 	if _, err := os.Stat(filepath.Join(root, "app/executed")); err != nil {
 		t.Fatal("explicit tool did not execute")

@@ -7,18 +7,9 @@ import (
 	"strings"
 )
 
-// ResolveCommand substitutes exact {python} arguments with python3 from PATH.
-// Other arguments, including empty strings and shell-looking text, remain literal.
-// A missing interpreter is returned to the runner as a launch failure.
+// ResolveCommand validates and copies literal arguments without substitution.
+// Executable lookup is performed by the runner when launching the command.
 func ResolveCommand(command []string) ([]string, error) {
-	return resolveCommand(command, exec.LookPath)
-}
-
-// Supported rejects platforms without verified descendant supervision before
-// a CLI creates report directories or runs any selected check.
-func Supported() error { return prepareProcess(&exec.Cmd{}) }
-
-func resolveCommand(command []string, lookup func(string) (string, error)) ([]string, error) {
 	if len(command) == 0 || command[0] == "" {
 		return nil, fmt.Errorf("check command requires a nonempty executable")
 	}
@@ -27,20 +18,9 @@ func resolveCommand(command []string, lookup func(string) (string, error)) ([]st
 			return nil, fmt.Errorf("check arguments must not contain NUL")
 		}
 	}
-	resolved := append([]string(nil), command...)
-	python := ""
-	for index, argument := range resolved {
-		if argument != "{python}" {
-			continue
-		}
-		if python == "" {
-			var err error
-			python, err = lookup("python3")
-			if err != nil {
-				return nil, fmt.Errorf("resolve {python} through python3 on PATH: %w", err)
-			}
-		}
-		resolved[index] = python
-	}
-	return resolved, nil
+	return append([]string(nil), command...), nil
 }
+
+// Supported rejects platforms without verified descendant supervision before
+// a CLI creates report directories or runs any selected check.
+func Supported() error { return prepareProcess(&exec.Cmd{}) }

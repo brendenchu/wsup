@@ -82,7 +82,7 @@ func TestChecksPreserveLiteralArgsOrderAndNullTimeout(t *testing.T) {
 		t.Fatal(err)
 	}
 	body = []byte(strings.Replace(string(body), `"id":"app"`,
-		`"checks":{"z":["{python}","", "$(touch unsafe)"],"a":{"command":["tool"],"timeout_seconds":null,"finding_exit_codes":[]}},"id":"app"`, 1))
+		`"checks":{"z":["tool","", "$(touch unsafe)"],"a":{"command":["tool"],"timeout_seconds":null,"finding_exit_codes":[]}},"id":"app"`, 1))
 	if err := os.WriteFile(filepath.Join(root, "workspace.json"), body, 0600); err != nil {
 		t.Fatal(err)
 	}

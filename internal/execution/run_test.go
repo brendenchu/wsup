@@ -157,7 +157,7 @@ func TestFailureTimeoutAndCancellationAreDistinct(t *testing.T) {
 func TestLaunchErrorsAndInvalidInputs(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("PATH", root)
-	for _, command := range [][]string{{filepath.Join(root, "missing")}, {"{python}"}} {
+	for _, command := range [][]string{{filepath.Join(root, "missing")}, {"missing-tool"}} {
 		result, err := Run(context.Background(), command, root, time.Second, 128)
 		if err != nil || result.Status != "error" || result.Error != "launch_error:2" ||
 			result.ExitCode != nil || result.OutputBytes != 0 || result.Stdout != "" || result.Stderr != "" {
