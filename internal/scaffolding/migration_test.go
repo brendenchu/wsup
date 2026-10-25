@@ -132,10 +132,10 @@ func TestMigrationRelocationChecksAndLegacyReportPolicyBlockers(t *testing.T) {
 	}
 	writeFixture(t, root, "guidance/rules/changes.md", []byte("collision"))
 	writeFixture(t, root, ".work/quality/old.json", []byte("legacy report bytes"))
-	writeFixture(t, root, "wsup.local.json", []byte("legacy policy"))
+	writeFixture(t, root, "wsup.local.json", []byte(`{"version":1,"settings":{"report_dir":".work/quality"}}`))
 	before := snapshot(t, root)
 	preview, err = PlanMigration(root, "0.2.0", nil)
-	if err != nil || !reflect.DeepEqual(preview.Conflicts, []string{".work/quality", "guidance/rules/changes.md", "wsup.local.json"}) ||
+	if err != nil || !reflect.DeepEqual(preview.Conflicts, []string{"guidance/rules/changes.md", "wsup.local.json"}) ||
 		!reflect.DeepEqual(before, snapshot(t, root)) {
 		t.Fatalf("policy/collision not blocked: %+v %v", preview, err)
 	}

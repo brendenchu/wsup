@@ -30,8 +30,10 @@ description: Create workspace or project starters, maintain template content, or
    user-owned registry. I/O failures may leave partial content with old state;
    inspect failures rather than retrying blindly. Python migration apply is not
    yet available; explicit `update --migrate-native` only previews schema-1
-   conversion and retirement. Never delete configuration/reports to bypass its
-   conservative blockers, and never combine it with `--apply` while disabled.
+   conversion, byte-preserving legacy report moves, and retirement. Review explicit
+   legacy report settings even when local overrides hide them. Never delete
+   configuration/reports to bypass conflicts, and never combine migration with
+   `--apply` while disabled.
    Do not use Python to update schema-2 state or change its version
    to force compatibility.
 5. Verify source changes in a disposable destination outside the checkout.

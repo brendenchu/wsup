@@ -105,6 +105,11 @@ func ReadObject(filename string) (map[string]any, error) {
 }
 
 func readObject(filename string, body []byte) (map[string]any, error) {
+	return ParseObject(filename, body)
+}
+
+// ParseObject validates one UTF-8 JSON object from already-read bytes.
+func ParseObject(filename string, body []byte) (map[string]any, error) {
 	if !utf8.Valid(body) {
 		return nil, fmt.Errorf("%s: JSON must be UTF-8", filepath.Base(filename))
 	}

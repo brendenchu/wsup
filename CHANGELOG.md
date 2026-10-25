@@ -72,8 +72,11 @@ See the [release guide](docs/releases.md) for version and tag policy.
 - Explicit read-only `update --migrate-native` previews Python schema-1
   conversion, legacy guidance relocation, and retirement of unchanged
   manifest-owned runtime/catalogue files. Migration apply remains disabled;
-  unsafe sources, unknown installation files, and legacy report/configuration
-  policy needing review block the preview.
+  unsafe sources, unknown installation files, report destination collisions, and
+  explicitly legacy report policy needing owner review block the preview.
+  Legacy report moves preserve exact bytes/provenance; valid native settings
+  no longer cause blanket conflicts. Settings and reports are never rewritten
+  by preview, and persistent policy is not masked by environment overrides.
 - Native Unix `check` execution with explicit selection, timeout precedence,
   bounded output, process-group cancellation, and sanitized schema-v2 reports.
   Non-Unix execution remains unsupported; macOS ARM64 is the verified runtime.

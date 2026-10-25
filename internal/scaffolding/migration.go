@@ -139,26 +139,8 @@ func PlanMigration(root, version string, keep []string) (MigrationPlan, error) {
 			result.Conflicts = append(result.Conflicts, name)
 		}
 	}
-	// Legacy report relocation/settings need their own byte-preserving planning
-	// and apply checks. Block explicitly until that surface is implemented.
-	if info, err := handle.Lstat(".work/quality"); err == nil {
-		if info.Mode()&os.ModeSymlink != 0 {
-			return MigrationPlan{}, fmt.Errorf("migration refuses symlinked legacy reports")
-		}
-		result.Conflicts = append(result.Conflicts, ".work/quality")
-	} else if !os.IsNotExist(err) {
+	if err := planMigrationReports(root, handle, loaded.State.Files, files, &result); err != nil {
 		return MigrationPlan{}, err
-	}
-	for _, name := range []string{"wsup.json", "wsup.local.json"} {
-		current, err := observeFile(handle, name)
-		if err != nil {
-			return MigrationPlan{}, err
-		}
-		// Config stays owner-owned. Until legacy report-policy interpretation is
-		// implemented, require review instead of promising a usable migration.
-		if current.exists {
-			result.Conflicts = append(result.Conflicts, name)
-		}
 	}
 	preview, err := planLoadedUpdate(root, version, files, keep, LoadedState{State: native, Original: loaded.Original}, nil)
 	if err != nil {

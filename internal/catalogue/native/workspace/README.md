@@ -99,7 +99,9 @@ workspace-owned; omitted homes and unknown/report/local/project bytes survive.
 Migration apply from Python-managed workspaces is not yet available. Explicit
 `wsup --root PYTHON_WORKSPACE update --migrate-native` is a read-only preview;
 its `--apply` is disabled. It blocks on unsafe runtime sources, unknown
-installation files, and legacy report/config policy requiring review;
+installation files, report destination collisions, and explicitly legacy report
+settings requiring owner review. Legacy report files are planned for exact-byte
+relocation; valid native configuration is preserved without a blanket conflict;
 do not delete settings or reports to bypass these blockers. Do not use Python's
 update command on this native workspace. Binary replacement and
 workspace-content updates are separate operations, never automatic downloads.

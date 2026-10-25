@@ -56,17 +56,13 @@ func Load(root string, timeout *int, lookup func(string) (string, bool)) (Result
 		if err != nil {
 			return Result{}, err
 		}
-		document, err := registry.ReadObject(path)
+		body, err := os.ReadFile(path)
 		if err != nil {
 			return Result{}, err
 		}
-		version, valid := registry.Integer(document["version"])
-		if !valid || version != 1 || !registry.Fields(document, "version", "settings") {
-			return Result{}, fmt.Errorf("%s: configuration requires version 1", filename)
-		}
-		settings, exists := document["settings"]
-		if !exists {
-			settings = map[string]any{}
+		settings, err := ParseSettings(filename, body)
+		if err != nil {
+			return Result{}, err
 		}
 		if err := merge(settings, filename); err != nil {
 			return Result{}, err
@@ -119,6 +115,28 @@ func Load(root string, timeout *int, lookup func(string) (string, bool)) (Result
 			OutputLimitBytes: numbers["output_limit_bytes"], ReportDir: reportDir},
 		Sources: sources,
 	}, nil
+}
+
+// ParseSettings validates configuration structure without merging away an
+// explicitly recorded report policy. Load validates effective values separately.
+func ParseSettings(filename string, body []byte) (map[string]any, error) {
+	document, err := registry.ParseObject(filename, body)
+	if err != nil {
+		return nil, err
+	}
+	version, valid := registry.Integer(document["version"])
+	if !valid || version != 1 || !registry.Fields(document, "version", "settings") {
+		return nil, fmt.Errorf("%s: configuration requires version 1", filename)
+	}
+	raw, exists := document["settings"]
+	if !exists {
+		return map[string]any{}, nil
+	}
+	settings, ok := raw.(map[string]any)
+	if !ok || !registry.Fields(settings, "timeout_seconds", "output_limit_bytes", "report_dir") {
+		return nil, fmt.Errorf("%s: unsupported configuration settings", filename)
+	}
+	return settings, nil
 }
 
 // ReportDirectory rechecks containment without creating directories. Writers

@@ -220,14 +220,28 @@ unknown files in retiring installation trees, and symlinks block the plan.
 `--keep` cannot bypass retirement or relocation safety. No preview deletes or
 converts anything; `--migrate-native --apply` explicitly fails until acceptance.
 
-The preview conservatively reports existing `wsup.json`, `wsup.local.json`, or
-`.work/quality` as conflicts until legacy report/configuration planning is
-implemented. Do not delete settings or evidence to bypass these blockers.
+Legacy `.work/quality/` files now produce exact `move-report` actions to the
+corresponding `.wsup/reports/` paths, without rewriting bytes/provenance or making
+reports template-owned. Destinations must be absent, even if existing bytes are
+identical; directory collisions, symlinks, special files, and non-directory
+parents are refused. Empty legacy directories need no move. Preview rechecks
+observed source/destination/configuration hashes before returning; future apply
+must separately recheck complete tree inventories and all observations.
+
+Existing `wsup.json`/`wsup.local.json` no longer cause blanket conflicts.
+Configuration structure uses the same parser as normal loading; explicit
+native report paths and effective persistent values are validated. Each file's
+explicit `.work*` report setting conflicts for owner-reviewed change, even when
+overridden by the other file. Ambient environment overrides are deliberately
+ignored in persistent-policy preview. Malformed settings and unsafe paths fail
+explicitly. Owner configuration is never rewritten or deleted. Do not delete
+settings or evidence to bypass conflicts.
 Pinned historical tests extract actual commits for v0.1.0 and python-baseline,
 generate real workspace/project starters with Python, verify complete historical
 workspace inventories against the frozen hashes/sizes, and assert native previews
-preserve all bytes. Runtime/apply failure gates and historical report relocation
-are still outstanding; a conflict-free preview is not migration certification.
+preserve all bytes, including legacy reports and valid owner configuration.
+Runtime/apply failure gates and actual historical report relocation remain
+outstanding; a conflict-free preview is not migration certification.
 
 Collection names share one validated, sorted/deduplicated catalogue contract.
 `collections` lists available names without requiring state; additions require a

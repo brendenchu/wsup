@@ -103,6 +103,9 @@ func TestMigrationPreviewsRealPinnedHistoricalStarters(t *testing.T) {
 				writeFixture(t, destination, "README.md", []byte("Owner customized map"))
 				writeFixture(t, destination, "tools/independent/README.md", []byte("Owner project"))
 				writeFixture(t, destination, ".wsup/reports/history.json", []byte("Historical evidence"))
+				writeFixture(t, destination, ".work/quality/legacy.json", []byte("Historical legacy-location evidence\x00\r\n"))
+				writeFixture(t, destination, "wsup.json", []byte(`{"version":1,"settings":{"timeout_seconds":30}}`))
+				writeFixture(t, destination, "wsup.local.json", []byte(`{"version":1,"settings":{"report_dir":".wsup/reports/custom"}}`))
 				before := snapshot(t, destination)
 				result, err := PlanMigration(destination, "0.1.0", []string{"README.md"})
 				if err != nil || len(result.Conflicts) != 0 {
@@ -110,6 +113,15 @@ func TestMigrationPreviewsRealPinnedHistoricalStarters(t *testing.T) {
 				}
 				if !reflect.DeepEqual(before, snapshot(t, destination)) {
 					t.Fatal("historical preview wrote files")
+				}
+				moved := false
+				for _, action := range result.Actions {
+					if action.Action == "move-report" && action.Path == ".wsup/reports/legacy.json" && action.From == ".work/quality/legacy.json" {
+						moved = true
+					}
+				}
+				if !moved {
+					t.Fatal("historical report relocation missing")
 				}
 			}
 		})

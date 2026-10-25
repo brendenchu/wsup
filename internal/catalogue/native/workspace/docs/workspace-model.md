@@ -263,11 +263,19 @@ Python-to-native migration apply is not yet available. A separately invoked
 `wsup --root PYTHON_WORKSPACE update --migrate-native` previews schema-1 to
 schema-2 content, guidance relocation, and exact manifest-owned runtime retirement.
 It never writes; combining it with `--apply` fails explicitly. Customized/missing
-runtime sources, unknown installation-tree files, relocated destination collisions,
-legacy `.work/quality` reports, and existing `wsup.json`/`wsup.local.json` files
-block migration pending preservation/policy review. Configuration blocking is
-deliberately conservative until legacy report-policy planning is implemented,
-not a request to delete settings or evidence. `--keep` cannot bypass runtime
+runtime sources, unknown installation-tree files, and relocated destination
+collisions block migration. Legacy `.work/quality/` files are planned as exact
+`move-report` actions to corresponding `.wsup/reports/` paths, without rewriting
+provenance or adopting evidence as templates. Destination collisions block even
+when bytes match. Symlinks, special files, and non-directory ancestors fail.
+Empty legacy report directories need no move.
+
+Existing `wsup.json`/`wsup.local.json` remain owner-owned. Valid native settings
+no longer block preview. Each explicitly recorded `.work*` report policy requires
+an owner-reviewed configuration change, even if a local override hides it.
+Malformed settings or unsafe native report paths fail explicitly. Migration
+ignores environment overrides while inspecting persistent policy. Do not delete
+settings or evidence to bypass conflicts. `--keep` cannot bypass runtime
 retirement or relocation safety checks. Ordinary update never implicitly migrates.
 Python rejects native schema 2;
 do not force a downgrade by
