@@ -67,7 +67,7 @@ starter overrides: initialization uses the installed catalogue.
 | VS Code Copilot | `.agents/skills/`, `.github/skills/`, `.claude/skills/` | Same-name skills can appear in multiple locations; inspect the Skills view. Do not infer cross-location precedence from workspace-root precedence | Upstream documentation only |
 | Codex CLI / IDE extension | `.agents/skills/` from the current directory up to the repository root | Same-name skills are not merged and can both appear. Changes are detected automatically; restart if needed | Upstream documentation only |
 | Gemini CLI | `.agents/skills/` or `.gemini/skills/` | Workspace overrides user scope; `.agents/skills/` wins over `.gemini/skills/` at the same scope. Use `/skills list` and `/skills reload`; activation requests consent | Upstream documentation only |
-| Claude Code | Project `.claude/skills/`; parent discovery stops at the repository root | Native-location support is documented; shared `.agents/skills/` discovery is not established here. Start a fresh session and inspect available skills when verifying | Explicit-path fallback for WSUP; an optional adapter remains a separate decision |
+| Claude Code | Project `.claude/skills/`; repository-scoped discovery | Native-location support is documented; shared `.agents/skills/` discovery is not established here. Start a fresh session and inspect available skills when verifying | Explicit-path fallback for WSUP; an optional adapter remains a separate decision |
 | Copilot CLI, cloud agent, app, other assistants | Must be checked for each experience | VS Code settings are not automatically inherited by other clients | No automatic-discovery claim yet |
 
 Sources:
@@ -94,9 +94,12 @@ guidance instead of copying its policies.
 
 Workspace-local discovery is the default. WSUP will not install skills into
 independent child repositories, user home directories, or machine-wide locations.
-Repository traversal differs by client; a parent workspace's skills must not be
-assumed to load inside an independent child repository. Keep project guidance
-with its owner and verify loading in the actual root/session being used.
+Each workspace knows only itself and its descendants. Repository traversal
+differs by client, but it does not grant instruction inheritance: use the
+current root's own guidance and skills. Keep descendant guidance self-contained
+and verify loading in the actual root/session being used. WSUP guidance does
+not configure or enforce a client's discovery boundary; inspect the client's
+controls separately if it loads context outside the intended root.
 
 No provider selection, credentials, client installation, network installer, or
 marketplace is required. Clients supporting the shared location need no

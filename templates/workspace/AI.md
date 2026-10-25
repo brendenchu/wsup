@@ -1,5 +1,10 @@
 # Workspace guidance
 
+Each workspace knows only itself and its descendants. Keep documentation,
+guidance, registry entries, and commands rooted here; do not discover, inherit,
+or reference workspace context outside this root. Descendant workspaces carry
+their own self-contained instructions and remain independently usable.
+
 Read README.md and `guidance/rules/index.md` before planning changes. Load the rules
 matching the task and affected paths. Inspect the owning repository's Git status
 and preserve unrelated work. A workspace directory is not necessarily one Git

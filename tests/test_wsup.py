@@ -114,6 +114,56 @@ class WsupTest(unittest.TestCase):
                 self.assertTrue(linked.is_relative_to(SOURCE.resolve()), target)
                 self.assertTrue(linked.is_file(), target)
 
+    def test_gitignore_baselines_match_and_preserve_trackable_content(self):
+        baseline = (SOURCE / "templates/project/.gitignore").read_text()
+        for path in (SOURCE / ".gitignore", SOURCE / "templates/workspace/.gitignore"):
+            self.assertEqual(baseline, path.read_text().split("\n\n", 1)[0] + "\n")
+        self.assertEqual(
+            (SOURCE / ".gitignore").read_bytes(),
+            (SOURCE / "templates/workspace/.gitignore").read_bytes())
+        ignored = [
+            ".work/note", "apps/example/.work/note", ".wsup/reports/check.json",
+            "wsup.local.json", ".env", ".env.local", "apps/example/.env",
+            "__pycache__/module.pyc", "tools/__pycache__/module.pyc",
+            ".DS_Store", "apps/example/.DS_Store",
+        ]
+        trackable = [
+            ".env.example", "apps/example/.env.example", ".wsup/template-state.json",
+            ".wsup/wsup.py", "workspace.json", "workbench/draft.md",
+            "apps/example/README.md", "private/README.md",
+        ]
+        for kind in ("workspace", "project"):
+            with self.subTest(kind=kind):
+                root = self.root / kind
+                self.assertEqual(0, self.run_cli("init", str(root), "--template", kind))
+                subprocess.run(["git", "init", "--quiet", str(root)], check=True, capture_output=True)
+                result = subprocess.run(
+                    ["git", "-c", "core.excludesFile=/dev/null", "check-ignore",
+                     "--no-index", "--stdin", "-z"],
+                    cwd=root, input="\0".join(ignored + trackable) + "\0",
+                    text=True, capture_output=True)
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertEqual(ignored, result.stdout.rstrip("\0").split("\0"))
+
+    def test_workspace_guidance_is_self_contained_and_descendant_only(self):
+        import re
+        contract = "Each workspace knows only itself and its descendants."
+        for base in (SOURCE, SOURCE / "templates/workspace", SOURCE / "templates/project"):
+            self.assertIn(contract, (base / "AI.md").read_text())
+        for base in (SOURCE / "templates/workspace", SOURCE / "templates/project"):
+            self.assertIn(contract, (base / "guidance/rules/boundaries.md").read_text())
+            for guide in base.rglob("*.md"):
+                content = guide.read_text()
+                self.assertNotRegex(content.lower(), r"\bparent(?:'s)?\s+workspace\b")
+                for target in re.findall(r"\]\(([^)]+)\)", content):
+                    if "://" in target:
+                        continue
+                    linked = (guide.parent / target.split("#", 1)[0]).resolve()
+                    self.assertTrue(linked.is_relative_to(base.resolve()), (guide, target))
+        for guide in (SOURCE / "README.md", SOURCE / "docs/workspace-model.md"):
+            self.assertIn(contract, guide.read_text())
+            self.assertNotRegex(guide.read_text().lower(), r"\bparent(?:'s)?\s+workspace\b")
+
     def test_generated_workspace_runs_independently(self):
         destination = self.root / "second workspace"
         self.assertEqual(0, self.run_cli("init", str(destination)))

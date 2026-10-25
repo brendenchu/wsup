@@ -4,6 +4,11 @@ This repository contains the workspace CLI, its tests, and the files copied into
 generated workspaces. Keep the starter generic and functional without access to
 this checkout.
 
+Each workspace knows only itself and its descendants. Keep documentation,
+guidance, registry entries, and commands rooted here; do not discover, inherit,
+or reference workspace context outside this root. Descendant workspaces carry
+their own self-contained instructions and remain independently usable.
+
 This file is the repository-specific entry point. The root
 [rule index](guidance/rules/index.md) routes to focused rules; shared rule text lives
 in `templates/workspace/guidance/rules/`. Root `.agents/skills/` is canonical for

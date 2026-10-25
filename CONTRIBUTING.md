@@ -21,6 +21,9 @@ and setup.
 - Keep behavior changes focused and add regression coverage for observable
   behavior. Update directly related documentation.
 - Keep workspace-owned and independent project repositories separate.
+- Keep each workspace self-contained, describing only itself and its descendants.
+  Never write upward workspace relationships into descendant documentation or
+  make local guidance depend on context outside its root.
 - Root `.agents/skills/` is canonical. Keep the corresponding copies under
   `templates/workspace/.agents/skills/` synchronized.
 - Keep durable documentation with its owning project, use one canonical copy,

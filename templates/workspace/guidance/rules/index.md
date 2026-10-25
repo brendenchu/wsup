@@ -1,12 +1,13 @@
 # Rule index
 
-Paths below are relative to this repository, not an enclosing workspace.
+Each workspace knows only itself and its descendants.
+Paths and instruction discovery are scoped to this repository.
 Read every row relevant to the task; a path match alone may miss a task rule.
 
 | Trigger / paths | Rule |
 | --- | --- |
 | Any implementation, configuration or Git operation | [changes.md](changes.md) |
-| Adding projects, dependencies or changing ownership | [boundaries.md](boundaries.md) |
+| Workspace scope, adding projects, dependencies or changing ownership | [boundaries.md](boundaries.md) |
 | Tests, checks, formatting or static analysis | [verification.md](verification.md) |
 | Research, captures, findings or generated evidence | [evidence.md](evidence.md) |
 | Public APIs, CLI/config contracts, schemas or migrations | [interfaces.md](interfaces.md) |

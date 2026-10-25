@@ -8,6 +8,11 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- Align the development checkout and both starter Git-ignore baselines, including
+  macOS metadata, while retaining repository-local ownership exclusions.
+- Define the workspace boundary explicitly: each workspace knows only itself
+  and its descendants. Keep documentation, guidance, configuration, and
+  onboarding self-contained with no upward workspace relationship or inheritance.
 - Deliberate pre-1.0 installation layout: generated commands use `.wsup/wsup.py`,
   with runtime and one authoritative template catalogue under `.wsup/`.
   The source checkout retains its visible `tools/` and `templates/` layout.

@@ -4,6 +4,11 @@ Use this folder to organize related projects. Projects may share one repository
 or keep separate repositories, dependencies, tests, and release cycles. The
 registry records project ownership; it does not create a shared build.
 
+Each workspace knows only itself and its descendants. Its documentation,
+guidance, registry, and commands are self-contained and scoped to this root.
+Descendant workspaces carry their own instructions; no workspace context is
+discovered or inherited from outside this root.
+
 Keep the workspace useful without requiring a particular provider or tool.
 Prefer open, widely supported formats and interfaces; keep service-specific
 integrations optional and replaceable. Projects can have their own real
@@ -105,7 +110,7 @@ Use template update preview/apply to refresh bundled content after obtaining a
 newer trusted CLI; it does not download releases. Use the client's controls to
 disable skill use rather than deleting files linked from the rule index. See the
 [workspace model](docs/workspace-model.md) for legacy migration and recovery.
-Independent project repositories retain their own guidance; parent skills are
+Independent project repositories retain their own guidance; workspace skills are
 not installed into them automatically.
 
 ## WSUP attribution

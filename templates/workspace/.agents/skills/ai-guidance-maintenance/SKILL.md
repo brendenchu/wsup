@@ -8,6 +8,8 @@ description: Maintain AI.md entry points, rule indexes, portable skills, or opti
 1. Read the owner's AI.md, rule index, and existing procedures. Identify the
    behavior the guidance should change and its task trigger. Choose the scope:
    portable workspace guidance or project-specific requirements owned locally.
+   Keep each workspace's knowledge scoped to itself and its descendants; never
+   write upward workspace relationships or require external workspace guidance.
 2. Use an entry-point pointer for always-relevant orientation, a rule for
    constraints, or a skill for an on-demand procedure. Reuse an existing source
    where it already covers the behavior. Keep client-specific discovery separate

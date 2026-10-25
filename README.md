@@ -10,6 +10,11 @@ own, and integrations should be replaceable so people can use the tools that
 work for them without making those tools requirements for everyone. The CLI has
 no third-party runtime dependencies or required AI service.
 
+**Workspace independence:** Each workspace knows only itself and its descendants.
+Its documentation, guidance, registry, and commands are rooted locally.
+Descendant workspaces carry their own self-contained instructions; no workspace
+context is discovered or inherited from outside the current root.
+
 ## Requirements
 
 Python 3.9 or newer. Registered projects may use any language or toolchain; each
@@ -41,8 +46,8 @@ the CLI and both templates, so it can be used without this checkout. Inside that
 generated workspace, use `python3 -B .wsup/wsup.py ...`. The installed runtime,
 single template catalogue, state, and reports live under `.wsup/`; shared rules
 live in `guidance/rules/` and portable skills remain in `.agents/skills/`.
-Generated workspaces include a standard set of project, knowledge, and working
-areas; see the workspace layout below.
+Generated workspaces include a focused set of development homes, with optional
+collections selected explicitly; see the workspace layout below.
 
 ## Use the CLI
 
@@ -121,6 +126,32 @@ For independent project repositories, add each project's directory to the
 workspace `.gitignore` and mark it `independent` in the registry. Workspace-owned
 projects stay tracked normally. See [Git ownership](docs/workspace-model.md)
 for setup and existing-file precautions.
+
+## This development checkout
+
+The source root uses the same six development homes, with source-specific
+responsibilities rather than a second installed workspace:
+
+| Directory | Role here |
+| --- | --- |
+| [apps](apps/), [packages](packages/), [infrastructure](infrastructure/) | Baseline homes, currently without projects or services. Their READMEs explain the boundaries; no example projects are required. |
+| [tools](tools/) | The WSUP CLI implementation and development entry point. In generated workspaces the runtime lives under `.wsup/` instead. |
+| [docs](docs/) | Maintained WSUP product and contributor documentation. |
+| [workbench](workbench/) | Reviewed human-authored development drafts, separate from maintained docs and disposable local notes. |
+| [templates](templates/) | Product source for workspace, project, and optional collection scaffolds; not this checkout's own workspace content. |
+| [tests](tests/) | CLI and starter regression tests. |
+
+The registry describes this repository as one WSUP tool project. Guidance and
+portable skills live at the root; `.wsup/reports/` holds ignored check reports,
+not an installed runtime. Use ignored `.work/` for session logs and disposable
+investigations.
+
+The unused legacy research and journal scaffolds have been retired from this
+checkout; their distributable versions remain in the optional catalogue.
+No learning, reference, archive, artifacts, or private collection is needed
+merely because WSUP offers one. Introduce optional homes here only for actual
+development work, with an explicit purpose and owner. Do not run consumer
+template updates over the source root.
 
 ## Optional AI skills
 

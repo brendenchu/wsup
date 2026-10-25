@@ -1,5 +1,8 @@
 # Product rules
 
+Each workspace knows only itself and its descendants. Read guidance from this
+repository only; the ownership rule defines the self-contained workspace boundary.
+
 Read the relevant portable rule when changing this product:
 
 - Implementation: [changes](../../templates/workspace/guidance/rules/changes.md).

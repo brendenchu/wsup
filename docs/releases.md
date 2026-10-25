@@ -68,7 +68,7 @@ actually verified.
    synthetic fixtures: preview must be read-only, conflicts must preserve work,
    and successful apply must leave a stable subsequent preview.
 5. Check that root and bundled skill copies agree, relative references work,
-   and independent repositories remain outside parent staging. Distinguish
+   and independent repositories remain outside workspace staging. Distinguish
    structural checks from any live client-discovery tests.
 6. Review [LICENSE](../LICENSE) and distribution notices. Both starters include
    `WSUP-LICENSE` copies that must match the repository license. Verify generated

@@ -1,12 +1,12 @@
 .work/
+**/.work/
 .wsup/reports/
 wsup.local.json
 .env
 .env.*
 !.env.example
-.DS_Store
 **/__pycache__/
-**/.work/
+.DS_Store
 
 # Add one root-relative entry per independent project; see docs/workspace-model.md.
 # /apps/my-app/

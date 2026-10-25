@@ -1,4 +1,8 @@
 # Packages
 
-Reusable libraries with independent tests and releases. Add projects as needed; grouping directories do not combine
-Git histories or imply a shared build. Keep required instructions with each owner.
+Home for separately owned reusable packages. This development checkout currently
+has none; [wsup_core](../tools/wsup_core/) is part of the WSUP CLI, not an
+independently released package.
+
+Keep this baseline home available without extracting modules merely to populate
+it. Register real packages with explicit ownership, tests, and release boundaries.

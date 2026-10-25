@@ -4,12 +4,27 @@ The directory layout groups work by responsibility. `workspace.json` records
 project ownership and local checks. Git topology is independent: one workspace
 may contain a single repository, independent repositories, or a mixture. No
 shared build or release is implied. New workspaces use an opinionated baseline
-informed by the WSUP prototype and its dogfooding workspace. The starter creates
+focused on development responsibilities. The starter creates
 standard development homes even when they begin empty; knowledge and activity
 workflows, lifecycle collections, and sensitive-data collections remain opt-in. Project
 `kind` classifies purpose; it does not require a matching directory name.
 
 ## Installation and ownership
+
+### Workspace independence
+
+Each workspace knows only itself and its descendants. Its documentation,
+guidance, registry, and commands describe its own root and locally registered
+work. Do not discover or inherit workspace instructions or configuration from
+outside that root, record upward workspace relationships, or embed knowledge
+of where a workspace is stored or which workspace generated it.
+
+A workspace can register descendant projects or workspaces, but each keeps its
+own self-contained required guidance and explicit local configuration. Describe
+descendants from the current workspace without injecting that relationship into
+their documentation. Directory nesting does not create policy inheritance.
+Generated workspaces retain no relationship to their generating workspace and
+must remain usable after relocation.
 
 Generated workspaces run `python3 -B .wsup/wsup.py ...` from the workspace root.
 The development checkout instead runs `tools/wsup.py`; its visible `tools/` and
@@ -162,6 +177,14 @@ Keep workspace configuration, guidance, and any grouping-directory README files
 in the workspace repository. Projects can share that repository or use independent
 repositories side by side. Nothing under the standard grouping directories is
 ignored by default just because it is a project.
+
+The development checkout and both starters share the same Git-ignore baseline:
+local `.work/` directories, `.wsup/reports/`, `wsup.local.json`, `.env` and
+`.env.*` files (except `.env.example`), Python `__pycache__/`, and `.DS_Store`.
+Keep that baseline aligned; add project, toolchain, or collection exclusions
+locally after it. Every repository carries its own rules rather than relying on
+ignore configuration outside its root. Ignore rules are staging hygiene, not
+access controls, and do not remove already-tracked files.
 
 For each independently owned project:
 

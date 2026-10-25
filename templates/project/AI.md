@@ -5,6 +5,7 @@ repository's Git status and preserve unrelated work and staging. Follow local
 commands and installed tool versions. Add project-specific language, architecture
 and test rules to this repository's own index as those decisions become known.
 
-Use the rules in this repository even when it is moved out of its workspace.
-Read a workspace skill only when applicable and available; required project
-instructions must never depend on an enclosing checkout or a client integration.
+Use only this repository's own guidance and explicitly available local skills.
+Keep required instructions self-contained when the repository is moved.
+Each workspace knows only itself and its descendants.
+Do not discover or inherit workspace context outside this repository's root.

@@ -16,10 +16,12 @@ description: Onboard a new or existing workspace project. Use when adding or reg
    inside the workspace, including through symlinks.
 3. Apply the Git ownership procedure in the workspace model. For independent
    ownership, add the exact root-relative project directory to the workspace
-   ignore file and verify it with `git check-ignore -v`. Check whether the parent
+   ignore file and verify it with `git check-ignore -v`. Check whether this workspace
    already tracks project files; obtain approval for index removal or history
    migration before converting them. Initialize or clone a repository only when
-   requested, and verify its top-level directory is the project, not the parent.
+   requested, and verify its top-level directory is the project itself.
+   Keep the project's guidance self-contained; never write its location within
+   this workspace or an upward workspace relationship into its required docs.
 4. Add the project's registry entry with the established ownership and dependency
    IDs. Reuse the [registry-checks](../registry-checks/SKILL.md) procedure when
    adding checks or changing dependencies.
