@@ -54,8 +54,17 @@ The fixture runner also accepts an executable argv prefix:
 python3 -B tests/migration_baseline.py --command /absolute/path/to/wsup
 ```
 
-This provides a future Go comparison seam, not a claim that a Go implementation
-exists or currently passes. The synthetic check commands deliberately require
+Full `--command` replay remains a future whole-port gate: the Go CLI currently
+implements inspection/editor commands only. To compare that subset while Python
+drives setup and unported steps:
+
+```sh
+python3 -B tests/migration_baseline.py --compare-read-only /absolute/path/to/wsup
+```
+
+The subset comparison checks stdout, stderr, exits, no-write inspections, and exact
+editor bytes/overwrite protection. It does not substitute Go for unported commands
+or certify full parity. The synthetic check commands deliberately require
 Python; they test running an application tool, not a dependency of the Go CLI.
 The original Python tests remain the executable reference for internal failure
 injection, timing/cancellation, migration, and ownership cases.

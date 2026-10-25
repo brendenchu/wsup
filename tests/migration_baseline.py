@@ -87,7 +87,7 @@ def set_field(document, dotted, value=None, delete=False):
         target[key] = value
 
 
-def replay(command):
+def replay(command, compare_read_only=None):
     cases = json.loads((DATA / "cases.json").read_text())["cases"]
     results = {}
     for case in cases:
@@ -129,8 +129,42 @@ def replay(command):
                 env.update(step.get("env", {}))
                 env["PYTHONDONTWRITEBYTECODE"] = "1"
                 invoked = command + (["--root", str(root)] if step.get("root", True) else []) + args
+                editor_result = None
+                editor_after = None
+                if compare_read_only and step["args"][0] == "editor":
+                    editor_result = subprocess.run(
+                        compare_read_only + ["--root", str(root)] + args,
+                        cwd=base, env=env, capture_output=True, text=True, timeout=20)
+                    editor_after = snapshot(base)
+                    if any(editor_after.get(name) != body for name, body in before.items()):
+                        raise AssertionError("Go editor changed existing files")
+                    for name in set(editor_after) - set(before):
+                        target = base / name
+                        if not target.is_file() or target.is_symlink():
+                            raise AssertionError(f"Unexpected Go editor output: {name}")
+                        target.unlink()
                 completed = subprocess.run(invoked, cwd=base, env=env,
                                            capture_output=True, text=True, timeout=20)
+                if editor_result is not None:
+                    if ((editor_result.returncode, output(editor_result.stdout, paths),
+                         output(editor_result.stderr, paths)) !=
+                            (completed.returncode, output(completed.stdout, paths),
+                             output(completed.stderr, paths)) or editor_after != snapshot(base)):
+                        raise AssertionError(f"Go/Python editor output or exact file bytes differ: {args}")
+                if (compare_read_only and step["args"][0] in ("validate", "projects", "config", "guidance")
+                        and step.get("root", True)):
+                    candidate = subprocess.run(
+                        compare_read_only + ["--root", str(root)] + args,
+                        cwd=base, env=env, capture_output=True, text=True, timeout=20)
+                    actual_result = (candidate.returncode, output(candidate.stdout, paths),
+                                     output(candidate.stderr, paths))
+                    reference_result = (completed.returncode, output(completed.stdout, paths),
+                                        output(completed.stderr, paths))
+                    if actual_result != reference_result:
+                        raise AssertionError(
+                            f"{case['id']} {args}: Go={actual_result!r}; Python={reference_result!r}")
+                    if snapshot(base) != before:
+                        raise AssertionError(f"Read-only command wrote files: {case['id']} {args}")
                 after = snapshot(base)
                 reports = report_files(root, paths)
                 new_reports = [body for name, body in reports.items() if name not in old_reports]
@@ -330,21 +364,23 @@ def main():
                         help="CLI argv prefix, e.g. --command /path/to/wsup")
     parser.add_argument("--verify-archives", action="store_true",
                         help="Replay pinned archives and both historical generation inventories")
+    parser.add_argument("--compare-read-only", nargs=argparse.REMAINDER,
+                        help="Compare ported inspection/editor commands while Python drives setup")
     args = parser.parse_args()
     if args.verify_archives:
-        if args.capture or args.command:
+        if args.capture or args.command or args.compare_read_only:
             parser.error("--verify-archives cannot use --capture or --command")
         verify_archives()
         return
     if args.capture:
-        if args.command:
+        if args.command or args.compare_read_only:
             parser.error("--capture cannot use --command")
         capture()
         print("Captured immutable Python command, test-map, and historical inventories.")
     else:
         command = args.command or [sys.executable, "-B", str(SOURCE / "src/wsup.py")]
         expected = json.loads((DATA / "expected.json").read_text())
-        actual = replay(command)
+        actual = replay(command, args.compare_read_only)
         if actual != expected:
             for case in actual:
                 for index, (want, got) in enumerate(zip(expected[case], actual[case])):

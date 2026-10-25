@@ -21,8 +21,10 @@ Python 3.9 or newer. Registered projects may use any language or toolchain; each
 project owns its dependencies and commands.
 
 The Go migration bootstrap uses Go 1.27.3, pinned in `mise.toml`. It currently
-supports only help/version; workspace commands fail explicitly until ported.
-Continue using Python for all workspace operations. See
+supports help/version, `validate`, `projects`, `config`, `guidance`, and `editor`.
+Execution and scaffolding commands still fail explicitly until ported.
+Python remains the reference CLI and is required for checks, initialization,
+collections, and updates. See
 [Go development](CONTRIBUTING.md#go-migration-development) for build/test commands.
 
 An existing macOS developer-tools Python 3.9 can run WSUP; check your installed
