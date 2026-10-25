@@ -70,7 +70,7 @@ class WsupTest(unittest.TestCase):
     def test_ai_kit_references_and_skill_structure(self):
         import re
         kit = SOURCE / "templates/workspace"
-        for template in (kit, SOURCE / "templates/project", kit / "templates/project"):
+        for template in (kit, SOURCE / "templates/project"):
             self.assertEqual(
                 (SOURCE / "LICENSE").read_bytes(),
                 (template / "WSUP-LICENSE").read_bytes())
@@ -98,7 +98,7 @@ class WsupTest(unittest.TestCase):
             source = canonical_skills / skill.relative_to(kit / ".agents/skills")
             self.assertEqual(source.read_bytes(), skill.read_bytes())
             route = f"](../../.agents/skills/{skill.parent.name}/SKILL.md)"
-            for index in (SOURCE / ".ai/rules/index.md", kit / ".ai/rules/index.md"):
+            for index in (SOURCE / "guidance/rules/index.md", kit / "guidance/rules/index.md"):
                 self.assertIn(route, index.read_text())
             content = skill.read_text()
             self.assertTrue(content.startswith("---\n"))
@@ -108,15 +108,11 @@ class WsupTest(unittest.TestCase):
             self.assertRegex(fields["name"], r"^[a-z0-9-]+$")
             self.assertTrue(fields["description"].strip())
             self.assertTrue(body.strip())
-        for guide in [*(SOURCE / ".ai").rglob("*.md"), *(SOURCE / ".agents").rglob("*.md")]:
+        for guide in [*(SOURCE / "guidance").rglob("*.md"), *(SOURCE / ".agents").rglob("*.md")]:
             for target in re.findall(r"\]\(([^)]+)\)", guide.read_text()):
                 linked = (guide.parent / target).resolve()
                 self.assertTrue(linked.is_relative_to(SOURCE.resolve()), target)
                 self.assertTrue(linked.is_file(), target)
-        for path in (SOURCE / "templates/project").rglob("*"):
-            if path.is_file():
-                bundled = kit / "templates/project" / path.relative_to(SOURCE / "templates/project")
-                self.assertEqual(path.read_bytes(), bundled.read_bytes())
 
     def test_generated_workspace_runs_independently(self):
         destination = self.root / "second workspace"
@@ -124,36 +120,36 @@ class WsupTest(unittest.TestCase):
         self.assertEqual(2, self.run_cli("init", str(destination)))
         required_files = [
             "README.md", "AI.md", "AGENTS.md", ".gitignore", "workspace.json", "WSUP-LICENSE",
-            "docs/README.md", "docs/workspace-model.md", "journal/README.md",
-            "journal/TEMPLATE.md", "apps/README.md", "packages/README.md",
-            "infrastructure/README.md", "research/README.md",
-            ".ai/rules/index.md", ".agents/skills/workspace-check/SKILL.md",
-            "templates/project/README.md", "templates/project/AI.md",
-            "templates/project/AGENTS.md", "tools/wsup.py",
-            "tools/wsup_core/cli.py", "tools/wsup_templates/workspace/README.md",
-            "tools/wsup_templates/project/README.md",
+            "docs/README.md", "docs/workspace-model.md",
+            "guidance/rules/index.md", ".agents/skills/workspace-check/SKILL.md",
+            ".wsup/wsup.py",
+            ".wsup/wsup_core/cli.py", ".wsup/templates/workspace/README.md",
+            ".wsup/templates/project/README.md",
         ]
         for relative in required_files:
             self.assertTrue((destination / relative).is_file(), relative)
+        for relative in ("apps", "packages", "research", "infrastructure", "journal",
+                         "templates", "tools", ".ai", ".work"):
+            self.assertFalse((destination / relative).exists(), relative)
         self.assertEqual(
             (SOURCE / "tools/wsup.py").read_bytes(),
-            (destination / "tools/wsup.py").read_bytes())
+            (destination / ".wsup/wsup.py").read_bytes())
         for source in (SOURCE / "tools/wsup_core").rglob("*.py"):
-            bundled = destination / "tools/wsup_core" / source.relative_to(SOURCE / "tools/wsup_core")
+            bundled = destination / ".wsup/wsup_core" / source.relative_to(SOURCE / "tools/wsup_core")
             self.assertEqual(source.read_bytes(), bundled.read_bytes())
         for source in (SOURCE / ".agents/skills").rglob("SKILL.md"):
-            for bundled_root in (destination / ".agents/skills", destination / "tools/wsup_templates/workspace/.agents/skills"):
+            for bundled_root in (destination / ".agents/skills", destination / ".wsup/templates/workspace/.agents/skills"):
                 bundled = bundled_root / source.relative_to(SOURCE / ".agents/skills")
                 self.assertEqual(source.read_bytes(), bundled.read_bytes())
         for command in ["validate", "guidance", "editor"]:
-            result = subprocess.run([sys.executable, "-B", "tools/wsup.py", command], cwd=destination, capture_output=True)
+            result = subprocess.run([sys.executable, "-B", ".wsup/wsup.py", command], cwd=destination, capture_output=True)
             self.assertEqual(0, result.returncode, result.stderr)
         self.assertTrue((destination / "AGENTS.md").is_file())
         self.assertTrue((destination / "AI.md").is_file())
-        self.assertTrue((destination / ".ai/rules/index.md").is_file())
+        self.assertTrue((destination / "guidance/rules/index.md").is_file())
         self.assertTrue((destination / ".agents/skills/workspace-check/SKILL.md").is_file())
         self.assertFalse(list((destination / ".ai/skills").rglob("SKILL.md")))
-        project = destination / "templates/project"
+        project = destination / ".wsup/templates/project"
         self.assertTrue((project / "AGENTS.md").is_file())
         # Independent guidance has no required paths escaping its own repository.
         import re
@@ -166,19 +162,19 @@ class WsupTest(unittest.TestCase):
 
         nested = self.root / "nested workspace"
         result = subprocess.run(
-            [sys.executable, "-B", "tools/wsup.py", "init", str(nested)],
+            [sys.executable, "-B", ".wsup/wsup.py", "init", str(nested)],
             cwd=destination, capture_output=True)
         self.assertEqual(0, result.returncode, result.stderr)
         result = subprocess.run(
-            [sys.executable, "-B", "tools/wsup.py", "validate"],
+            [sys.executable, "-B", ".wsup/wsup.py", "validate"],
             cwd=nested, capture_output=True)
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertTrue((nested / "tools/wsup.py").is_file())
+        self.assertTrue((nested / ".wsup/wsup.py").is_file())
         self.assertTrue((nested / ".agents/skills/workspace-check/SKILL.md").is_file())
         for root in (destination, nested):
-            for relative in ("WSUP-LICENSE", "templates/project/WSUP-LICENSE",
-                             "tools/wsup_templates/workspace/WSUP-LICENSE",
-                             "tools/wsup_templates/project/WSUP-LICENSE"):
+            for relative in ("WSUP-LICENSE",
+                             ".wsup/templates/workspace/WSUP-LICENSE",
+                             ".wsup/templates/project/WSUP-LICENSE"):
                 self.assertEqual(
                     (SOURCE / "LICENSE").read_bytes(),
                     (root / relative).read_bytes(), relative)
@@ -192,7 +188,7 @@ class WsupTest(unittest.TestCase):
         target = self.root / "standalone"
         self.assertEqual(0, self.run_cli("init", str(target), "--template", "project"))
         subprocess.run(["git", "init", "."], cwd=target, capture_output=True, check=True)
-        ignored = [".env", ".env.local", "wsup.local.json", ".work/log",
+        ignored = [".env", ".env.local", "wsup.local.json", ".work/log", ".wsup/reports/run.json",
                    "nested/.work/log", "nested/__pycache__/module.pyc"]
         tracked = [".env.example", "WSUP-LICENSE", "README.md"]
         for name in ignored + tracked[:1]:
@@ -212,7 +208,7 @@ class WsupTest(unittest.TestCase):
         self.assertEqual(0, self.run_cli("init", str(destination)))
         def generated(*args):
             result = subprocess.run(
-                [sys.executable, "-B", "tools/wsup.py", *args],
+                [sys.executable, "-B", ".wsup/wsup.py", *args],
                 cwd=destination, capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stderr)
             return result.stdout
@@ -256,10 +252,11 @@ class WsupTest(unittest.TestCase):
         self.assertFalse((independent / "tools/wsup.py").exists())
         git("add", "--all")
         tracked = git("ls-files").splitlines()
-        for name in ("workspace.json", "apps/README.md", "apps/owned/README.md",
+        for name in ("workspace.json", "apps/owned/README.md", ".wsup/template-state.json",
                      ".agents/skills/project-onboarding/SKILL.md"):
             self.assertIn(name, tracked)
         self.assertFalse(any(name.startswith("apps/independent") for name in tracked))
+        self.assertFalse(any(name.startswith(".wsup/reports/") for name in tracked))
         self.assertFalse(any(line.startswith("160000") for line in git("ls-files", "--stage").splitlines()))
 
 if __name__ == "__main__":

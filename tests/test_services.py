@@ -36,7 +36,7 @@ class ServicesTest(unittest.TestCase):
         self.registry["projects"][0]["checks"] = values
         self.save()
     def reports(self):
-        return [json.loads(p.read_text()) for p in (self.root / ".work/quality").glob("*.json")]
+        return [json.loads(p.read_text()) for p in (self.root / ".wsup/reports").glob("*.json")]
     def test_configuration_precedence_and_sources(self):
         for name, timeout in [("wsup.json", 20), ("wsup.local.json", 30)]:
             (self.root / name).write_text(json.dumps({"version": 1, "settings": {"timeout_seconds": timeout}}))
@@ -113,8 +113,8 @@ class ServicesTest(unittest.TestCase):
         self.assertEqual("cancelled", self.reports()[0]["results"][0]["status"])
     def test_guidance_detects_broken_local_reference(self):
         (self.root / "AI.md").write_text("[missing](missing.md)")
-        (self.root / ".ai/rules").mkdir(parents=True)
-        (self.root / ".ai/rules/index.md").write_text("Local rules")
+        (self.root / "guidance/rules").mkdir(parents=True)
+        (self.root / "guidance/rules/index.md").write_text("Local rules")
         self.assertTrue(guidance.inspect(self.root)["errors"])
     def test_guidance_inspects_shared_skills_and_reports_legacy_coexistence(self):
         scaffolding.initialise(self.root / "workspace")
@@ -150,9 +150,9 @@ class ServicesTest(unittest.TestCase):
     def test_generated_cli_can_generate_another_workspace(self):
         first, second = self.root / "first", self.root / "second"
         scaffolding.initialise(first)
-        result = subprocess.run([sys.executable, "-B", "tools/wsup.py", "init", str(second)], cwd=first, capture_output=True)
+        result = subprocess.run([sys.executable, "-B", ".wsup/wsup.py", "init", str(second)], cwd=first, capture_output=True)
         self.assertEqual(0, result.returncode, result.stderr)
-        result = subprocess.run([sys.executable, "-B", "tools/wsup.py", "guidance"], cwd=second, capture_output=True)
+        result = subprocess.run([sys.executable, "-B", ".wsup/wsup.py", "guidance"], cwd=second, capture_output=True)
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertNotIn(str(SOURCE), (second / "README.md").read_text())
     def test_update_preview_and_apply_preserve_customisations(self):
@@ -199,7 +199,7 @@ class ServicesTest(unittest.TestCase):
         state_path = target / scaffolding.STATE
         state = json.loads(state_path.read_text())
         from wsup_core.reporting import digest
-        for prefix in ("", "tools/wsup_templates/workspace/"):
+        for prefix in ("", ".wsup/templates/workspace/"):
             current = target / prefix / ".agents/skills"
             legacy = target / prefix / ".ai/skills"
             legacy.parent.mkdir(parents=True, exist_ok=True)
@@ -251,7 +251,7 @@ class ServicesTest(unittest.TestCase):
                 elif case == "unrecognized":
                     (legacy.parent / "notes.txt").write_text("User notes")
                 elif case == "embedded-edit":
-                    embedded = target / "tools/wsup_templates/workspace/.ai/skills/workspace-check/SKILL.md"
+                    embedded = target / ".wsup/templates/workspace/.ai/skills/workspace-check/SKILL.md"
                     embedded.write_text("User template edit")
                 else:
                     state_path = target / scaffolding.STATE
@@ -305,12 +305,12 @@ class ServicesTest(unittest.TestCase):
         self.assertTrue(json.loads(applied.stdout)["applied"])
         for action in ("guidance", "validate", "update"):
             result = subprocess.run(
-                [sys.executable, "-B", "tools/wsup.py", action],
+                [sys.executable, "-B", ".wsup/wsup.py", action],
                 cwd=target, capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stderr)
             if action == "update":
                 self.assertEqual([], json.loads(result.stdout)["actions"])
-        self.assertNotIn(str(SOURCE), (target / "tools/wsup_core/scaffolding.py").read_text())
+        self.assertNotIn(str(SOURCE), (target / ".wsup/wsup_core/scaffolding.py").read_text())
     def test_legacy_migration_refuses_symlink_sources(self):
         target = self.legacy_workspace()
         legacy = target / ".ai/skills/workspace-check/SKILL.md"
