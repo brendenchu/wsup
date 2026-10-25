@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
 var identifier = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]*$`)
@@ -104,6 +105,9 @@ func ReadObject(filename string) (map[string]any, error) {
 }
 
 func readObject(filename string, body []byte) (map[string]any, error) {
+	if !utf8.Valid(body) {
+		return nil, fmt.Errorf("%s: JSON must be UTF-8", filepath.Base(filename))
+	}
 	decoder := json.NewDecoder(bytes.NewReader(body))
 	decoder.UseNumber()
 	var value any

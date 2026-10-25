@@ -106,7 +106,59 @@ func TestGuidanceFindingsExitOneWithoutOperationalError(t *testing.T) {
 	if code := Run([]string{"--root", t.TempDir(), "guidance"}, &stdout, &stderr); code != 1 {
 		t.Fatalf("exit %d: %s", code, &stderr)
 	}
+
 	if stderr.Len() != 0 || !strings.Contains(stdout.String(), "Missing AI.md") {
 		t.Fatalf("stdout=%q stderr=%q", &stdout, &stderr)
+	}
+}
+
+func TestRootFlagMustPrecedeCommand(t *testing.T) {
+	for _, args := range [][]string{
+		{"guidance", "--root", t.TempDir()},
+		{"guidance", "--root=" + t.TempDir()},
+	} {
+		var stdout, stderr bytes.Buffer
+		if code := Run(args, &stdout, &stderr); code != 2 || stdout.Len() != 0 ||
+			!strings.Contains(stderr.String(), "unknown flag") {
+			t.Fatalf("%v: stdout=%q stderr=%q", args, &stdout, &stderr)
+		}
+	}
+}
+
+func TestEditorJSONMatchesPythonASCIIEncoding(t *testing.T) {
+	var actual bytes.Buffer
+	if err := writeEditorJSON(&actual, map[string]string{
+		"path": "caf\u00e9/\U0001f680/\x7f/<>&/\u2028",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	expected := "{\n  \"path\": \"caf\\u00e9/\\ud83d\\ude80/\\u007f/<>&/\\u2028\"\n}\n"
+	if actual.String() != expected {
+		t.Fatalf("got %q, want %q", actual.String(), expected)
+	}
+}
+
+func TestMalformedRegistryNeverProducesSuccessOrEditorOutput(t *testing.T) {
+	for _, body := range []string{
+		`{"version":`, `{} {}`, `null`, `[]`, `{"version":true}`,
+		`{"version":1,"name":"Synthetic","projects":null}`,
+		"{\"version\":1,\"name\":\"\xff\",\"projects\":[]}",
+	} {
+		t.Run(body, func(t *testing.T) {
+			root := t.TempDir()
+			if err := os.WriteFile(filepath.Join(root, "workspace.json"), []byte(body), 0600); err != nil {
+				t.Fatal(err)
+			}
+			for _, command := range []string{"validate", "projects", "config", "editor"} {
+				var stdout, stderr bytes.Buffer
+				if code := Run([]string{"--root", root, command}, &stdout, &stderr); code != 2 ||
+					stdout.Len() != 0 || !strings.HasPrefix(stderr.String(), "Error: ") {
+					t.Fatalf("%s: stdout=%q stderr=%q", command, &stdout, &stderr)
+				}
+			}
+			if _, err := os.Lstat(filepath.Join(root, "workspace.code-workspace")); !os.IsNotExist(err) {
+				t.Fatalf("malformed registry created editor output: %v", err)
+			}
+		})
 	}
 }

@@ -2,6 +2,15 @@
   "version": 1,
   "cases": [
     {
+      "id": "unicode-editor",
+      "steps": [
+        {"args": ["projects"], "set": {"projects.0.path": "caf\u00e9-\ud83d\ude80"}, "files": {"caf\u00e9-\ud83d\ude80/README.md": "Synthetic Unicode path\n"}},
+        {"args": ["editor"]},
+        {"args": ["editor"]},
+        {"args": ["guidance"], "files": {"AI.md": "[one](missing-one.md)\n[two](missing-two.md)\n", "guidance/rules/index.md": "Rules\n", ".agents/skills/example/SKILL.md": "---\nname: wrong\ndescription: Synthetic\n---\n[missing](missing.md)\n"}}
+      ]
+    },
+    {
       "id": "registry-and-editor",
       "steps": [
         {"args": ["--version"]},

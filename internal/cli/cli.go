@@ -2,11 +2,13 @@
 package cli
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"unicode/utf16"
 
 	"github.com/brendenchu/wsup/internal/catalogue"
 	"github.com/brendenchu/wsup/internal/configuration"
@@ -47,20 +49,21 @@ func Run(args []string, stdout, stderr io.Writer) int {
 
 func newCommand() *cobra.Command {
 	root := &cobra.Command{
-		Use:           "wsup",
-		Short:         "WSUP portable local workspace tools",
-		Long:          "WSUP Go migration bootstrap. Inspection and editor commands are available; check, init, collections, and update still require Python.",
-		Version:       Version,
-		SilenceErrors: true,
-		SilenceUsage:  true,
-		Args:          cobra.NoArgs,
+		Use:              "wsup",
+		Short:            "WSUP portable local workspace tools",
+		Long:             "WSUP Go migration bootstrap. Inspection and editor commands are available; check, init, collections, and update still require Python.",
+		Version:          Version,
+		SilenceErrors:    true,
+		SilenceUsage:     true,
+		TraverseChildren: true,
+		Args:             cobra.NoArgs,
 		RunE: func(command *cobra.Command, args []string) error {
 			return command.Help()
 		},
 	}
 	root.SetVersionTemplate("{{.Version}}\n")
 	root.CompletionOptions.DisableDefaultCmd = true
-	root.PersistentFlags().String("root", ".", "Explicit workspace root (defaults to current directory)")
+	root.Flags().String("root", ".", "Explicit workspace root (before the command)")
 	for _, name := range []string{"validate", "projects", "config"} {
 		root.AddCommand(&cobra.Command{
 			Use:   name,
@@ -92,7 +95,7 @@ func newCommand() *cobra.Command {
 }
 
 func inspectWorkspace(command *cobra.Command, args []string) error {
-	name, err := command.Flags().GetString("root")
+	name, err := command.Root().Flags().GetString("root")
 	if err != nil {
 		return err
 	}
@@ -199,7 +202,7 @@ func createEditor(output io.Writer, root, name string, data registry.Registry) e
 	if err != nil {
 		return err
 	}
-	writeErr := writeJSON(file, document)
+	writeErr := writeEditorJSON(file, document)
 	closeErr := file.Close()
 	if writeErr != nil {
 		return writeErr
@@ -208,6 +211,28 @@ func createEditor(output io.Writer, root, name string, data registry.Registry) e
 		return closeErr
 	}
 	_, err = fmt.Fprintf(output, "Created %s\n", target)
+	return err
+}
+
+// Python's managed editor files use ensure_ascii; preserve those bytes, including
+// UTF-16 surrogate pairs for non-BMP characters, rather than just parsed equality.
+func writeEditorJSON(destination io.Writer, value any) error {
+	var encoded bytes.Buffer
+	if err := writeJSON(&encoded, value); err != nil {
+		return err
+	}
+	var ascii bytes.Buffer
+	for _, char := range encoded.String() {
+		if char < 127 {
+			ascii.WriteRune(char)
+		} else if char <= 0xffff {
+			fmt.Fprintf(&ascii, `\u%04x`, char)
+		} else {
+			high, low := utf16.EncodeRune(char)
+			fmt.Fprintf(&ascii, `\u%04x\u%04x`, high, low)
+		}
+	}
+	_, err := ascii.WriteTo(destination)
 	return err
 }
 

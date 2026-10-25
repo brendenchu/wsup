@@ -173,7 +173,7 @@ func TestRelativeTargetRejectsTraversalAndSymlinkEscapes(t *testing.T) {
 }
 
 func TestJSONRequiresSingleObject(t *testing.T) {
-	for _, body := range []string{"null", "[]", "{}", "{}{}", `{"version":`, `true`} {
+	for _, body := range []string{"null", "[]", "{}", "{}{}", `{"version":`, `true`, "{\"name\":\"\xff\"}"} {
 		root := t.TempDir()
 		filename := filepath.Join(root, "input.json")
 		if err := os.WriteFile(filename, []byte(body), 0600); err != nil {

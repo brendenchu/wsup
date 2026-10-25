@@ -1,4 +1,108 @@
 {
+  "unicode-editor": [
+    {
+      "exit": 0,
+      "stdout": [
+        {
+          "id": "app",
+          "path": "caf\u00e9-\ud83d\ude80",
+          "kind": "app",
+          "repository": "independent",
+          "purpose": "Fixture",
+          "owner": "Test",
+          "checks": {}
+        }
+      ],
+      "stderr": "",
+      "writes": {},
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/caf\u00e9-\ud83d\ude80/",
+        "workspace/caf\u00e9-\ud83d\ude80/README.md",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    },
+    {
+      "exit": 0,
+      "stdout": "Created $ROOT/workspace.code-workspace\n",
+      "stderr": "",
+      "writes": {
+        "workspace/workspace.code-workspace": {
+          "sha256": "894fc957b63c9a6b43dafafb1fbfe1fc18a417912ec375b23bde6c57390866e9",
+          "bytes": 171
+        }
+      },
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/caf\u00e9-\ud83d\ude80/",
+        "workspace/caf\u00e9-\ud83d\ude80/README.md",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    },
+    {
+      "exit": 2,
+      "stdout": "",
+      "stderr": "Error: Editor output must be a new file in the workspace root\n",
+      "writes": {},
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/caf\u00e9-\ud83d\ude80/",
+        "workspace/caf\u00e9-\ud83d\ude80/README.md",
+        "workspace/workspace.code-workspace",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    },
+    {
+      "exit": 1,
+      "stdout": {
+        "files": [
+          ".agents/skills/example/SKILL.md",
+          "AI.md",
+          "guidance/rules/index.md"
+        ],
+        "skills": [],
+        "errors": [
+          "AI.md: unresolved/nonlocal reference",
+          "AI.md: unresolved/nonlocal reference",
+          ".agents/skills/example/SKILL.md: unresolved/nonlocal reference",
+          ".agents/skills/example/SKILL.md: expected simple name/description frontmatter and body"
+        ]
+      },
+      "stderr": "",
+      "writes": {},
+      "removed": [],
+      "preserved": [
+        "workspace/",
+        "workspace/.agents/",
+        "workspace/.agents/skills/",
+        "workspace/.agents/skills/example/",
+        "workspace/.agents/skills/example/SKILL.md",
+        "workspace/AI.md",
+        "workspace/app/",
+        "workspace/app/README.md",
+        "workspace/caf\u00e9-\ud83d\ude80/",
+        "workspace/caf\u00e9-\ud83d\ude80/README.md",
+        "workspace/guidance/",
+        "workspace/guidance/rules/",
+        "workspace/guidance/rules/index.md",
+        "workspace/workspace.code-workspace",
+        "workspace/workspace.json"
+      ],
+      "reports": []
+    }
+  ],
   "registry-and-editor": [
     {
       "exit": 0,

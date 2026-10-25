@@ -96,7 +96,9 @@ editor overwrite protection, root resolution, workspace/project initialization,
 collection preview/apply/collisions, update conflicts/keep, missing files,
 manifest traversal, and symlink escapes/destinations.
 
-The 57-step golden replay is not a replacement for all 65 original tests.
+The 61-step golden replay across ten scenarios is not a replacement for all 65
+original tests. The Unicode editor scenario compares exact ASCII-escaped bytes,
+including non-BMP characters, and preserves multiple guidance findings in order.
 `safety-contracts.json` specifies how to port the safety cases that need
 in-process injection or specialized probes rather than ordinary JSON fixtures.
 Archive verification executes the original concurrency/I/O-failure, Git staging,
