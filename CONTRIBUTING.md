@@ -32,9 +32,9 @@ is the verified runtime; cross-compilation does not certify other targets.
 Non-Unix check execution refuses launch until equivalent descendant supervision
 is implemented.
 
-The product version is `Version` in `internal/cli/cli.go`. Version 0.2.0 is
-selected for native release preparation; this does not establish a published
-release. Ordinary changes do not imply a version bump.
+The product version is `Version` in `internal/cli/cli.go`. Version 0.2.0 is the
+native release target; its changelog date does not establish tagging or
+publication. Ordinary changes do not imply a version bump.
 
 ## Sources and generated content
 
