@@ -1,8 +1,9 @@
 # Journaling
 
 For an authorised recap, read the existing entry and journal guidance before
-writing. Use journal/YYYY/MM/YYYY-MM-DD.md with ISO timestamps and an explicit
-local timezone/offset. Use journal/TEMPLATE.md for new entries.
+writing. Create journal/YYYY/MM/YYYY-MM-DD.md on demand with ISO timestamps and
+an explicit local timezone/offset. Use an existing local template if present;
+otherwise include decisions, changes, actual verification, and remaining work.
 
 Record material outcomes, decisions, actual verification, blockers and useful
 follow-ups. Distinguish user decisions, Git authorship, assistant execution and

@@ -89,7 +89,30 @@ def initialise(destination, kind="workspace"):
         shutil.rmtree(temporary, ignore_errors=True)
     return destination
 
-def update(root, apply=False):
+OPTIONAL_SCAFFOLDS = {
+    "apps/README.md", "infrastructure/README.md", "packages/README.md",
+    "research/README.md", "journal/README.md", "journal/TEMPLATE.md",
+}
+
+def migrated_name(name):
+    for family in ("workspace", "project"):
+        for base in ("tools/wsup_templates/", ".wsup/templates/"):
+            prefix = base + family + "/"
+            if name.startswith(prefix):
+                inner = migrated_name(name[len(prefix):])
+                return None if inner is None else ".wsup/templates/" + family + "/" + inner
+    if name in OPTIONAL_SCAFFOLDS or name.startswith("templates/project/"):
+        return None
+    for previous, current in (
+        (".ai/rules/", "guidance/rules/"),
+        (".ai/skills/", ".agents/skills/"),
+        ("tools/wsup_core/", ".wsup/wsup_core/"),
+    ):
+        if name.startswith(previous):
+            return current + name[len(previous):]
+    return ".wsup/wsup.py" if name == "tools/wsup.py" else name
+
+def update(root, apply=False, keep=()):
     state_path = relative_target(root, STATE)
     state_before = state_path.read_bytes()
     state = read_json(state_path)

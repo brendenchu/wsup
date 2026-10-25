@@ -12,7 +12,9 @@ Inspect only relevant owner histories and observed work.
 Append one concise update covering material decisions, changes, actual verification
 and remaining work. Attribute conversation decisions and Git authorship separately
 from assistant execution. Keep canonical evidence with its owner and link it.
-Use the local journal template for a new day, preserving previous entries.
+Create the journal directory on demand. Use a local template if one exists;
+otherwise include decisions, changes, actual verification, and remaining work
+under a timestamped update heading. Preserve previous entries.
 
 Completion means claims have evidence, proposed/uncommitted work is labelled and
 sensitive data is omitted. A recap does not authorise code changes, commits,
