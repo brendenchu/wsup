@@ -7,23 +7,67 @@ import unittest
 from unittest.mock import patch
 
 SOURCE = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(SOURCE / ".wsup"))
+sys.path.insert(0, str(SOURCE / "src"))
 from wsup_core import configuration, guidance, scaffolding
 
 
 class LayoutTest(unittest.TestCase):
-    def test_development_root_uses_the_same_authoritative_installation_layout(self):
-        self.assertEqual(SOURCE / ".wsup/templates", scaffolding.catalogue())
-        self.assertTrue((SOURCE / ".wsup/wsup.py").is_file())
+    def test_explicit_home_omissions_survive_updates_without_affecting_generation(self):
+        root = self.root / "workspace"
+        scaffolding.initialise(root)
+        state_path = root / scaffolding.STATE
+        state = json.loads(state_path.read_text())
+        omitted = ["apps/.gitkeep", "packages/README.md"]
+        state["omitted_home_files"] = omitted
+        (root / omitted[0]).unlink()
+        (root / omitted[0]).parent.rmdir()
+        (root / omitted[1]).write_text("Keep existing content")
+        state_path.write_text(json.dumps(state))
+        scaffolding.update(root, apply=True)
+        self.assertFalse((root / "apps").exists())
+        self.assertEqual("Keep existing content", (root / omitted[1]).read_text())
+        self.assertEqual(omitted, json.loads(state_path.read_text())["omitted_home_files"])
+        self.assertFalse(scaffolding.update(root)["actions"])
+        child = self.root / "child"
+        result = subprocess.run(
+            [sys.executable, "-B", str(root / ".wsup/wsup.py"), "init", str(child)],
+            cwd=root, capture_output=True)
+        self.assertEqual(0, result.returncode, result.stderr)
+        for name in omitted:
+            self.assertTrue((child / name).is_file())
+
+    def test_invalid_home_omissions_block_all_update_writes(self):
+        root = self.root / "workspace"
+        scaffolding.initialise(root)
+        state_path = root / scaffolding.STATE
+        state = json.loads(state_path.read_text())
+        for invalid in (None, "apps/.gitkeep", ["../escape"], [".wsup/wsup.py"], [1]):
+            with self.subTest(invalid=invalid):
+                state["omitted_home_files"] = invalid
+                state_path.write_text(json.dumps(state))
+                before = self.snapshot(root)
+                with self.assertRaises(ValueError):
+                    scaffolding.update(root, apply=True)
+                self.assertEqual(before, self.snapshot(root))
+
+    def test_development_sources_are_separate_from_generated_installation(self):
+        self.assertEqual(SOURCE / "src/templates", scaffolding.catalogue())
+        self.assertTrue((SOURCE / "src/wsup.py").is_file())
         self.assertTrue((SOURCE / ".wsup/template-state.json").is_file())
         self.assertFalse((SOURCE / "tools/wsup.py").exists())
         self.assertFalse((SOURCE / "tools/wsup_core").exists())
         self.assertFalse((SOURCE / "templates").exists())
+        self.assertTrue((SOURCE / ".wsup/wsup.py").is_file())
+        for name in ("apps", "packages", "tools", "infrastructure"):
+            self.assertFalse((SOURCE / name).exists(), name)
         state = json.loads((SOURCE / ".wsup/template-state.json").read_text())
         self.assertEqual("workspace", state["template"])
         for name in (".wsup/wsup.py", ".wsup/wsup_core/scaffolding.py",
                      ".wsup/templates/workspace/AI.md"):
             self.assertIn(name, state["files"])
+        for name, body in scaffolding.bundle("workspace").items():
+            if name.startswith(".wsup/"):
+                self.assertEqual(body, (SOURCE / name).read_bytes(), name)
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -157,7 +201,7 @@ class LayoutTest(unittest.TestCase):
             (SOURCE / ".agents/skills/workspace-check/SKILL.md").read_bytes(),
             (workspace / ".agents/skills/workspace-check/SKILL.md").read_bytes())
         self.assertEqual(
-            (SOURCE / ".wsup/templates/project/README.md").read_bytes(),
+            (SOURCE / "src/templates/project/README.md").read_bytes(),
             (destination / "README.md").read_bytes())
         result = subprocess.run(
             [sys.executable, "-B", str(root / ".wsup/wsup.py"),

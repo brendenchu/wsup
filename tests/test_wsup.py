@@ -10,7 +10,7 @@ import tempfile
 import unittest
 
 SOURCE = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("wsup", SOURCE / ".wsup/wsup.py")
+spec = importlib.util.spec_from_file_location("wsup", SOURCE / "src/wsup.py")
 wsup = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(wsup)
 
@@ -69,8 +69,8 @@ class WsupTest(unittest.TestCase):
         self.assertFalse((self.root / "app/unexpected").exists())
     def test_ai_kit_references_and_skill_structure(self):
         import re
-        kit = SOURCE / ".wsup/templates/workspace"
-        for template in (kit, SOURCE / ".wsup/templates/project"):
+        kit = SOURCE / "src/templates/workspace"
+        for template in (kit, SOURCE / "src/templates/project"):
             self.assertEqual(
                 (SOURCE / "LICENSE").read_bytes(),
                 (template / "WSUP-LICENSE").read_bytes())
@@ -127,12 +127,12 @@ class WsupTest(unittest.TestCase):
                 self.assertTrue(linked.is_file(), target)
 
     def test_gitignore_baselines_match_and_preserve_trackable_content(self):
-        baseline = (SOURCE / ".wsup/templates/project/.gitignore").read_text()
-        for path in (SOURCE / ".gitignore", SOURCE / ".wsup/templates/workspace/.gitignore"):
+        baseline = (SOURCE / "src/templates/project/.gitignore").read_text()
+        for path in (SOURCE / ".gitignore", SOURCE / "src/templates/workspace/.gitignore"):
             self.assertEqual(baseline, path.read_text().split("\n\n", 1)[0] + "\n")
         self.assertEqual(
             (SOURCE / ".gitignore").read_bytes(),
-            (SOURCE / ".wsup/templates/workspace/.gitignore").read_bytes())
+            (SOURCE / "src/templates/workspace/.gitignore").read_bytes())
         ignored = [
             "workbench/.local/note", "apps/example/workbench/.local/note",
             ".work/note", "apps/example/.work/note", ".wsup/reports/check.json",
@@ -161,9 +161,9 @@ class WsupTest(unittest.TestCase):
     def test_workspace_guidance_is_self_contained_and_descendant_only(self):
         import re
         contract = "Each workspace knows only itself and its descendants."
-        for base in (SOURCE, SOURCE / ".wsup/templates/workspace", SOURCE / ".wsup/templates/project"):
+        for base in (SOURCE, SOURCE / "src/templates/workspace", SOURCE / "src/templates/project"):
             self.assertIn(contract, (base / "AI.md").read_text())
-        for base in (SOURCE / ".wsup/templates/workspace", SOURCE / ".wsup/templates/project"):
+        for base in (SOURCE / "src/templates/workspace", SOURCE / "src/templates/project"):
             self.assertIn(contract, (base / "guidance/rules/boundaries.md").read_text())
             for guide in base.rglob("*.md"):
                 content = guide.read_text()
@@ -197,10 +197,10 @@ class WsupTest(unittest.TestCase):
         for relative in ("apps", "packages", "tools", "infrastructure", "workbench"):
             self.assertTrue((destination / relative).is_dir(), relative)
         self.assertEqual(
-            (SOURCE / ".wsup/wsup.py").read_bytes(),
+            (SOURCE / "src/wsup.py").read_bytes(),
             (destination / ".wsup/wsup.py").read_bytes())
-        for source in (SOURCE / ".wsup/wsup_core").rglob("*.py"):
-            bundled = destination / ".wsup/wsup_core" / source.relative_to(SOURCE / ".wsup/wsup_core")
+        for source in (SOURCE / "src/wsup_core").rglob("*.py"):
+            bundled = destination / ".wsup/wsup_core" / source.relative_to(SOURCE / "src/wsup_core")
             self.assertEqual(source.read_bytes(), bundled.read_bytes())
         for source in (SOURCE / ".agents/skills").rglob("SKILL.md"):
             for bundled_root in (destination / ".agents/skills", destination / ".wsup/templates/workspace/.agents/skills"):
