@@ -59,7 +59,7 @@ func newCommand() *cobra.Command {
 	root := &cobra.Command{
 		Use:              "wsup",
 		Short:            "WSUP portable local workspace tools",
-		Long:             "WSUP Go migration bootstrap. Inspection, editor, Unix checks, and workspace/project init are available; collections and CLI update are not yet ported.",
+		Long:             "WSUP Go migration bootstrap. Inspection, editor, Unix checks, workspace/project init, and native content updates are available; collections and Python migration are not yet ported.",
 		Version:          Version,
 		SilenceErrors:    true,
 		SilenceUsage:     true,
@@ -122,8 +122,40 @@ func newCommand() *cobra.Command {
 	init.Flags().String("template", "workspace", "Starter kind (workspace or project)")
 	init.Flags().StringArray("collection", nil, "Optional workspace collection (not yet ported)")
 	root.AddCommand(init)
+	update := &cobra.Command{
+		Use: "update", Short: "Preview native managed-content updates; --apply writes",
+		Args: cobra.NoArgs,
+		RunE: func(command *cobra.Command, args []string) error {
+			root, err := command.Root().Flags().GetString("root")
+			if err != nil {
+				return err
+			}
+			keep, err := command.Flags().GetStringArray("keep")
+			if err != nil {
+				return err
+			}
+			apply, err := command.Flags().GetBool("apply")
+			if err != nil {
+				return err
+			}
+			result, err := scaffolding.Update(root, Version, keep, apply)
+			if err != nil {
+				return err
+			}
+			if err := writeJSON(command.OutOrStdout(), result); err != nil {
+				return err
+			}
+			if len(result.Conflicts) != 0 {
+				return statusError{1}
+			}
+			return nil
+		},
+	}
+	update.Flags().Bool("apply", false, "Apply a conflict-free native content update")
+	update.Flags().StringArray("keep", nil, "Preserve an existing same-path customization (repeatable)")
+	root.AddCommand(update)
 	for _, name := range []string{
-		"collections", "update",
+		"collections",
 	} {
 		root.AddCommand(&cobra.Command{
 			Use:                name,

@@ -59,8 +59,13 @@ See the [release guide](docs/releases.md) for version and tag policy.
   catalogue; projects also omit a registry. Native workspace docs and skills
   describe the separately installed binary and current command limits. Existing
   destinations are refused; I/O failures explicitly retain partial output for
-  inspection. Native collection workflows and CLI updates are not yet available;
-  Python cannot update native state.
+  inspection. Native collection workflows and Python migration are not yet
+  available; Python cannot update native state.
+- Native `update` previews and explicitly applies embedded managed-content
+  changes for schema-2 workspaces/projects, preserving registry ownership,
+  selected collections, omitted homes, and kept baseline hashes. Conflicts block
+  apply; stale inputs and partial I/O failures are explicit errors. Python state
+  requires a separate migration and is never converted by content updates.
 - Native Unix `check` execution with explicit selection, timeout precedence,
   bounded output, process-group cancellation, and sanitized schema-v2 reports.
   Non-Unix execution remains unsupported; macOS ARM64 is the verified runtime.

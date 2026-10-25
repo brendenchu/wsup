@@ -18,11 +18,15 @@ description: Create workspace or project starters, maintain template content, or
    variants; keep native-specific installation instructions consistent. Keep
    framework setup with its project. Local workspace edits are not generation
    defaults for another workspace.
-4. Native CLI updates and Python migration are not yet available. Do not use
-   Python to update schema-2 state or change its version to force compatibility.
-   For future updates, preserve a reviewed matched backup of files/state and
-   inspect Git status, preview, and conflicts before authorized apply. Preserve
-   customizations, missing files, and user-owned registry content.
+4. For native updates, preserve a reviewed matched backup of files/state and
+   inspect Git status, then run `wsup update`. Review all actions and conflicts
+   before authorized `wsup update --apply`. Repeat `--keep PATH` only for eligible
+   existing same-path customizations; their original baselines remain unchanged.
+   Preserve missing files for manual resolution and never regenerate the
+   user-owned registry. I/O failures may leave partial content with old state;
+   inspect failures rather than retrying blindly. Python migration is not yet
+   available. Do not use Python to update schema-2 state or change its version
+   to force compatibility.
 5. Verify source changes in a disposable destination outside the checkout.
    Run `wsup --root DESTINATION validate` and `guidance` for workspaces; inspect
    project guidance separately. Relocate output and generate another workspace

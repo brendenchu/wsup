@@ -33,8 +33,8 @@ and does not need Go or Python installed for workspace/project initialization
 or inspection. Checks still require their configured tools.
 
 Help/version, `validate`, `projects`, `config`, `guidance`, `editor`, and Unix
-`check`, and workspace/project `init` are implemented in Go. Unported collection
-and update operations return exit 2; Python only supports Python-managed state,
+`check`, workspace/project `init`, and native `update` are implemented in Go.
+Unported collection operations return exit 2; Python only supports Python-managed state,
 not native output. Nothing forwards automatically or pretends to succeed.
 The bootstrap retains the product version 0.1.0, not a new
 release or parity claim. A test checks it against the Python version authority.
@@ -128,8 +128,9 @@ The approved native installation target is a separately installed binary with
 embedded templates. Native-generated workspaces will retain state/reports, not a
 platform executable, Python runtime, or copied catalogue. Phase 5 is in progress:
 `init DESTINATION` creates a workspace, and `--template project` creates a
-project. Collection selection/additions and CLI `update` remain disabled while
-their behavior and migration safety are ported.
+project. Native `update` previews and applies managed content from the invoked
+binary's embedded catalogue. Collection selection/additions and Python migration
+remain disabled while their behavior and safety are ported.
 
 Native project initialization reads embedded project assets without a source
 checkout, Python, Go, or an existing workspace registry at runtime. Its destination
@@ -137,7 +138,7 @@ is relative to the process working directory, independent of `--root`. Existing
 paths (including empty directories and dangling symlinks) are refused, new files
 are exclusive, and schema-v2 state is written last. The output has no registry,
 runtime, or catalogue, and keeps the embedded project guidance and license bytes.
-Python cannot update native state; native CLI updates are not yet available.
+Python cannot update native state; use the native `update` preview/apply workflow.
 For example, after building the executable:
 
 ```sh
@@ -153,7 +154,7 @@ local guidance, all 12 skills, and native installation documentation. No optiona
 collection homes are created. Its `.wsup/` initially contains only template state;
 reports are created by explicit checks later. Both starter kinds preserve license
 notices. Generated instructions explicitly distinguish current native behavior
-from pending collection/update/migration operations.
+from pending collection/migration operations.
 
 An initialization I/O failure explicitly identifies the partial destination.
 Partial files/directories are retained for inspection, not recursively removed,
@@ -175,8 +176,9 @@ replaces stored baseline hashes with current customized file hashes. Encoding
 native state does not silently convert Python ownership. No native migration
 or downgrade is implemented yet; preserve a reviewed pre-migration snapshot.
 
-The native content-update planner is also read-only and not yet exposed by the
-CLI. Given a selected bundle and native state, it classifies writes,
+The native content-update planner is read-only and exposed by `wsup update`.
+It selects the embedded template/collection bundle using native state, checks
+that state did not change during selection, and classifies writes,
 customization conflicts, explicit keeps, and retained orphans in stable path
 order. Missing managed files remain conflicts; omitted home scaffolds, user
 registry bytes, reports, local settings, and unknown project files are preserved.
@@ -200,8 +202,12 @@ new directories with old state, and errors explicitly report that possibility.
 Rooted operations contain paths, but concurrent writers can still race after a
 per-file recheck; concurrent mutation is not an isolation guarantee. There is no
 fsync/power-loss durability guarantee. Native apply is tested with synthetic
-schema-2 fixtures only and is not exposed by the CLI. Collection workflows, CLI
-updates, legacy migration, and Python runtime retirement remain pending.
+schema-2 fixtures and is exposed by `wsup update --apply`. A preview with conflicts
+prints JSON and returns 1; conflicting apply returns an operational error/exit 2
+without writes, matching Python's command shape. Repeatable `--keep PATH` accepts
+literal paths, not CSV or shell expansions. Update does not require or parse the
+user-owned registry/local configuration and works for standalone project starters.
+Collection workflows, legacy migration, and Python runtime retirement remain pending.
 
 `src/templates/` remains the authoritative starter catalogue. During coexistence,
 `internal/catalogue/assets.zip` is a generated, deterministic snapshot embedded

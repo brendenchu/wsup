@@ -37,9 +37,13 @@ Keep restricted records outside documentation and Git.
 This project starter has no WSUP runtime, binary, catalogue, or workspace registry.
 Its `.wsup/template-state.json` schema 2 records managed starter files. A compatible
 separately installed native `wsup` can inspect guidance with
-`wsup --root /path/to/project guidance`. Native CLI updates are not yet available;
-Python cannot update this state. Do not edit the schema version to force a
-downgrade. Preserve a reviewed backup of files and state before future updates.
+`wsup --root /path/to/project guidance`. Preview managed updates with
+`wsup --root /path/to/project update`; add `--apply` only after reviewing the
+preview and preserving a matched backup of files and state. Conflicts block
+apply; repeat `--keep PATH` for eligible same-path customizations without
+accepting their current bytes as new baselines. Python cannot update this state.
+Do not edit the schema version to force a downgrade. Updates are not transactional;
+I/O failures may leave partial content with old state and are reported explicitly.
 Project commands and runtime requirements remain this project's responsibility.
 
 The WSUP starter content is covered by [WSUP-LICENSE](WSUP-LICENSE). Retain this

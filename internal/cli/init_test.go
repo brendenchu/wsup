@@ -111,4 +111,16 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	if output := run("--root", filepath.Join(directory, "child-workspace"), "guidance"); !strings.Contains(string(output), `"errors": []`) {
 		t.Fatalf("child workspace guidance failed: %s", output)
 	}
+	preview := run("--root", movedWorkspace, "update", "--keep", "README.md")
+	if !strings.Contains(string(preview), `"keep-customization"`) || !strings.Contains(string(preview), `"applied": false`) {
+		t.Fatalf("standalone update preview failed: %s", preview)
+	}
+	applied := run("--root", movedWorkspace, "update", "--keep", "README.md", "--apply")
+	if !strings.Contains(string(applied), `"applied": true`) {
+		t.Fatalf("standalone update apply failed: %s", applied)
+	}
+	owner, err := os.ReadFile(filepath.Join(movedWorkspace, "README.md"))
+	if err != nil || string(owner) != "Local customization, not a child default" {
+		t.Fatal("standalone update replaced kept owner bytes")
+	}
 }

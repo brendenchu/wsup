@@ -80,12 +80,17 @@ No runtime, executable, or catalogue is installed in the workspace. Relocation
 requires a compatible separately installed binary on the new machine.
 
 The `.wsup/template-state.json` schema is version 2. Track it with the workspace
-files; ignore reports only. Python cannot update this native state. Native CLI
-`update` and migration from Python-managed workspaces are not yet available;
+files; ignore reports only. Python cannot update this native state. Native `update` previews managed content from the invoked binary; `update --apply`
+writes only a conflict-free plan. Repeat `--keep PATH` for eligible same-path
+customizations, preserving their old baseline hashes. Registry bytes are
+workspace-owned; omitted homes and unknown/report/local/project bytes survive.
+Migration from Python-managed workspaces is not yet available;
 do not use Python's update command on this workspace. Binary replacement and
 workspace-content updates are separate operations, never automatic downloads.
 
-Initialization failures explicitly identify a partial destination. Inspect and
+Update I/O failures may leave partial content with old state and explicitly
+report that possibility; no multi-file transaction is promised. Initialization
+failures explicitly identify a partial destination. Inspect and
 recover it before retrying; partial output is retained to avoid deleting
 concurrent owner content. Back up customizations and state before any future
 migration or update. Nothing is committed, installed globally, or published
