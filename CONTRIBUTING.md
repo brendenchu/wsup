@@ -131,7 +131,8 @@ platform executable, Python runtime, or copied catalogue. Phase 5 is in progress
 project. Native `update` previews and applies managed content from the invoked
 binary's embedded catalogue. Repeatable `init --collection NAME` and
 `collections --add NAME` support explicit optional homes. Python migration
-remains disabled while its safety is ported.
+apply remains disabled while its safety is ported; explicit
+`update --migrate-native` provides a read-only migration preview.
 
 Native project initialization reads embedded project assets without a source
 checkout, Python, Go, or an existing workspace registry at runtime. Its destination
@@ -208,7 +209,25 @@ prints JSON and returns 1; conflicting apply returns an operational error/exit 2
 without writes, matching Python's command shape. Repeatable `--keep PATH` accepts
 literal paths, not CSV or shell expansions. Update does not require or parse the
 user-owned registry/local configuration and works for standalone project starters.
-Legacy migration and Python runtime retirement remain pending.
+Legacy migration apply and Python runtime retirement remain pending.
+
+`update --migrate-native` explicitly selects Python schema-1 migration preview,
+separate from ordinary native content updates. It reports schema 1 -> 2,
+same-path writes/keeps/orphans, unchanged legacy guidance relocation, and
+`retire-runtime` only for exact unchanged manifest-owned runtime/catalogue files.
+Missing or customized retirement/relocation sources, destination collisions,
+unknown files in retiring installation trees, and symlinks block the plan.
+`--keep` cannot bypass retirement or relocation safety. No preview deletes or
+converts anything; `--migrate-native --apply` explicitly fails until acceptance.
+
+The preview conservatively reports existing `wsup.json`, `wsup.local.json`, or
+`.work/quality` as conflicts until legacy report/configuration planning is
+implemented. Do not delete settings or evidence to bypass these blockers.
+Pinned historical tests extract actual commits for v0.1.0 and python-baseline,
+generate real workspace/project starters with Python, verify complete historical
+workspace inventories against the frozen hashes/sizes, and assert native previews
+preserve all bytes. Runtime/apply failure gates and historical report relocation
+are still outstanding; a conflict-free preview is not migration certification.
 
 Collection names share one validated, sorted/deduplicated catalogue contract.
 `collections` lists available names without requiring state; additions require a

@@ -135,6 +135,26 @@ func newCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			migrate, err := command.Flags().GetBool("migrate-native")
+			if err != nil {
+				return err
+			}
+			if migrate {
+				if apply {
+					return fmt.Errorf("native migration apply is disabled pending historical and retirement safety gates; preview without --apply")
+				}
+				result, err := scaffolding.PlanMigration(root, Version, keep)
+				if err != nil {
+					return err
+				}
+				if err := writeJSON(command.OutOrStdout(), result); err != nil {
+					return err
+				}
+				if len(result.Conflicts) != 0 {
+					return statusError{1}
+				}
+				return nil
+			}
 			result, err := scaffolding.Update(root, Version, keep, apply)
 			if err != nil {
 				return err
@@ -150,6 +170,7 @@ func newCommand() *cobra.Command {
 	}
 	update.Flags().Bool("apply", false, "Apply a conflict-free native content update")
 	update.Flags().StringArray("keep", nil, "Preserve an existing same-path customization (repeatable)")
+	update.Flags().Bool("migrate-native", false, "Preview Python-to-native migration (apply disabled)")
 	root.AddCommand(update)
 	collections := &cobra.Command{
 		Use: "collections", Short: "List or preview optional collection additions",

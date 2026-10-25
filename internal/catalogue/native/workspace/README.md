@@ -96,8 +96,12 @@ files; ignore reports only. Python cannot update this native state. Native `upda
 writes only a conflict-free plan. Repeat `--keep PATH` for eligible same-path
 customizations, preserving their old baseline hashes. Registry bytes are
 workspace-owned; omitted homes and unknown/report/local/project bytes survive.
-Migration from Python-managed workspaces is not yet available;
-do not use Python's update command on this workspace. Binary replacement and
+Migration apply from Python-managed workspaces is not yet available. Explicit
+`wsup --root PYTHON_WORKSPACE update --migrate-native` is a read-only preview;
+its `--apply` is disabled. It blocks on unsafe runtime sources, unknown
+installation files, and legacy report/config policy requiring review;
+do not delete settings or reports to bypass these blockers. Do not use Python's
+update command on this native workspace. Binary replacement and
 workspace-content updates are separate operations, never automatic downloads.
 
 Update I/O failures may leave partial content with old state and explicitly

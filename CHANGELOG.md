@@ -69,6 +69,11 @@ See the [release guide](docs/releases.md) for version and tag policy.
   selected collections, omitted homes, and kept baseline hashes. Conflicts block
   apply; stale inputs and partial I/O failures are explicit errors. Python state
   requires a separate migration and is never converted by content updates.
+- Explicit read-only `update --migrate-native` previews Python schema-1
+  conversion, legacy guidance relocation, and retirement of unchanged
+  manifest-owned runtime/catalogue files. Migration apply remains disabled;
+  unsafe sources, unknown installation files, and legacy report/configuration
+  policy needing review block the preview.
 - Native Unix `check` execution with explicit selection, timeout precedence,
   bounded output, process-group cancellation, and sanitized schema-v2 reports.
   Non-Unix execution remains unsupported; macOS ARM64 is the verified runtime.

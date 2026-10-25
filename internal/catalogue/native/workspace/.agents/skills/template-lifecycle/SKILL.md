@@ -28,8 +28,11 @@ description: Create workspace or project starters, maintain template content, or
    existing same-path customizations; their original baselines remain unchanged.
    Preserve missing files for manual resolution and never regenerate the
    user-owned registry. I/O failures may leave partial content with old state;
-   inspect failures rather than retrying blindly. Python migration is not yet
-   available. Do not use Python to update schema-2 state or change its version
+   inspect failures rather than retrying blindly. Python migration apply is not
+   yet available; explicit `update --migrate-native` only previews schema-1
+   conversion and retirement. Never delete configuration/reports to bypass its
+   conservative blockers, and never combine it with `--apply` while disabled.
+   Do not use Python to update schema-2 state or change its version
    to force compatibility.
 5. Verify source changes in a disposable destination outside the checkout.
    Run `wsup --root DESTINATION validate` and `guidance` for workspaces; inspect

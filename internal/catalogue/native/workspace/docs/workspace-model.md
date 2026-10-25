@@ -259,7 +259,17 @@ Omitted default homes remain omitted; orphan bytes are retained but cease to be
 managed. Unknown files, project contents, reports, and local settings survive.
 There are no runtime files to update or retire in native schema 2.
 
-Python-to-native migration is not yet available. Python rejects native schema 2;
+Python-to-native migration apply is not yet available. A separately invoked
+`wsup --root PYTHON_WORKSPACE update --migrate-native` previews schema-1 to
+schema-2 content, guidance relocation, and exact manifest-owned runtime retirement.
+It never writes; combining it with `--apply` fails explicitly. Customized/missing
+runtime sources, unknown installation-tree files, relocated destination collisions,
+legacy `.work/quality` reports, and existing `wsup.json`/`wsup.local.json` files
+block migration pending preservation/policy review. Configuration blocking is
+deliberately conservative until legacy report-policy planning is implemented,
+not a request to delete settings or evidence. `--keep` cannot bypass runtime
+retirement or relocation safety checks. Ordinary update never implicitly migrates.
+Python rejects native schema 2;
 do not force a downgrade by
 editing its version field or use Python updates here. Future migration must be
 explicit, preserve owner bytes, and retire only verified unchanged managed
