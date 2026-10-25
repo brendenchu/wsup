@@ -23,6 +23,11 @@ and setup.
 - Keep workspace-owned and independent project repositories separate.
 - Root `.agents/skills/` is canonical. Keep the corresponding copies under
   `templates/workspace/.agents/skills/` synchronized.
+- Keep durable documentation with its owning project, use one canonical copy,
+  and link rather than duplicate. Visible `workbench/` drafts may be tracked
+  locally after review; do not commit them automatically. Keep restricted
+  records outside documentation and Git, and promote approved knowledge to
+  maintained docs.
 - Template and skill changes affect generated output. Review a disposable
   generated workspace and ensure its own CLI can generate another workspace.
 - Keep machine paths, credentials, provider assumptions, and framework-specific

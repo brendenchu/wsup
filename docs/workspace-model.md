@@ -37,8 +37,11 @@ root `.agents/skills/` remains the canonical development skill source.
 Keep state, runtime, and bundled templates eligible for local tracking; ignore
 only generated reports. The registry, `AI.md`, `guidance/rules/`, and
 `.agents/skills/` remain workspace-owned public surfaces. `AGENTS.md` points to
-`AI.md`. Human drafts can live in visible `workbench/`; decide their tracking
-separately from sensitivity and publication.
+`AI.md`. Human drafts can live in visible `workbench/`; sanitized drafts are
+eligible for local tracking. Review contents before staging; nothing is
+committed automatically. Keep restricted records out of documentation and Git.
+Promote approved knowledge to the owning project's maintained documentation and
+avoid competing canonical copies.
 
 ## Register projects
 

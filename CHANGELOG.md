@@ -19,6 +19,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
   collections and dated recap entries on demand.
 - Clarify source-checkout versus installed-CLI paths, optional project grouping,
   report locations, and legacy layout migration in maintainer and starter docs.
+- Carry reusable documentation ownership, draft tracking, promotion, and privacy
+  conventions into generated workspace/project guidance and contributor docs.
 
 ### Added
 

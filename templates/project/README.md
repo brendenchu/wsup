@@ -23,6 +23,15 @@ List the exact test, lint, and validation commands and any known limitations.
 
 Name the maintainer and document dependencies on other projects or services.
 
+## Documentation
+
+Keep maintained documentation with this project, usually in `docs/` or another
+established location. Keep one canonical copy and link to it instead of
+maintaining duplicates. A journal is optional; a visible `workbench/` can hold
+drafts and temporary analysis. Sanitized drafts are eligible for local Git
+tracking, but review them before staging; nothing is committed automatically.
+Keep restricted records outside documentation and Git.
+
 ## Starter attribution
 
 The WSUP starter content is covered by [WSUP-LICENSE](WSUP-LICENSE). Retain this
