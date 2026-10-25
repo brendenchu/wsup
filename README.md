@@ -3,7 +3,12 @@
 A small, local-first foundation for organizing projects that may live in one or
 many repositories. It provides a project registry, optional VS Code workspace
 generation, explicit local checks, and a portable workspace/project starter.
-It has no third-party runtime dependencies or required AI service.
+WSUP supports AI and non-AI workflows without requiring a particular provider
+or tool. It favors open, widely supported formats and interfaces, while keeping
+service-specific integrations optional. The core should remain useful on its
+own, and integrations should be replaceable so people can use the tools that
+work for them without making those tools requirements for everyone. The CLI has
+no third-party runtime dependencies or required AI service.
 
 ## Requirements
 

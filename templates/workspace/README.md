@@ -4,6 +4,12 @@ Use this folder to organize related projects. Projects may share one repository
 or keep separate repositories, dependencies, tests, and release cycles. The
 registry records project ownership; it does not create a shared build.
 
+Keep the workspace useful without requiring a particular provider or tool.
+Prefer open, widely supported formats and interfaces; keep service-specific
+integrations optional and replaceable. Projects can have their own real
+requirements, but tools chosen for one project should not become requirements
+for the whole workspace.
+
 ## Start
 
 Requires Python 3.9 or newer. An existing macOS developer-tools Python 3.9 can

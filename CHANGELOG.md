@@ -6,14 +6,17 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ## Unreleased
 
-## 0.1.0 (pending release)
+## 0.1.0 (2026-10-24)
 
-Initial development release. No release date or tag is assigned yet.
+Initial development release.
 
 ### Changed
 
 - Lower the minimum supported Python version from 3.11 to 3.9, including macOS
   developer-tools Python 3.9.6. The CLI still uses only the standard library.
+- Clarify WSUP's support for AI and non-AI workflows, open formats, and optional,
+  replaceable service integrations in the product and generated-workspace
+  documentation.
 
 ### Added
 
