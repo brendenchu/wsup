@@ -12,8 +12,7 @@ STATE = ".wsup/template-state.json"
 
 def catalogue():
     tools = Path(__file__).resolve().parent.parent
-    bundled = tools / "wsup_templates"
-    return bundled if bundled.is_dir() else tools.parent / "templates"
+    return tools / "templates" if tools.name == ".wsup" else tools.parent / "templates"
 
 def read_tree(source):
     if not source.is_dir():
@@ -29,6 +28,8 @@ def read_tree(source):
 def workspace_template(base):
     files = read_tree(base / "workspace")
     tools = Path(__file__).resolve().parent.parent
+    if tools.name == ".wsup":
+        return files
     skills = read_tree(tools.parent / ".agents" / "skills")
     files = {name: body for name, body in files.items()
              if not name.startswith((".ai/skills/", ".agents/skills/"))}
@@ -40,14 +41,14 @@ def bundle(kind):
     output = workspace_template(base) if kind == "workspace" else read_tree(base / kind)
     if kind == "workspace":
         tools = Path(__file__).resolve().parent.parent
-        output["tools/wsup.py"] = (tools / "wsup.py").read_bytes()
+        output[".wsup/wsup.py"] = (tools / "wsup.py").read_bytes()
         for name, body in read_tree(tools / "wsup_core").items():
-            output["tools/wsup_core/" + name] = body
+            output[".wsup/wsup_core/" + name] = body
         # Carry template sources so generated copies can initialise another workspace.
         for family in ("workspace", "project"):
             files = workspace_template(base) if family == "workspace" else read_tree(base / family)
             for name, body in files.items():
-                output["tools/wsup_templates/" + family + "/" + name] = body
+                output[".wsup/templates/" + family + "/" + name] = body
     return output
 
 def atomic_write(path, content):
