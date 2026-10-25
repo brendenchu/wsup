@@ -162,7 +162,7 @@ func ParseState(body []byte) (State, error) {
 }
 
 func portableFile(name string) bool {
-	return name != "" && name != "." && path.Clean(name) == name &&
+	return utf8.ValidString(name) && name != "" && name != "." && path.Clean(name) == name &&
 		!path.IsAbs(name) && !strings.ContainsAny(name, "\\:\x00") &&
 		name != ".." && !strings.HasPrefix(name, "../")
 }

@@ -126,9 +126,8 @@ Go test covers this approved difference rather than weakening Python expectation
 The approved native installation target is a separately installed binary with
 embedded templates. Native-generated workspaces will retain state/reports, not a
 platform executable, Python runtime, or copied catalogue. Phase 5 is in progress:
-`init`, `collections`,
-and `update` are still disabled in Go while starter instructions and migration
-safety are ported.
+`init`, `collections`, and `update` are still disabled in Go while starter
+instructions and migration safety are ported.
 
 Template-state groundwork recognizes Python schema 1 for read-only inspection
 and native schema 2 for future output. Schema 2 cannot own files under `.wsup/`;
@@ -139,6 +138,17 @@ It preserves exact input bytes for later concurrent-change checks and never
 replaces stored baseline hashes with current customized file hashes. Encoding
 native state does not silently convert Python ownership. No native migration
 or downgrade is implemented yet; preserve a reviewed pre-migration snapshot.
+
+The native content-update planner is also read-only and not yet exposed by the
+CLI. Given a selected bundle and native state, it classifies writes,
+customization conflicts, explicit keeps, and retained orphans in stable path
+order. Missing managed files remain conflicts; omitted home scaffolds, user
+registry bytes, reports, local settings, and unknown project files are preserved.
+An explicit keep suppresses a conflict only for that preview, without accepting
+the current file as a new baseline. Symlink destinations, non-directory parents,
+unavailable/invalid bundles, and Python state fail explicitly. Rooted reads
+confine inspection, but planning is point-in-time evidence, not an apply-time
+race guarantee. Apply and legacy runtime retirement remain unimplemented.
 
 `src/templates/` remains the authoritative starter catalogue. During coexistence,
 `internal/catalogue/assets.zip` is a generated, deterministic snapshot embedded
