@@ -37,19 +37,29 @@ for setup and existing-file precautions.
 Run selected configured checks with:
 
 ```sh
-python3 -B tools/wsup.py check --project PROJECT_ID
+python3 -B .wsup/wsup.py check --project PROJECT_ID
 ```
 
 Review commands before running them: they execute with your permissions. The CLI
 does not install dependencies on its own or automatically check dependencies.
-Reports are local under ignored `.work/`.
+Reports are local under ignored `.wsup/reports/`.
+
+Create project groupings such as `apps/`, `tools/`, or `learning/` when needed.
+No empty grouping directories or journal are required. Keep human-authored
+drafts in a visible `workbench/` if useful; decide their local Git tracking
+separately from restricted records and generated output.
+
+The bundled runtime and the single installed generation catalogue live under
+`.wsup/`. The registry, guidance, and skills remain workspace-owned. To change
+the product's starters, edit a trusted source checkout and refresh deliberately;
+there is no competing editable root template copy or implicit override tree.
 
 `editor` is an optional VS Code integration. `update` previews template updates;
 `update --apply` applies changes only when there are no conflicts.
 
 ## Guidance
 
-Read [AI.md](AI.md) and `.ai/rules/index.md` for local instructions. No AI client,
+Read [AI.md](AI.md) and `guidance/rules/index.md` for local instructions. No AI client,
 model provider, credential, MCP server, or global configuration is required.
 Client integrations are optional and must use the client's supported mechanism.
 Portable skills live in `.agents/skills/`. Clients that support that shared

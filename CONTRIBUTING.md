@@ -6,7 +6,7 @@ checkout.
 
 ## Before changing code
 
-Read [AI.md](AI.md), the [rule index](.ai/rules/index.md), and the
+Read [AI.md](AI.md), the [rule index](guidance/rules/index.md), and the
 [workspace model](docs/workspace-model.md). Check Git status and preserve
 unrelated edits. For a defect, include a reproducible example; for a feature,
 describe the intended behavior and ownership boundaries before expanding scope.
@@ -45,16 +45,18 @@ For a focused test run, use the existing unittest runner:
 python3 -B -m unittest discover -s tests -p 'test_services.py'
 ```
 
-The configured suite covers standalone generation and update safety. Reports
-are local under ignored `.work/`. Use temporary destinations outside the source
-tree for manual generation and upgrade exercises; never overwrite real user
-workspaces to test changes.
+The configured suite covers standalone generation and update safety. Check
+reports are local under ignored `.wsup/reports/`; keep development notes and
+disposable artifacts in ignored `.work/`. Use temporary destinations outside
+the source tree for manual generation and upgrade exercises; never overwrite
+real user workspaces to test changes.
 
 Report the interpreter, operating system, checks performed, and any skipped
 coverage. Structural skill validation is not proof of client discovery or
 invocation. See [AI guidance](docs/ai-guidance.md) for discovery and compatibility
-limits. Keep session logs, local test results, and implementation plans under
-ignored `.work/`; public documentation should describe the product and its use.
+limits. Keep session logs, implementation plans, and disposable investigation
+material under ignored `.work/`; public documentation should describe the
+product and its use.
 
 ## Preparing a contribution
 

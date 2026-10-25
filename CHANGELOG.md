@@ -6,6 +6,31 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ## Unreleased
 
+### Changed
+
+- Deliberate pre-1.0 installation layout: generated commands use `.wsup/wsup.py`,
+  with runtime and one authoritative template catalogue under `.wsup/`.
+  The source checkout retains its visible `tools/` and `templates/` layout.
+- Move shared rules to visible `guidance/rules/`, retaining `AI.md`, the
+  `AGENTS.md` pointer, and discoverable `.agents/skills/`.
+- Store verification reports under ignored `.wsup/reports/`; enforce report
+  containment independently from general project-local investigation evidence.
+- Omit empty project grouping and journal scaffolds from new workspaces. Create
+  collections and dated recap entries on demand.
+- Clarify source-checkout versus installed-CLI paths, optional project grouping,
+  report locations, and legacy layout migration in maintainer and starter docs.
+
+### Added
+
+- Preview/apply migration for unchanged, manifest-owned legacy installation paths,
+  redundant template copies, and optional scaffolds. Destination collisions,
+  customized relocation sources, and unmanaged legacy files block writes.
+- Byte-preserving migration of historical `.work/quality/` reports.
+- Explicit `update --keep PATH` decisions for same-path customizations and retained
+  optional scaffold files, without changing their baseline hashes to hide edits.
+- Regression coverage for minimal generation, old-layout migration, retained
+  evidence, conflict safety, report-root symlinks, and source/consumer separation.
+
 ## 0.1.0 (2026-10-24)
 
 Initial development release.
@@ -46,8 +71,9 @@ Initial development release.
 - Requires Python 3.9 or newer and locally installed tools for registered checks.
 - Existing workspaces using `.ai/skills/` must preview updates with a trusted
   newer CLI. Only unchanged, manifest-owned legacy skills can relocate
-  automatically; customized layouts require manual resolution. See the
-  [upgrade and recovery instructions](docs/workspace-model.md#legacy-skill-layout-migration).
+  automatically; customized layouts require manual resolution. The pre-1.0
+  layout migration also moves `.ai/rules/` and the installed runtime. See the
+  [upgrade and recovery instructions](docs/workspace-model.md).
 - AI-client discovery and operating-system compatibility require validation in
   the actual environment; structural guidance checks do not certify either.
 - Retain the bundled `WSUP-LICENSE` when redistributing WSUP code or substantial

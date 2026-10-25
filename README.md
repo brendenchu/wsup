@@ -37,7 +37,11 @@ python3 -B tools/wsup.py init /path/to/project --template project
 ```
 
 `init` never overwrites an existing destination. A workspace starter includes
-the CLI and both templates, so it can be used without this checkout.
+the CLI and both templates, so it can be used without this checkout. Inside that
+generated workspace, use `python3 -B .wsup/wsup.py ...`. The installed runtime,
+single template catalogue, state, and reports live under `.wsup/`; shared rules
+live in `guidance/rules/` and portable skills remain in `.agents/skills/`.
+Empty grouping folders and journals are created only as needed.
 
 ## Use the CLI
 
@@ -54,22 +58,26 @@ Run `python3 -B tools/wsup.py --help` for command options. The main commands:
 | `check --project ID` | Run only that project's configured checks |
 | `update` | Preview available template updates |
 | `update --apply` | Apply conflict-free updates |
+| `update --keep PATH` | Retain a same-path customization (repeat for each path) |
 
 Use `--project ID` repeatedly to select more projects and `--check NAME`
 repeatedly to choose checks. Review each configured command before running it:
 commands execute locally with your permissions. The CLI does not install
 dependencies on its own, invoke a shell, or automatically check dependent
-projects.
+projects. Kept customizations retain their existing baselines and remain visible
+for review in later update previews.
 
-Check reports are written under the ignored `.work/` directory. They contain
-results and hashes rather than command output or arguments. Use `--show-output`
-to display output in the terminal.
+Check reports are written under the ignored `.wsup/reports/` directory. They
+contain results and hashes rather than command output or arguments. Use
+`--show-output` to display output in the terminal.
 
 ## Workspace layout
 
-`apps/`, `packages/`, `tools/`, `infrastructure/`, `research/`, and `templates/`
-are optional responsibility groups. `docs/` holds durable guidance; `journal/`
-is an optional work record. Register projects in `workspace.json`; projects own
+`apps/`, `packages/`, `tools/`, `infrastructure/`, and `research/` are optional
+responsibility groups. Create them only when needed; they do not prescribe a
+personal taxonomy. `docs/` holds durable guidance. A `journal/` is optional.
+The installed template catalogue is tool-owned under `.wsup/templates/`, not a
+root project grouping. Register projects in `workspace.json`; projects own
 their code, tests, dependencies, setup and required instructions.
 
 The registry does not imply a shared Git repository, build, dependency install,
@@ -89,7 +97,9 @@ Clients supporting this shared location need no installation command. Open the
 workspace root and inspect the client's available skills; otherwise explicitly
 ask the assistant to read a skill's `SKILL.md` and follow its procedure.
 
-Run `python3 -B tools/wsup.py guidance` to check local structure and links.
+Run `python3 -B tools/wsup.py guidance` in this source checkout, or
+`python3 -B .wsup/wsup.py guidance` in an initialized workspace, to check
+local structure and links.
 That does not prove a client loaded or invoked a skill. Read
 [AI.md](AI.md) and the rule index separately for workspace instructions.
 No client adapter, global installation, credential, or model configuration is

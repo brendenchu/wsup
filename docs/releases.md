@@ -88,7 +88,8 @@ actually verified.
    remote and exact tag rather than pushing every local tag.
 
 There is no release automation, package publication, or remote self-update
-service. Keep local validation logs and release-preparation notes under ignored
-`.work/`; publish user-facing changes and material limitations in the changelog
-or release notes. See [AI guidance](ai-guidance.md) for compatibility limits and
-the [workspace model](workspace-model.md) for upgrade delivery.
+service. Keep development notes and release-preparation drafts under ignored
+`.work/`; CLI check reports are under ignored `.wsup/reports/`. Publish
+user-facing changes and material limitations in the changelog or release notes.
+See [AI guidance](ai-guidance.md) for compatibility limits and the
+[workspace model](workspace-model.md) for upgrade delivery.

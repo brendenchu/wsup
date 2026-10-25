@@ -1,6 +1,6 @@
 # Project guidance
 
-Read README.md and .ai/rules/index.md before planning or editing. Inspect this
+Read README.md and guidance/rules/index.md before planning or editing. Inspect this
 repository's Git status and preserve unrelated work and staging. Follow local
 commands and installed tool versions. Add project-specific language, architecture
 and test rules to this repository's own index as those decisions become known.

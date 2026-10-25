@@ -1,8 +1,8 @@
 # Portable AI guidance
 
-The workspace starter provides optional, client-neutral rules under `.ai/` and
+The workspace starter provides optional, client-neutral rules under `guidance/` and
 skills under `.agents/skills/`. `AI.md` is the canonical entry point; `AGENTS.md`
-is a short compatibility pointer. `.ai/rules/index.md` routes tasks to focused
+is a short compatibility pointer. `guidance/rules/index.md` routes tasks to focused
 rules, and `.agents/skills/` contains reusable task procedures. Each project
 starter carries its own instructions so it remains understandable outside its
 workspace.
@@ -10,6 +10,9 @@ workspace.
 In this generator repository, root `.agents/skills/` is the canonical skill source.
 Workspace initialization copies those skills into the generated workspace and
 its embedded workspace template. Tests verify the bundled copies stay in sync.
+Installed workspace skills are local procedures, not implicit starter overrides.
+An installed CLI generates from its bundled catalogue, even when local skills
+have been customized.
 
 ## Domain procedures
 
@@ -41,15 +44,21 @@ The compatibility table describes upstream documentation, not certified client
 versions. Verify discovery and invocation in the client and repository being
 used. WSUP's structural guidance checks do not establish client or OS compatibility.
 
-The canonical skill location for fresh workspaces is `.agents/skills/`.
+The canonical shared skill location for fresh workspaces is `.agents/skills/`.
 It is a shared location documented by VS Code, Codex, and Gemini CLI, rather than
 a location required by the Agent Skills format itself. Existing workspaces using
-`.ai/skills/` need a deliberate migration before adopting the new layout; do not
-copy the new tree over edited legacy skills. Workspace updates preview and
-relocate only unchanged, manifest-owned files; conflicts stop apply. See the
-[workspace model](workspace-model.md) for delivery, migration, and recovery.
-Guidance inspection reports coexisting legacy and canonical trees for manual
-resolution.
+`.ai/rules/` or `.ai/skills/` require the explicit pre-1.0 layout migration
+described in the [workspace model](workspace-model.md).
+The migration relocates only unchanged, manifest-owned content; it blocks on
+edited/missing managed files, unknown legacy files, and destination collisions.
+Do not copy over customized guidance or fabricate baselines. Structural
+validation checks `guidance/rules/index.md`; client discovery and invocation
+must still be verified separately.
+
+Installed workspace users run `python3 -B .wsup/wsup.py`; the development
+checkout uses `python3 -B tools/wsup.py`. Their bundled template catalogues
+produce the same consumer layout. User-edited installed skills are not implicit
+starter overrides: initialization uses the installed catalogue.
 
 | Experience | Documented discovery | Precedence and refresh | WSUP evidence |
 | --- | --- | --- | --- |
