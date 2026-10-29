@@ -8,7 +8,7 @@ import (
 )
 
 func TestUpdateExposesOnlyContentUpdateOptions(t *testing.T) {
-	command, _, err := newCommand().Find([]string{"update"})
+	command, _, err := newCommand(session{}).Find([]string{"update"})
 	if err != nil {
 		t.Fatal(err)
 	}

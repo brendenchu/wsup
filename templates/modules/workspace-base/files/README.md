@@ -93,7 +93,11 @@ boundary; keep restricted records out of documentation and Git.
 ```sh
 wsup init /path/to/another-workspace
 wsup init /path/to/new-project --template project
+wsup init /path/to/scripted-workspace --yes
 ```
+In a terminal, `init` asks for the preset, agents, and editors (a project:
+agents only) that flags leave open; press Enter to accept a default. Without a
+terminal, or with `--yes`, it uses the defaults without asking.
 
 Destinations must not exist, even as empty directories or dangling symlinks.
 Relative destinations use the current directory, not `--root`. Initialization

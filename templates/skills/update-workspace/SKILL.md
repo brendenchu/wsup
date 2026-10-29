@@ -9,8 +9,10 @@ description: Create workspace or project starters, maintain template content, or
    guidance. Distinguish new generation, source-template maintenance, and updates.
    Templates are embedded in the separately installed native binary; workspaces
    carry state/reports only, not an editable catalogue or runtime.
-2. For generation, use `wsup init DESTINATION`, adding `--template project` for a
-   project. Choose a new destination. Inspect guidance, registry where applicable,
+2. For generation, use `wsup init DESTINATION --yes` (or explicit `--preset`,
+   `--agent`, and `--editor` flags) so init never waits on its terminal
+   questions, adding `--template project` for a project. Choose a new
+   destination. Inspect guidance, registry where applicable,
    state, and local links. Relative destinations use cwd, not `--root`.
    Use repeatable `--collection NAME` only for explicit optional workspace homes.
    `wsup collections --add NAME` previews existing-workspace additions; apply

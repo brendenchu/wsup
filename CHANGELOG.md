@@ -26,6 +26,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
   it, reporting hand edits as conflicts. `--editor NAME` selects and
   `--editor none` skips it; editor adapters are workspace-only. `wsup editor`
   writes the same document.
+- In a terminal, `wsup init` asks for the preset, agents, and editors that
+  flags leave open (a project: agents only), re-asking after an invalid
+  answer. `--yes`, or running without a terminal, uses the defaults.
 - `wsup init --preset NAME` selects a preset of collections; explicit
   `--collection` choices add to it. `--preset none` creates a base-only
   workspace. Unknown presets fail before anything is written.

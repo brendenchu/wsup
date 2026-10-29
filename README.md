@@ -49,6 +49,10 @@ absolute path to create a workspace or project at a new destination:
 /absolute/path/to/wsup_0.2.0_darwin_arm64/wsup init /path/to/project --template project
 ```
 
+In a terminal, `init` asks for the preset, agents, and editors (a project:
+agents only) that flags leave open; press Enter to accept a default. Without a
+terminal, or with `--yes`, it uses the defaults without asking.
+
 Inspect the new workspace without installing anything or changing PATH:
 
 ```sh

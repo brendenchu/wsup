@@ -37,8 +37,13 @@ func Run(args []string, stdout, stderr io.Writer) int {
 }
 
 // RunContext accepts cancellation explicitly; the executable maps Ctrl-C to it.
+// init asks its questions only when stdin and stdout are terminals.
 func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer) int {
-	command := newCommand()
+	return runSession(ctx, args, stdout, stderr, terminalSession(stdout))
+}
+
+func runSession(ctx context.Context, args []string, stdout, stderr io.Writer, s session) int {
+	command := newCommand(s)
 	command.SetArgs(args)
 	command.SetOut(stdout)
 	command.SetErr(stderr)
@@ -52,7 +57,7 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer) in
 	return 0
 }
 
-func newCommand() *cobra.Command {
+func newCommand(s session) *cobra.Command {
 	root := &cobra.Command{
 		Use:              "wsup",
 		Short:            "WSUP portable local workspace tools",
@@ -110,11 +115,51 @@ func newCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			agents, err := catalogue.ComposeAdapters(catalogue.KindAgent, agentNames)
+			editorNames, err := command.Flags().GetStringArray("editor")
 			if err != nil {
 				return err
 			}
-			editorNames, err := command.Flags().GetStringArray("editor")
+			if kind != "workspace" && kind != "project" {
+				return fmt.Errorf("template must be workspace or project")
+			}
+			if kind == "project" && command.Flags().Changed("preset") {
+				return fmt.Errorf("presets require a workspace template")
+			}
+			if kind == "project" && len(editorNames) != 0 && !slices.Equal(editorNames, []string{catalogue.NoPreset}) {
+				return fmt.Errorf("editor adapters require a workspace template")
+			}
+			// Flag values fail before any question is asked.
+			if _, err := catalogue.ComposeAdapters(catalogue.KindAgent, agentNames); err != nil {
+				return err
+			}
+			if _, err := catalogue.ComposeAdapters(catalogue.KindEditor, editorNames); err != nil {
+				return err
+			}
+			if kind == "workspace" {
+				if _, err := catalogue.ComposeCollections(preset, collections); err != nil {
+					return err
+				}
+			}
+			yes, err := command.Flags().GetBool("yes")
+			if err != nil {
+				return err
+			}
+			if s.interactive && !yes {
+				answers, err := askInit(s, command.OutOrStdout(), kind, collections, command.Flags().Changed)
+				if err != nil {
+					return err
+				}
+				if answers.preset != nil {
+					preset = *answers.preset
+				}
+				if answers.agents != nil {
+					agentNames = answers.agents
+				}
+				if answers.editors != nil {
+					editorNames = answers.editors
+				}
+			}
+			agents, err := catalogue.ComposeAdapters(catalogue.KindAgent, agentNames)
 			if err != nil {
 				return err
 			}
@@ -122,18 +167,11 @@ func newCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if kind != "workspace" && kind != "project" {
-				return fmt.Errorf("template must be workspace or project")
-			}
 			if kind == "workspace" {
 				// Unknown presets and collections fail here, before any write.
 				if collections, err = catalogue.ComposeCollections(preset, collections); err != nil {
 					return err
 				}
-			} else if command.Flags().Changed("preset") {
-				return fmt.Errorf("presets require a workspace template")
-			} else if len(editorNames) != 0 && !slices.Equal(editorNames, []string{catalogue.NoPreset}) {
-				return fmt.Errorf("editor adapters require a workspace template")
 			} else {
 				// Editor adapters are workspace-only.
 				editors = nil
@@ -150,6 +188,7 @@ func newCommand() *cobra.Command {
 	init.Flags().String("preset", catalogue.DefaultPreset, "Workspace preset ("+strings.Join(catalogue.PresetNames(), ", ")+"; "+catalogue.NoPreset+" for the base only)")
 	init.Flags().StringArray("collection", nil, "Workspace collection added to the preset (repeatable)")
 	init.Flags().StringArray("editor", nil, "Workspace editor adapter ("+strings.Join(catalogue.EditorNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
+	init.Flags().Bool("yes", false, "Use defaults for any question flags leave open, even in a terminal")
 	init.Flags().StringArray("agent", nil, "Agent adapter ("+strings.Join(catalogue.AgentNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
 	root.AddCommand(init)
 	update := &cobra.Command{
