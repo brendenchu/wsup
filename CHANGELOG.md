@@ -23,7 +23,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
   or broken link.
 - Editor adapter `vscode`: `init` generates `<name>.code-workspace` from
   `workspace.json` (root plus one folder per project) and `update` refreshes
-  it, reporting hand edits as conflicts. `--editor NAME` selects and
+  it, reporting hand edits as conflicts. Renaming the workspace replaces the
+  file: `update` removes the old one while it is unedited. `--editor NAME` selects and
   `--editor none` skips it; editor adapters are workspace-only. `wsup editor`
   writes the same document.
 - In a terminal, `wsup init` asks for the preset, agents, and editors that

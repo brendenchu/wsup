@@ -97,6 +97,18 @@ func (p preparedUpdate) applyWith(write func(*os.Root, string, []byte, bool) err
 			return fail(err)
 		}
 	}
+	// Removals follow writes, so a failure never leaves neither old nor new file.
+	for _, action := range result.Actions {
+		if action.Action != "remove" {
+			continue
+		}
+		if err := p.recheck(root, action.Path); err != nil {
+			return fail(err)
+		}
+		if err := root.Remove(action.Path); err != nil {
+			return fail(fmt.Errorf("remove replaced file %s: %w", action.Path, err))
+		}
+	}
 	if err := checkState(); err != nil {
 		return fail(err)
 	}

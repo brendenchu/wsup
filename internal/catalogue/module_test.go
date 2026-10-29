@@ -123,6 +123,7 @@ func TestLoadRejectsInvalidModules(t *testing.T) {
 		"skill no frontmatter": {"skills/plan/SKILL.md": {Data: []byte("plan")}},
 		"bad template":         {"modules/notes/templates/notes/x.md": {Data: []byte("{{.Missing")}},
 		"file and template":    {"modules/notes/templates/notes/README.md": {Data: []byte("x")}},
+		"generated path":       {"modules/notes/files/notes.code-workspace": {Data: []byte("{}")}},
 		"multi-line ignore":    {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"ignore":["a\nb"]`)},
 		"comment ignore":       {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"ignore":["# x"]`)},
 		"ignore without base":  {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"ignore":["notes/*.tmp"]`)},

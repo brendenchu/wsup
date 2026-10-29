@@ -25,13 +25,35 @@ type Project struct {
 
 // generator builds one file from the workspace and returns its path. Only
 // wsup defines generators; modules name them in their manifest's "generate".
-type generator func(Workspace) (string, []byte, error)
+type generator struct {
+	build func(Workspace) (string, []byte, error)
+	// owns reports whether a path has this generator's output shape. Its path
+	// can follow workspace data (such as the name), so a managed file it no
+	// longer writes is replaced on update rather than left as an orphan.
+	owns func(string) bool
+}
 
 var generators = map[string]generator{
-	"code-workspace": func(workspace Workspace) (string, []byte, error) {
-		body, err := CodeWorkspace(workspace)
-		return Slug(workspace.Name) + ".code-workspace", body, err
+	"code-workspace": {
+		build: func(workspace Workspace) (string, []byte, error) {
+			body, err := CodeWorkspace(workspace)
+			return Slug(workspace.Name) + ".code-workspace", body, err
+		},
+		owns: func(name string) bool {
+			return !strings.Contains(name, "/") && strings.HasSuffix(name, ".code-workspace")
+		},
 	},
+}
+
+// Generated reports whether a workspace-relative path is one a built-in
+// generator writes. Module files never use these paths.
+func Generated(name string) bool {
+	for _, generator := range generators {
+		if generator.owns(name) {
+			return true
+		}
+	}
+	return false
 }
 
 // ParseWorkspace decodes a registry's name and project ids and paths for
@@ -104,11 +126,11 @@ func (c *Catalogue) Generate(ids []string, workspace Workspace) (map[string][]by
 	files := map[string][]byte{}
 	for _, id := range ids {
 		for _, name := range c.modules[id].Generate {
-			path, body, err := generators[name](workspace)
+			path, body, err := generators[name].build(workspace)
 			if err != nil {
 				return nil, fmt.Errorf("module %q: generate %s: %w", id, name, err)
 			}
-			if _, exists := files[path]; exists || !portable(path) || strings.Contains(path, "/") {
+			if _, exists := files[path]; exists || !portable(path) || strings.Contains(path, "/") || !generators[name].owns(path) {
 				return nil, fmt.Errorf("module %q: generator %s wrote an invalid or duplicate path %s", id, name, path)
 			}
 			files[path] = bytes.Clone(body)

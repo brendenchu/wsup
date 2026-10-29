@@ -11,6 +11,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/brendenchu/wsup/internal/catalogue"
 	"github.com/brendenchu/wsup/internal/registry"
 )
 
@@ -126,6 +127,18 @@ func planUpdate(root, version string, files map[string][]byte, links map[string]
 		switch {
 		case kept[name]:
 			action = "keep-customization"
+		case !supplied && managed && catalogue.Generated(name):
+			// A generated path that followed workspace data (a rename) is
+			// replaced: removed while unedited, a conflict once edited.
+			switch {
+			case !current.exists:
+				continue
+			case current.digest == baseline:
+				action = "remove"
+			default:
+				result.Conflicts = append(result.Conflicts, name)
+				continue
+			}
 		case !supplied:
 			action = "retain-orphan"
 		case current.regular && current.digest == target:

@@ -452,6 +452,9 @@ func (c *Catalogue) validate() error {
 			if !portable(name) || name == ".agents" || strings.HasPrefix(name, ".agents/skills/") {
 				return fail("file %q must be a portable workspace path outside .agents/skills", name)
 			}
+			if Generated(name) {
+				return fail("file %q has a generator's output path", name)
+			}
 		}
 		for name, target := range module.Links {
 			resolved := path.Join(path.Dir(name), target)
