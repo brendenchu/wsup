@@ -5,7 +5,7 @@ description: Run explicitly selected project checks and summarise failures. Use 
 
 # Check the workspace
 
-Read the local rule index and registry. Inspect selected check argv; commands run
+Read AGENTS.md and the registry. Inspect selected check argv; commands run
 with your access and are not sandboxed. Use a compatible separately installed
 native `wsup` from the workspace root:
 
@@ -20,7 +20,9 @@ execution. Dependencies are not automatic selections; tools are never installed.
 Arguments are passed literally without substitution. Unix check execution is
 verified on macOS ARM64; non-Unix execution refuses launch.
 
-Report outcomes, findings, skips, failures, and missing prerequisites separately.
+Run independent checks even when another fails. Report outcomes, findings,
+skips, failures, and missing prerequisites separately, recording the commands
+and environmental limits. Never report a skipped or unrun check as passing.
 Default output is hidden; `--show-output` prints bounded retained output and may
 reveal secrets. Reports omit captured output, arguments, and environment values,
 but remain local evidence requiring review before sharing.

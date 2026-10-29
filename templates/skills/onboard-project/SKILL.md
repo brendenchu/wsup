@@ -18,7 +18,11 @@ description: Onboard a new or existing workspace project. Use when adding or reg
    workspace index or migrating history. Clone/initialize repositories only when
    requested, and verify the project's Git top-level. Never inject an upward
    workspace relationship or project location into its self-contained guidance.
-4. Add registry metadata and established dependency IDs. Use
+4. Add registry metadata and established dependency IDs. `workspace.json`
+   records actual project paths, owners and dependencies; repository ownership
+   is intended topology, not proof that Git exists at a path. Register a
+   descendant workspace only through an explicit local entry and operate it with
+   its own commands; never record where it is placed, so it stays movable. Use
    [run-checks](../run-checks/SKILL.md) for checks and dependency changes.
 5. Run `wsup validate` and `wsup projects`. Review both owners' Git status.
    Check project guidance if present. Generate an editor file only when requested;

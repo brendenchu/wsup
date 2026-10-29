@@ -15,8 +15,9 @@ examples and any conflicting patterns. Where practices differ by path or context
 propose scoped rules; do not turn a mixed practice into a universal requirement.
 
 Record new rules only within the authorised scope. Label a proposed future
-standard separately from an observed convention. Use a local rule index with a
-precise task/path trigger and keep the rule self-contained in its owning project.
+standard separately from an observed convention. Record them in the owner's
+AGENTS.md, or in an AGENTS.md in the folder they apply to, and keep each rule
+self-contained in its owning project.
 Avoid copying application identities, credentials, runtime versions or framework
 requirements into portable defaults.
 

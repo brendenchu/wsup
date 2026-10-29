@@ -19,7 +19,8 @@ func TestCollectionAdditionPreservesUnrelatedDirectoryContents(t *testing.T) {
 	}
 	after := snapshot(t, root)
 	for name, body := range before {
-		if name != filepath.FromSlash(StatePath) && after[name] != body {
+		// AGENTS.md lists the selected collections in its generated layout.
+		if name != filepath.FromSlash(StatePath) && name != "AGENTS.md" && after[name] != body {
 			t.Fatalf("unrelated content changed: %s", name)
 		}
 	}
@@ -94,14 +95,11 @@ func TestUpdateAddsUnmanagedDefaultMarkersAndKeepsOmissionsLocal(t *testing.T) {
 	if err := os.Remove(filepath.Join(root, "tools/README.md")); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Remove(filepath.Join(root, "tools")); err != nil {
-		t.Fatal(err)
-	}
 	writeFixture(t, root, "packages/README.md", []byte("Owner home policy"))
 	if _, err := Update(root, "0.1.0", nil, true); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Lstat(filepath.Join(root, "tools")); !os.IsNotExist(err) {
+	if _, err := os.Lstat(filepath.Join(root, "tools/README.md")); !os.IsNotExist(err) {
 		t.Fatal("omitted home recreated")
 	}
 	body, err := os.ReadFile(filepath.Join(root, "packages/README.md"))

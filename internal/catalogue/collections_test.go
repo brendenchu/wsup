@@ -40,7 +40,7 @@ func TestSelectedCollectionBundleInventoryAndExactBytes(t *testing.T) {
 		t.Fatalf("collection-owned skills: %v", owned)
 	}
 	for _, collection := range all {
-		for _, filename := range []string{"README.md", "TEMPLATE.md"} {
+		for _, filename := range []string{"AGENTS.md", "README.md", "TEMPLATE.md"} {
 			body, err := fs.ReadFile(source, "modules/"+collection+"/files/"+collection+"/"+filename)
 			if filename == "TEMPLATE.md" && !slices.Contains(templated, collection) {
 				if err == nil {

@@ -40,10 +40,6 @@ func TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles(t *test
 		"wsup", "wsup.exe", "wsup_0.2.0_darwin_arm64.tar.gz",
 		"wsup_0.2.0_windows_amd64.zip", "SHA256SUMS",
 	}
-	license, err := os.ReadFile("../../LICENSE")
-	if err != nil {
-		t.Fatal(err)
-	}
 	for _, kind := range []string{"workspace", "project"} {
 		t.Run(kind, func(t *testing.T) {
 			starter, err := catalogue.Bundle(kind)
@@ -59,9 +55,9 @@ func TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles(t *test
 			if err != nil || !bytes.Equal(body, sourceIgnore) {
 				t.Fatal("starter ignore baseline changed")
 			}
-			body, err = os.ReadFile(filepath.Join(root, "WSUP-LICENSE"))
-			if err != nil || !bytes.Equal(body, license) {
-				t.Fatal("starter license changed")
+			// The license applies to the wsup repository, never to generated output.
+			if _, err := os.Lstat(filepath.Join(root, "WSUP-LICENSE")); !os.IsNotExist(err) {
+				t.Fatal("starter carries a license file")
 			}
 			if _, err := os.Stat(filepath.Join(root, ".git")); !os.IsNotExist(err) {
 				t.Fatal("starter silently initialized Git")

@@ -66,7 +66,7 @@ func TestNativeUpdateCLIReadsEmbeddedCatalogueAndPreservesOwnerFiles(t *testing.
 				t.Fatal(err)
 			}
 			for name, body := range map[string]string{
-				"AI.md": "Owner guidance customization", "wsup.local.json": "Owner local bytes",
+				"AGENTS.md": "Owner guidance customization", "wsup.local.json": "Owner local bytes",
 				"workspace.json":         "Owner registry bytes, deliberately not parsed by update",
 				".wsup/reports/old.json": "Old evidence", "tools/independent/source": "Independent project",
 			} {
@@ -99,7 +99,7 @@ func TestNativeUpdateCLIReadsEmbeddedCatalogueAndPreservesOwnerFiles(t *testing.
 				return result
 			}
 			conflict := invoke(1)
-			if !reflect.DeepEqual(conflict.Conflicts, []string{"AI.md"}) || conflict.Applied {
+			if !reflect.DeepEqual(conflict.Conflicts, []string{"AGENTS.md"}) || conflict.Applied {
 				t.Fatalf("conflict preview: %+v", conflict)
 			}
 			invoke(2, "--apply")
@@ -109,11 +109,11 @@ func TestNativeUpdateCLIReadsEmbeddedCatalogueAndPreservesOwnerFiles(t *testing.
 			if !reflect.DeepEqual(before, workspaceBytes(t, root)) {
 				t.Fatal("previews/errors wrote workspace")
 			}
-			preview := invoke(0, "--keep", "AI.md")
+			preview := invoke(0, "--keep", "AGENTS.md")
 			if preview.Applied || len(preview.Actions) != 2 || preview.FromVersion != "0.0.0" || preview.ToVersion != Version {
 				t.Fatalf("keep preview: %+v", preview)
 			}
-			applied := invoke(0, "--keep", "AI.md", "--apply")
+			applied := invoke(0, "--keep", "AGENTS.md", "--apply")
 			if !applied.Applied {
 				t.Fatal("successful apply not reported")
 			}
@@ -127,11 +127,11 @@ func TestNativeUpdateCLIReadsEmbeddedCatalogueAndPreservesOwnerFiles(t *testing.
 			if err != nil || after[filepath.Join(root, "README.md")] != string(bundle["README.md"]) {
 				t.Fatal("update did not use embedded native content")
 			}
-			settled := invoke(0, "--keep", "AI.md")
-			if !reflect.DeepEqual(settled.Actions, []scaffolding.Action{{Path: "AI.md", Action: "keep-customization"}}) {
+			settled := invoke(0, "--keep", "AGENTS.md")
+			if !reflect.DeepEqual(settled.Actions, []scaffolding.Action{{Path: "AGENTS.md", Action: "keep-customization"}}) {
 				t.Fatalf("update did not settle: %+v", settled)
 			}
-			if !reflect.DeepEqual(invoke(1).Conflicts, []string{"AI.md"}) {
+			if !reflect.DeepEqual(invoke(1).Conflicts, []string{"AGENTS.md"}) {
 				t.Fatal("keep silently adopted customized baseline")
 			}
 		})

@@ -63,7 +63,7 @@ CLI exit codes.
 | `infra/`\* | Provisioning, deployment, and operations code |
 | `docs/` | Maintained workspace documentation |
 | `workbench/` | Shareable drafts and temporary analysis |
-| `guidance/`, `.agents/skills/` | Local rules and portable procedures |
+| `AGENTS.md`, `.agents/skills/` | Agent instructions and portable procedures |
 | `.wsup/` | Template state and ignored check reports |
 
 \* Collections selected by the default `development` preset. `--preset none`
@@ -267,7 +267,7 @@ No existing report is rewritten to change provenance.
 Native schema-2 template state stores baseline SHA-256 hashes and product/template
 version. It owns managed starter files, never runtime/report content under
 `.wsup/`. Keep state with the files so future updates can identify customizations.
-Local rules/skills are workspace customizations, not implicit defaults for child
+Local instructions and skills are workspace customizations, not implicit defaults for child
 generation. A new workspace always uses the binary's embedded baseline.
 
 `wsup update` compares managed files with the invoked binary's embedded template
@@ -300,13 +300,19 @@ binary. No commit, installation, or publication is automatic.
 
 ## Guidance
 
-Read local `AI.md` and `guidance/rules/index.md`. Seven base skills are always
+Read the root `AGENTS.md` and the AGENTS.md of the folder you work in. The root
+file's Layout and Skills sections sit between `<!-- wsup:begin NAME -->` /
+`<!-- wsup:end NAME -->` markers and are generated from the selection; text
+outside the markers belongs to the owner. When a collection is added, an edited
+AGENTS.md or `.gitignore` keeps its owner text and only its generated sections
+are replaced, provided the owner left those sections unchanged; otherwise the
+file is a conflict. `update` still compares whole files. Seven base skills are always
 included under `.agents/skills/`; project collections (`apps`, `packages`,
 `tools`, `infra`, `sandbox`, `templates`, `forks`) add five code-change skills,
 installed once however many are selected. Adding a collection installs any of
 its skills not already present. No client, provider, credential, MCP server, or
 adapter is required. Clients may discover that shared path or need explicit skill
 paths. Verify client loading separately from file presence. `guidance` checks
-metadata, local links, owner containment, and structural findings, not whether
+metadata, local links, marker pairing, owner containment, and structural findings, not whether
 an AI client invoked a skill. Findings are sorted lexically, preserving duplicates.
 Independent projects keep their required guidance themselves.

@@ -1,11 +1,12 @@
 # Portable AI guidance
 
-The workspace starter provides optional, client-neutral rules under `guidance/` and
-skills under `.agents/skills/`. `AI.md` is the canonical entry point; `AGENTS.md`
-is a short compatibility pointer. `guidance/rules/index.md` routes tasks to focused
-rules, and `.agents/skills/` contains reusable task procedures. Each project
-starter carries its own instructions so it remains understandable outside its
-workspace.
+Generated workspaces and projects keep their agent instructions in `AGENTS.md`
+and reusable task procedures in `.agents/skills/`. The root `AGENTS.md` is short
+and always loaded: it holds the workspace rules and generated Layout and Skills
+sections between `<!-- wsup:begin NAME -->` / `<!-- wsup:end NAME -->` markers.
+Each collection folder has its own `AGENTS.md` with that folder's rules. Each
+project starter carries its own instructions so it remains understandable
+outside its workspace.
 
 In this generator repository, `templates/skills/` is the only
 skill source; it is embedded directly in the binary.
@@ -25,7 +26,7 @@ diagnosis, review, and reporting workflows:
 | Starter generation and template updates | [update-workspace](../templates/skills/update-workspace/SKILL.md) |
 | Instructions, skills and client discovery | [maintain-agents-md](../templates/skills/maintain-agents-md/SKILL.md) |
 
-These are base skills, so every workspace has them and its rule index routes to
+These are base skills, so every workspace has them and its AGENTS.md links to
 them. The code-change skills (make-change, review-change, diagnose-issue,
 write-commit, infer-conventions) are owned by the project collections and
 installed only when one is selected; the project starter always has them.
@@ -37,7 +38,7 @@ them rather than the generic workspace kit.
 
 No agent, model provider, credential, MCP server, or global skill is installed.
 Clients differ in how they discover instructions and skills. Configure a chosen
-client to read the local `AI.md` and relevant rule index, or provide a skill's
+client to read the local `AGENTS.md`, or provide a skill's
 `SKILL.md` path when needed. Add a client-specific adapter only when required and
 validate it with that client's current documentation.
 
@@ -50,7 +51,7 @@ used. WSUP's structural guidance checks do not establish client or OS compatibil
 The canonical shared skill location for fresh workspaces is `.agents/skills/`.
 It is a shared location documented by VS Code, Codex, and Gemini CLI, rather than
 a location required by the Agent Skills format itself. Structural validation
-checks `guidance/rules/index.md`; client discovery and invocation
+checks `AGENTS.md` files, their markers, and skills; client discovery and invocation
 must still be verified separately.
 
 Development runs `go run ./cmd/wsup`; generated workspaces use a compatible
@@ -82,9 +83,8 @@ Sources:
 - [Claude Code skills](https://code.claude.com/docs/en/skills): native project
   locations and repository-boundary traversal.
 
-Skill discovery does not establish instruction loading. Keep `AI.md` as the
-canonical guidance and the existing `AGENTS.md` pointer; provide explicit paths
-when needed. Codex documents
+Skill discovery does not establish instruction loading. `AGENTS.md` is the
+canonical guidance; provide explicit paths when needed. Codex documents
 [AGENTS.md discovery](https://developers.openai.com/codex/guides/agents-md);
 Gemini documents a separate
 [GEMINI.md context mechanism](https://geminicli.com/docs/cli/gemini-md/).
@@ -113,7 +113,7 @@ For setup, open the workspace root and inspect the client's skill list. Provide
 the explicit `SKILL.md` path when discovery is unavailable. Refresh client
 discovery with its documented controls after a template update. To stop using
 skills, use client-level disabling rather than removing files referenced by the
-rule index. There is no WSUP adapter to uninstall and no global state to remove.
+AGENTS.md skills table. There is no WSUP adapter to uninstall and no global state to remove.
 
 ## Keep guidance useful
 

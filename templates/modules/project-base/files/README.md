@@ -45,7 +45,6 @@ accepting their current bytes as new baselines. Only schema-2 state is supported
 Do not edit the schema version to force a downgrade. Updates are not transactional;
 I/O failures may leave partial content with old state and are reported explicitly.
 Project commands and runtime requirements remain this project's responsibility.
-
-The WSUP starter content is covered by [WSUP-LICENSE](WSUP-LICENSE). Retain this
-notice when redistributing that content. It does not choose a license for this
-project's own code; document that license separately.
+Agent instructions are in [AGENTS.md](AGENTS.md); its Skills section is
+generated between `wsup:begin`/`wsup:end` markers, and the rest is yours.
+Choose and document this project's own license separately.

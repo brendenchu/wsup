@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
-	"slices"
 	"strings"
 	"testing"
 
@@ -85,7 +84,8 @@ func TestCollectionListingPreviewApplyAndIdempotence(t *testing.T) {
 	root := collectionWorkspace(t)
 	before := snapshot(t, root)
 	preview, err := AddCollections(root, []string{"journal", "archive", "journal"}, false)
-	want := []Action{{"archive/README.md", "write"}, {"journal/README.md", "write"}, {"journal/TEMPLATE.md", "write"}}
+	want := []Action{{"AGENTS.md", "write"}, {"archive/AGENTS.md", "write"}, {"archive/README.md", "write"},
+		{"journal/AGENTS.md", "write"}, {"journal/README.md", "write"}, {"journal/TEMPLATE.md", "write"}}
 	if err != nil || !reflect.DeepEqual(preview.Actions, want) || !reflect.DeepEqual(*preview.Selected, []string{"archive", "journal"}) || preview.Applied {
 		t.Fatalf("preview: %+v %v", preview, err)
 	}
@@ -221,13 +221,13 @@ func TestCollectionAdditionInstallsOwnedSkillsOnce(t *testing.T) {
 	for _, skill := range skills {
 		want = append(want, Action{".agents/skills/" + skill + "/SKILL.md", "write"})
 	}
-	want = append(want, Action{"apps/README.md", "write"})
+	want = append(want, Action{"AGENTS.md", "write"}, Action{"apps/AGENTS.md", "write"}, Action{"apps/README.md", "write"})
 	added, err := AddCollections(root, []string{"apps"}, true)
 	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, want) {
 		t.Fatalf("first project collection: %+v %v", added, err)
 	}
 	added, err = AddCollections(root, []string{"tools"}, true)
-	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, []Action{{"tools/README.md", "write"}}) {
+	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, []Action{{"AGENTS.md", "write"}, {"tools/AGENTS.md", "write"}, {"tools/README.md", "write"}}) {
 		t.Fatalf("second project collection: %+v %v", added, err)
 	}
 	plan, err := Update(root, "0.1.0", nil, false)
@@ -257,7 +257,7 @@ func TestDataIgnoreEntryRendersIntoTheGitignoreBlock(t *testing.T) {
 	// Adding data later rewrites an unedited .gitignore with the entry.
 	root = collectionWorkspace(t)
 	added, err := AddCollections(root, []string{"data"}, true)
-	want := []Action{{".gitignore", "write"}, {"data/README.md", "write"}}
+	want := []Action{{".gitignore", "write"}, {"AGENTS.md", "write"}, {"data/AGENTS.md", "write"}, {"data/README.md", "write"}}
 	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, want) {
 		t.Fatalf("data addition: %+v %v", added, err)
 	}
@@ -269,14 +269,26 @@ func TestDataIgnoreEntryRendersIntoTheGitignoreBlock(t *testing.T) {
 		t.Fatalf("data addition did not settle: %+v %v", plan, err)
 	}
 
-	// An owner-edited .gitignore is a conflict, never overwritten.
+	// Owner edits outside the block are kept; only the block is replaced.
 	root = collectionWorkspace(t)
-	edited := append(slices.Clone(must(os.ReadFile(filepath.Join(root, ".gitignore")))), "/apps/independent/\n"...)
-	writeFixture(t, root, ".gitignore", edited)
+	owner := "/apps/independent/\n"
+	writeFixture(t, root, ".gitignore", append([]byte(owner), must(os.ReadFile(filepath.Join(root, ".gitignore")))...))
+	if added, err := AddCollections(root, []string{"data"}, true); err != nil || !added.Applied {
+		t.Fatalf("edited ignore addition: %+v %v", added, err)
+	}
+	body = must(os.ReadFile(filepath.Join(root, ".gitignore")))
+	if !strings.HasPrefix(string(body), owner) || !strings.HasSuffix(string(body), block) {
+		t.Fatalf("edited ignore splice: %q", body)
+	}
+
+	// An edit inside the generated block is a conflict, never overwritten.
+	root = collectionWorkspace(t)
+	inside := strings.Replace(string(must(os.ReadFile(filepath.Join(root, ".gitignore")))), "# wsup:end ignore", "owner-entry\n# wsup:end ignore", 1)
+	writeFixture(t, root, ".gitignore", []byte(inside))
 	before := snapshot(t, root)
 	if added, err := AddCollections(root, []string{"data"}, true); err == nil || added.Applied ||
 		!reflect.DeepEqual(added.Conflicts, []string{".gitignore"}) || !reflect.DeepEqual(before, snapshot(t, root)) {
-		t.Fatalf("edited ignore addition: %+v %v", added, err)
+		t.Fatalf("block-edited ignore addition: %+v %v", added, err)
 	}
 }
 

@@ -25,7 +25,7 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 	if _, err := InitialiseProject(project, "0.1.0"); err != nil {
 		t.Fatal(err)
 	}
-	contract := "Each workspace knows only itself and its descendants."
+	contract := "knows only itself and its descendants."
 	links := regexp.MustCompile(`\]\(([^)]+)\)`)
 	upward := regexp.MustCompile(`(?i)\bparent(?:'s)?\s+workspace\b`)
 	for _, root := range []string{workspace, baseOnly, project} {
@@ -33,9 +33,14 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 		if err != nil || len(inspection.Errors) != 0 {
 			t.Fatalf("guidance: %+v %v", inspection, err)
 		}
-		ai, err := os.ReadFile(filepath.Join(root, "AI.md"))
-		if err != nil || !bytes.Contains(ai, []byte(contract)) {
+		agents, err := os.ReadFile(filepath.Join(root, "AGENTS.md"))
+		if err != nil || !bytes.Contains(agents, []byte(contract)) {
 			t.Fatalf("missing independence contract: %s", root)
+		}
+		for _, retired := range []string{"AI.md", "guidance", "WSUP-LICENSE"} {
+			if _, err := os.Lstat(filepath.Join(root, retired)); !os.IsNotExist(err) {
+				t.Fatalf("retired guidance file present: %s/%s", root, retired)
+			}
 		}
 		err = filepath.WalkDir(root, func(name string, entry os.DirEntry, err error) error {
 			if err != nil || entry.IsDir() || !strings.HasSuffix(name, ".md") {
@@ -68,14 +73,6 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 		if err != nil {
 			t.Fatal(err)
 		}
-		boundary, err := os.ReadFile(filepath.Join(root, "guidance/rules/boundaries.md"))
-		if err != nil || !bytes.Contains(boundary, []byte(contract)) {
-			t.Fatal("starter boundary contract missing")
-		}
-	}
-	index, err := os.ReadFile(filepath.Join(workspace, "guidance/rules/index.md"))
-	if err != nil {
-		t.Fatal(err)
 	}
 	skills, err := os.ReadDir(skillSource)
 	if err != nil {
@@ -99,23 +96,22 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 		!slices.Equal(inventory(baseOnly), baseSkills) || !slices.Equal(inventory(project), projectSkills) {
 		t.Fatalf("skill inventory: %v %v %v", inventory(workspace), inventory(baseOnly), inventory(project))
 	}
-	projectIndex, err := os.ReadFile(filepath.Join(project, "guidance/rules/index.md"))
-	if err != nil {
-		t.Fatal(err)
+	// Each AGENTS.md skills table links exactly the skills that are installed.
+	for _, root := range []string{workspace, baseOnly, project} {
+		agents, err := os.ReadFile(filepath.Join(root, "AGENTS.md"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, skill := range skills {
+			name := skill.Name()
+			route := []byte("](.agents/skills/" + name + "/SKILL.md)")
+			if slices.Contains(inventory(root), name) != bytes.Contains(agents, route) {
+				t.Fatalf("skills table mismatch in %s: %s", root, name)
+			}
+		}
 	}
 	for _, skill := range skills {
 		name := skill.Name()
-		// Base skills are linked; collection skills are named, since a workspace
-		// may not have installed them.
-		route := []byte("](../../.agents/skills/" + name + "/SKILL.md)")
-		if !slices.Contains(inventory(workspace), name) ||
-			slices.Contains(baseSkills, name) != bytes.Contains(index, route) ||
-			(!slices.Contains(baseSkills, name) && !bytes.Contains(index, []byte("`"+name+"`"))) {
-			t.Fatalf("missing canonical skill or route: %s", name)
-		}
-		if slices.Contains(projectSkills, name) != bytes.Contains(projectIndex, route) {
-			t.Fatalf("project route mismatch: %s", name)
-		}
 		want, err := os.ReadFile(filepath.Join(skillSource, name, "SKILL.md"))
 		if err != nil {
 			t.Fatal(err)
@@ -133,21 +129,10 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 	if err != nil || !bytes.Equal(model, wantModel) {
 		t.Fatal("canonical native workspace model differs")
 	}
-	rules, err := os.ReadDir(filepath.Join(templateSource, "guidance/rules"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, rule := range rules {
-		if !strings.HasSuffix(rule.Name(), ".md") {
-			continue
-		}
-		want, err := os.ReadFile(filepath.Join(templateSource, "guidance/rules", rule.Name()))
-		if err != nil {
-			t.Fatal(err)
-		}
-		body, err := os.ReadFile(filepath.Join(workspace, "guidance/rules", rule.Name()))
-		if err != nil || !bytes.Equal(body, want) {
-			t.Fatalf("canonical rule differs: %s", rule.Name())
+	// Each selected collection has its folder rules.
+	for _, collection := range []string{"apps", "infra", "packages", "tools"} {
+		if _, err := os.Stat(filepath.Join(workspace, collection, "AGENTS.md")); err != nil {
+			t.Fatalf("missing folder rules: %s", collection)
 		}
 	}
 }

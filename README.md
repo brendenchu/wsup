@@ -62,8 +62,8 @@ all templates and works without this checkout. Build outside the tracked tree
 with `go build -o /path/to/wsup ./cmd/wsup`, then invoke `/path/to/wsup` (or
 `wsup` if separately made available on PATH). Workspaces contain state/reports
 under `.wsup/`, not an executable, runtime, or copied catalogue. Relocation
-requires a compatible external binary. Shared rules live in `guidance/rules/`
-and portable skills remain in `.agents/skills/`.
+requires a compatible external binary. Agent instructions live in `AGENTS.md`
+(plus one per collection folder) and portable skills in `.agents/skills/`.
 Generated workspaces include the `development` preset's homes by default, with
 other collections selected explicitly; see the workspace layout below.
 The project starter contains project documentation, guidance, its own skills,
@@ -129,7 +129,7 @@ See [updates and recovery](templates/modules/workspace-base/files/docs/workspace
 ## Workspace layout
 
 Every generated workspace includes `docs/` and `workbench/`, alongside the
-workspace-owned `guidance/`, `.agents/skills/`, and `.wsup/` foundation. The
+workspace-owned `AGENTS.md`, `.agents/skills/`, and `.wsup/` foundation. The
 default `development` preset adds the `apps/`, `packages/`, `tools/`, and
 `infra/` collections; `--preset none` creates the base only. Every other
 collection is a CLI-selectable addition:
@@ -212,13 +212,14 @@ ask the assistant to read a skill's `SKILL.md` and follow its procedure.
 
 Run `wsup guidance` in a generated workspace to check local structure and
 links. That does not prove a client loaded or invoked a skill. A generated
-workspace's `AI.md` and rule index hold its instructions.
+workspace's `AGENTS.md` holds its instructions and a generated table of its
+installed skills.
 No client adapter, global installation, credential, or model configuration is
 created. There is no `skills install` command.
 
 Use the normal template-update preview/apply flow to refresh bundled content;
 it does not download a new release. To disable skill use, use the client's
-controls rather than deleting canonical files and breaking rule-index links.
+controls rather than deleting skill files that AGENTS.md links to.
 See [AI guidance](docs/ai-guidance.md) for the dated compatibility matrix and
 [workspace model](templates/modules/workspace-base/files/docs/workspace-model.md) for safe managed-content updates.
 
@@ -233,6 +234,6 @@ These are maintainer documents, not generated starter files.
 
 WSUP is licensed under the [MIT License](LICENSE).
 When redistributing WSUP code or substantial template content, retain the
-copyright and permission notice. Both starters include a `WSUP-LICENSE` notice,
-kept in sync with this repository's license. This covers WSUP content and does
-not choose a license for your own projects.
+copyright and permission notice. Generated workspaces and projects carry no
+license file: the license applies to this repository, and choosing a license
+for your own projects is up to you.

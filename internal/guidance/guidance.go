@@ -31,6 +31,7 @@ var (
 	linkPattern   = regexp.MustCompile(`\]\(([^)]+)\)`)
 	schemePattern = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.-]*:`)
 	skillName     = regexp.MustCompile(`^[a-z0-9-]{1,63}$`)
+	markerPattern = regexp.MustCompile(`<!-- wsup:(begin|end) ([a-z][a-z0-9-]*) -->`)
 )
 
 func regular(name string) bool {
@@ -65,9 +66,10 @@ func markdown(root string) ([]string, error) {
 	return files, err
 }
 
-// Inspect checks required entry points, local file references, simple skill
-// metadata. It neither fetches external links nor
-// establishes that a client discovers or follows the instructions.
+// Inspect checks the required AGENTS.md, local file references in the root and
+// top-level folder AGENTS.md files and skills, simple skill metadata, and
+// generated-section markers. It neither fetches external links nor establishes
+// that a client discovers or follows the instructions.
 func Inspect(root string) (Result, error) {
 	resolvedRoot, err := registry.Resolve(root)
 	if err != nil {
@@ -75,20 +77,26 @@ func Inspect(root string) (Result, error) {
 	}
 	root = resolvedRoot
 	result := Result{Files: []string{}, Skills: []Skill{}, Errors: []string{}}
-	for _, name := range []string{"AI.md", "guidance/rules/index.md"} {
-		if !regular(filepath.Join(root, filepath.FromSlash(name))) {
-			result.Errors = append(result.Errors, "Missing "+name)
+	if !regular(filepath.Join(root, "AGENTS.md")) {
+		result.Errors = append(result.Errors, "Missing AGENTS.md")
+	}
+	candidates := []string{filepath.Join(root, "AGENTS.md")}
+	// Folder rules live one level down (collections, docs, workbench). Deeper
+	// AGENTS.md files belong to projects, inspected with --project.
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		return Result{}, err
+	}
+	for _, entry := range entries {
+		if entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") {
+			candidates = append(candidates, filepath.Join(root, entry.Name(), "AGENTS.md"))
 		}
 	}
-	candidates := []string{filepath.Join(root, "AI.md"), filepath.Join(root, "AGENTS.md")}
-	shared := filepath.Join(root, ".agents/skills")
-	for _, directory := range []string{filepath.Join(root, "guidance"), shared} {
-		files, err := markdown(directory)
-		if err != nil {
-			return Result{}, err
-		}
-		candidates = append(candidates, files...)
+	files, err := markdown(filepath.Join(root, ".agents/skills"))
+	if err != nil {
+		return Result{}, err
 	}
+	candidates = append(candidates, files...)
 	seen := map[string]bool{}
 	for _, name := range candidates {
 		if !regular(name) {
@@ -137,6 +145,11 @@ func Inspect(root string) (Result, error) {
 				result.Errors = append(result.Errors, relative+": unresolved/nonlocal reference")
 			}
 		}
+		if filepath.Base(name) == "AGENTS.md" {
+			if problem := markerProblem(text); problem != "" {
+				result.Errors = append(result.Errors, relative+": "+problem)
+			}
+		}
 		if filepath.Base(name) == "SKILL.md" {
 			skill, ok := parseSkill(text, filepath.Base(filepath.Dir(name)))
 			if !ok {
@@ -151,6 +164,31 @@ func Inspect(root string) (Result, error) {
 	sort.Strings(result.Errors)
 	sort.SliceStable(result.Skills, func(i, j int) bool { return result.Skills[i].Name < result.Skills[j].Name })
 	return result, nil
+}
+
+// markerProblem reports generated-section markers that do not pair up: every
+// begin needs a matching end, sections never nest, and each name appears once.
+func markerProblem(text string) string {
+	open, seen := "", map[string]bool{}
+	for _, match := range markerPattern.FindAllStringSubmatch(text, -1) {
+		kind, name := match[1], match[2]
+		switch {
+		case kind == "begin" && open != "":
+			return "wsup section " + name + " starts inside " + open
+		case kind == "begin" && seen[name]:
+			return "wsup section " + name + " appears twice"
+		case kind == "begin":
+			open, seen[name] = name, true
+		case open != name:
+			return "wsup section end " + name + " has no matching begin"
+		default:
+			open = ""
+		}
+	}
+	if open != "" {
+		return "wsup section " + open + " is not closed"
+	}
+	return ""
 }
 
 // Preserve the baseline's simple frontmatter contract, not general YAML parsing.

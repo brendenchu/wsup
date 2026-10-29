@@ -57,9 +57,19 @@ type Module struct {
 }
 
 // Entry names one selected collection or deployed skill for templates.
+// Summary is the description's first sentence, for compact tables.
 type Entry struct {
 	Name        string
 	Description string
+	Summary     string
+}
+
+// summary returns text up to and including its first sentence-ending period.
+func summary(text string) string {
+	if first, _, found := strings.Cut(text, ". "); found {
+		return first + "."
+	}
+	return text
 }
 
 // RenderData is the fixed, read-only data set templates see. Templates get no
@@ -221,7 +231,7 @@ func (c *Catalogue) renderData(ids []string) (RenderData, error) {
 			return RenderData{}, fmt.Errorf("unknown module %q", id)
 		}
 		if module.Kind == KindCollection {
-			data.Collections = append(data.Collections, Entry{Name: id, Description: module.Description})
+			data.Collections = append(data.Collections, Entry{Name: id, Description: module.Description, Summary: summary(module.Description)})
 		}
 		skills = append(skills, module.Skills...)
 		data.Ignore = append(data.Ignore, module.Ignore...)
@@ -229,7 +239,7 @@ func (c *Catalogue) renderData(ids []string) (RenderData, error) {
 	slices.SortFunc(data.Collections, func(a, b Entry) int { return strings.Compare(a.Name, b.Name) })
 	slices.Sort(skills)
 	for _, skill := range slices.Compact(skills) {
-		data.Skills = append(data.Skills, Entry{Name: skill, Description: c.descriptions[skill]})
+		data.Skills = append(data.Skills, Entry{Name: skill, Description: c.descriptions[skill], Summary: summary(c.descriptions[skill])})
 	}
 	slices.Sort(data.Ignore)
 	data.Ignore = slices.Compact(data.Ignore)
@@ -343,6 +353,10 @@ func skillDescription(name string, body []byte) (string, error) {
 	}
 	if fields["name"] != name || strings.TrimSpace(fields["description"]) == "" {
 		return "", fmt.Errorf("skill %q needs a matching name and a description", name)
+	}
+	if strings.Contains(fields["description"], "|") {
+		// Descriptions are rendered into Markdown tables.
+		return "", fmt.Errorf("skill %q description must not contain |", name)
 	}
 	return fields["description"], nil
 }

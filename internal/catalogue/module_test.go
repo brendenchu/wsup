@@ -17,7 +17,7 @@ func base(starter string) string {
 
 func testTree(extra fstest.MapFS) fstest.MapFS {
 	tree := fstest.MapFS{
-		"skills/plan/SKILL.md":                   {Data: []byte("---\nname: plan\ndescription: Plan work.\n---\n\nPlan.\n")},
+		"skills/plan/SKILL.md":                   {Data: []byte("---\nname: plan\ndescription: Plan work. Use when asked.\n---\n\nPlan.\n")},
 		"modules/workspace-base/module.json":     manifest(base("workspace")),
 		"modules/workspace-base/files/README.md": {Data: []byte("workspace")},
 		"modules/project-base/module.json":       manifest(base("project")),
@@ -137,7 +137,7 @@ func TestLoadRejectsInvalidModules(t *testing.T) {
 func TestFilesRendersTemplatesForTheSelection(t *testing.T) {
 	tree := testTree(fstest.MapFS{
 		"modules/workspace-base/templates/.gitignore": {Data: []byte("{{range .Ignore}}{{.}}\n{{end}}")},
-		"modules/workspace-base/templates/LIST.md":    {Data: []byte("{{range .Collections}}{{.Name}}: {{.Description}}\n{{end}}{{range .Skills}}{{.Name}}: {{.Description}}\n{{end}}")},
+		"modules/workspace-base/templates/LIST.md":    {Data: []byte("{{range .Collections}}{{.Name}}: {{.Description}}\n{{end}}{{range .Skills}}{{.Name}}: {{.Summary}}\n{{end}}")},
 		"modules/notes/module.json":                   manifest(`"id":"notes","kind":"collection","version":"1.0.0","description":"Notes.","applies_to":["workspace"],"requires":[],"skills":["plan"],"ignore":["notes/*.tmp","notes/*.bak","notes/*.tmp"],"generate":[]`),
 	})
 	c, err := load(tree)

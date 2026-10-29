@@ -82,7 +82,7 @@ func TestGuidanceFindingsExitOneWithoutOperationalError(t *testing.T) {
 		t.Fatalf("exit %d: %s", code, &stderr)
 	}
 
-	if stderr.Len() != 0 || !strings.Contains(stdout.String(), "Missing AI.md") {
+	if stderr.Len() != 0 || !strings.Contains(stdout.String(), "Missing AGENTS.md") {
 		t.Fatalf("stdout=%q stderr=%q", &stdout, &stderr)
 	}
 }
@@ -186,7 +186,7 @@ func TestLongOptionAbbreviations(t *testing.T) {
 		{[]string{"--ver"}, 0, Version},
 		{[]string{"--h"}, 0, "Usage:"},
 		{[]string{"guidance", "--h"}, 0, "Usage:"},
-		{[]string{"--ro", t.TempDir(), "guidance"}, 1, "Missing AI.md"},
+		{[]string{"--ro", t.TempDir(), "guidance"}, 1, "Missing AGENTS.md"},
 	} {
 		var stdout, stderr bytes.Buffer
 		if code := Run(tc.args, &stdout, &stderr); code != tc.code ||

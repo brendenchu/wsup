@@ -107,14 +107,29 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 		baseline, managed := state.Files[name]
 		prior, deployed := installed[name]
 		if managed && deployed && !bytes.Equal(prior, bundle[name]) {
-			// A rendered file changes with the selection. Replace it only while
-			// it still matches its baseline; owner edits are conflicts.
-			if !current.regular || current.digest != baseline {
+			// A rendered file changes with the selection. An unedited copy is
+			// replaced and takes the new baseline. An edited copy keeps its owner
+			// text and baseline: only its generated sections are replaced, and
+			// only when the owner left them as wsup wrote them.
+			switch {
+			case !current.regular:
 				result.Conflicts = append(result.Conflicts, name)
-			} else {
+			case current.digest == baseline:
 				result.Actions = append(result.Actions, Action{Path: name, Action: "write"})
 				prepared.files[name] = bundle[name]
 				state.Files[name] = contentDigest(bundle[name])
+			default:
+				body, err := handle.ReadFile(name)
+				if err != nil {
+					return result, preparedUpdate{}, err
+				}
+				spliced, ok := spliceBlocks(body, prior, bundle[name])
+				if !ok || contentDigest(body) != current.digest {
+					result.Conflicts = append(result.Conflicts, name)
+					break
+				}
+				result.Actions = append(result.Actions, Action{Path: name, Action: "write"})
+				prepared.files[name] = spliced
 			}
 			continue
 		}

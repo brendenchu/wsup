@@ -120,15 +120,15 @@ automatically.
 
 ## Guidance
 
-Read [AI.md](AI.md) and `guidance/rules/index.md`. Portable skills are under
-`.agents/skills/`: seven base skills, plus code-change skills when a project
-collection is selected. No adapter installation is required by WSUP. Clients
-may support that location or need an explicit `SKILL.md` path. Verify actual
-loading separately: `guidance` checks local structure, metadata, and links,
-not client discovery or invocation. Independent projects keep their own kits.
+Read [AGENTS.md](AGENTS.md): it holds this workspace's instructions, a
+generated layout of the selected collections, and a generated table of the
+installed skills. Each collection folder has its own AGENTS.md with that
+folder's rules. wsup writes only between `<!-- wsup:begin NAME -->` and
+`<!-- wsup:end NAME -->` markers; everything else in AGENTS.md is yours.
 
-## WSUP attribution
-
-Starter content and guidance are covered by [WSUP-LICENSE](WSUP-LICENSE).
-Retain that notice when redistributing WSUP content. It does not choose a
-license for your own projects.
+Portable skills are under `.agents/skills/`: seven base skills, plus
+code-change skills when a project collection is selected. No adapter
+installation is required by WSUP. Clients may support that location or need an
+explicit `SKILL.md` path. Verify actual loading separately: `guidance` checks
+local structure, metadata, markers, and links, not client discovery or
+invocation. Independent projects keep their own instructions.

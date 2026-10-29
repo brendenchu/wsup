@@ -57,18 +57,17 @@ Ordinary changes do not imply a version bump.
   overlay, workspace-local override, or refresh command.
 - `templates/` is the only copy of generated guidance, skills, and the
   workspace model. This repository is not itself a wsup workspace and has no
-  root `guidance/`, `.agents/`, `AI.md`, or registry. Tests verify generated
+  root `.agents/` or registry. Tests verify generated
   output against `templates/`.
-- `LICENSE` is the repository's license notice. Each starter retains its own
-  `WSUP-LICENSE` so generated content carries attribution without choosing the
-  owner's project license; no second root license copy is needed.
+- `LICENSE` is the repository's license notice. Generated starters carry no
+  license file; the license covers this repository only.
 - Record CLI, starter, and skill changes together in root `CHANGELOG.md`.
   Starters are not independently released products and do not carry separate
   WSUP changelogs. Owners may create changelogs for their own projects.
 - Keep WSUP repository-only material here, not in either starter: the product
   changelog, contributor guide, release procedures, and distribution tutorials.
-  Starters carry only generated-owner documentation, guidance, configuration,
-  attribution, and scaffold files.
+  Starters carry only generated-owner documentation, agent instructions,
+  configuration, and scaffold files.
 - Never implement source changes by editing generated output.
 - Keep generated workspaces/projects, executables, release archives, and checksum
   manifests outside this checkout; tests use disposable temporary destinations.

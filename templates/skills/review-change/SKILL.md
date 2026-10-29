@@ -9,7 +9,11 @@ Resolve the requested repository and comparison base. Inspect status, staged and
 unstaged changes, new files and relevant local rules. Establish what the request
 or specification intended; label absent specifications rather than inventing them.
 
-Follow modified behaviour into callers, contracts and tests. Prioritise concrete
+Follow modified behaviour into callers, contracts and tests. For a changed
+public API, command, schema, configuration format or persisted record, check
+compatibility with existing callers and data, versioning, actionable errors on
+invalid input, observable partial failure, and whether migrations or
+intentional incompatibilities are stated. Prioritise concrete
 regressions, data or permission mistakes, missing coverage and violated owner
 boundaries. Distinguish required standards from personal preferences; defer
 formatter-owned details to the configured tool.

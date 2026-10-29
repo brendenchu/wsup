@@ -53,7 +53,7 @@ func TestEmbeddedCatalogueMatchesSource(t *testing.T) {
 	for _, name := range []string{
 		"modules/workspace-base/module.json", "modules/workspace-base/templates/.gitignore", "modules/workspace-base/files/.editorconfig",
 		"modules/decisions/files/decisions/TEMPLATE.md", "skills/check-workspace/SKILL.md",
-		"modules/project-base/files/.gitignore", "modules/project-base/files/WSUP-LICENSE",
+		"modules/project-base/files/.gitignore", "modules/project-base/templates/AGENTS.md",
 		"modules/journal/files/journal/TEMPLATE.md",
 	} {
 		if _, exists := got[name]; !exists {

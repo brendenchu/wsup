@@ -31,7 +31,6 @@ See the [release guide](docs/releases.md) for version and tag policy.
 - `infrastructure/` is now `infra/`, and `artifacts` is now `releases`.
   `apps/` and `infra/` get a README instead of an empty placeholder. Workspaces
   that selected `artifacts` or `private` report that they need a migration.
-
 - Skills are renamed verb-first: `check-workspace`, `run-checks`,
   `update-workspace`, `onboard-project`, `maintain-agents-md`, `make-change`,
   and `write-commit` (formerly `workspace-check`, `registry-checks`,
@@ -42,9 +41,22 @@ See the [release guide](docs/releases.md) for version and tag policy.
   has no code-change skills. Adding a collection installs its skills.
 - The project starter includes six skills: the code-change skills and
   `plan-work`.
+- `AGENTS.md` is the instructions file for workspaces and projects. It absorbs
+  `AI.md` and the `guidance/rules/` text, and its Layout and Skills sections are
+  generated between `<!-- wsup:begin NAME -->` / `<!-- wsup:end NAME -->`
+  markers. Procedural rule text moved into the skills that use it.
+- Every collection folder has its own `AGENTS.md` with that folder's rules.
+- Adding a collection to a workspace whose `AGENTS.md` or `.gitignore` was
+  edited keeps the owner's text and replaces only the generated sections, as
+  long as those sections are unchanged.
+- The project starter gains `docs/` and `workbench/`.
+- `wsup guidance` requires `AGENTS.md` instead of `AI.md` and the rule index,
+  inspects top-level folder `AGENTS.md` files, and reports unpaired markers.
 
 ### Removed
 
+- `AI.md`, `guidance/rules/`, and `WSUP-LICENSE` from generated workspaces and
+  projects. Generated output carries no license file.
 - The `private` collection. Its name suggested protection it never provided;
   keep restricted records outside the workspace.
 
