@@ -8,7 +8,7 @@ import (
 
 func TestCodeWorkspaceUsesStableASCIIEncoding(t *testing.T) {
 	body, err := CodeWorkspace(Workspace{Name: "x", Projects: []Project{
-		{ID: "root", Path: "."}, {ID: "app", Path: "café/\U0001f680/\x7f/<>&/ "},
+		{ID: "root", Path: "."}, {ID: "app", Path: "caf\u00e9/\U0001f680/\x7f/<>&/\u2028"},
 	}})
 	want := "{\n  \"folders\": [\n    {\n      \"name\": \"Workspace\",\n      \"path\": \".\"\n    },\n" +
 		"    {\n      \"name\": \"app\",\n      \"path\": \"caf\\u00e9/\\ud83d\\ude80/\\u007f/<>&/\\u2028\"\n    }\n  ],\n" +
@@ -21,7 +21,7 @@ func TestCodeWorkspaceUsesStableASCIIEncoding(t *testing.T) {
 func TestSlugAndWorkspaceInput(t *testing.T) {
 	for name, want := range map[string]string{
 		"My workspace": "my-workspace", "  Acme  Client--Work 2 ": "acme-client-work-2",
-		"Café": "caf", "": "workspace", "---": "workspace",
+		"Caf\u00e9": "caf", "": "workspace", "---": "workspace",
 	} {
 		if got := Slug(name); got != want {
 			t.Fatalf("Slug(%q) = %q, want %q", name, got, want)
