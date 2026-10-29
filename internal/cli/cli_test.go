@@ -82,7 +82,7 @@ func TestGuidanceFindingsExitOneWithoutOperationalError(t *testing.T) {
 		t.Fatalf("exit %d: %s", code, &stderr)
 	}
 
-	if stderr.Len() != 0 || !strings.Contains(stdout.String(), "Missing AI.md") {
+	if stderr.Len() != 0 || !strings.Contains(stdout.String(), "Missing AGENTS.md") {
 		t.Fatalf("stdout=%q stderr=%q", &stdout, &stderr)
 	}
 }
@@ -97,19 +97,6 @@ func TestRootFlagMustPrecedeCommand(t *testing.T) {
 			!strings.Contains(stderr.String(), "unknown flag") {
 			t.Fatalf("%v: stdout=%q stderr=%q", args, &stdout, &stderr)
 		}
-	}
-}
-
-func TestEditorJSONUsesStableASCIIEncoding(t *testing.T) {
-	var actual bytes.Buffer
-	if err := writeEditorJSON(&actual, map[string]string{
-		"path": "caf\u00e9/\U0001f680/\x7f/<>&/\u2028",
-	}); err != nil {
-		t.Fatal(err)
-	}
-	expected := "{\n  \"path\": \"caf\\u00e9/\\ud83d\\ude80/\\u007f/<>&/\\u2028\"\n}\n"
-	if actual.String() != expected {
-		t.Fatalf("got %q, want %q", actual.String(), expected)
 	}
 }
 
@@ -186,7 +173,7 @@ func TestLongOptionAbbreviations(t *testing.T) {
 		{[]string{"--ver"}, 0, Version},
 		{[]string{"--h"}, 0, "Usage:"},
 		{[]string{"guidance", "--h"}, 0, "Usage:"},
-		{[]string{"--ro", t.TempDir(), "guidance"}, 1, "Missing AI.md"},
+		{[]string{"--ro", t.TempDir(), "guidance"}, 1, "Missing AGENTS.md"},
 	} {
 		var stdout, stderr bytes.Buffer
 		if code := Run(tc.args, &stdout, &stderr); code != tc.code ||

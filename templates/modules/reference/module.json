@@ -1,0 +1,13 @@
+{
+  "id": "reference",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Reviewed, reusable knowledge with evidence and applicability.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

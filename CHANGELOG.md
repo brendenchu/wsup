@@ -8,9 +8,72 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Added
 
+- New opt-in collections: `sandbox`, `templates`, `forks`, `decisions`,
+  `issues`, `ai`, `design`, `content`, and `data`. `decisions` and `issues`
+  include a template.
+- Workspaces and projects include `.editorconfig` (UTF-8, LF, final newline,
+  trimmed trailing whitespace) and `.gitattributes` (`* text=auto eol=lf`).
+- Collections can declare ignore entries, written to a marked block in the
+  workspace `.gitignore`. `data` ignores `data/**/*.local.*`.
+- Agent adapters: `claude` (`CLAUDE.md` importing `AGENTS.md`, and a
+  `.claude/skills` link to `.agents/skills`) and `gemini` (`GEMINI.md`).
+  `init` installs both by default; `--agent NAME` selects and `--agent none`
+  skips them. `.claude/skills` is the only symlink wsup creates: `update`
+  re-creates it when missing, and `validate` and `guidance` report a missing
+  or broken link.
+- Editor adapter `vscode`: `init` generates `<name>.code-workspace` from
+  `workspace.json` (root plus one folder per project) and `update` refreshes
+  it, reporting hand edits as conflicts. Renaming the workspace replaces the
+  file: `update` removes the old one while it is unedited. `--editor NAME` selects and
+  `--editor none` skips it; editor adapters are workspace-only. `wsup editor`
+  writes the same document.
+- In a terminal, `wsup init` asks for the preset, agents, and editors that
+  flags leave open (a project: agents only), re-asking after an invalid
+  answer. `--yes`, or running without a terminal, uses the defaults.
+- `wsup init --preset NAME` selects a preset of collections; explicit
+  `--collection` choices add to it. `--preset none` creates a base-only
+  workspace. Unknown presets fail before anything is written.
 - One-command local macOS ARM64 candidate verification and packaging with the
   pinned Go toolchain, full notices, checksums, repeated binary builds, and
   extracted-binary smoke checks. Tagging and publication remain explicit.
+
+### Changed
+
+- `apps/`, `packages/`, `tools/`, and `infra/` are collections instead of
+  part of the workspace base, and the default `development` preset selects
+  all four. Existing workspaces keep managing `apps/`, `packages/`, and
+  `tools/` on update.
+- `infrastructure/` is now `infra/`, and `artifacts` is now `releases`.
+  `apps/` and `infra/` get a README instead of an empty placeholder. Workspaces
+  that selected `artifacts` or `private` report that they need a migration.
+- Skills are renamed verb-first: `check-workspace`, `run-checks`,
+  `update-workspace`, `onboard-project`, `maintain-agents-md`, `make-change`,
+  and `write-commit` (formerly `workspace-check`, `registry-checks`,
+  `template-lifecycle`, `project-onboarding`, `ai-guidance-maintenance`,
+  `repository-change`, and `commit-message`).
+- Workspaces get seven base skills; the five code-change skills come with the
+  project collections, so a workspace without one (such as `--preset none`)
+  has no code-change skills. Adding a collection installs its skills.
+- The project starter includes six skills: the code-change skills and
+  `plan-work`.
+- `AGENTS.md` is the instructions file for workspaces and projects. It absorbs
+  `AI.md` and the `guidance/rules/` text, and its Layout and Skills sections are
+  generated between `<!-- wsup:begin NAME -->` / `<!-- wsup:end NAME -->`
+  markers. Procedural rule text moved into the skills that use it.
+- Every collection folder has its own `AGENTS.md` with that folder's rules.
+- Adding a collection to a workspace whose `AGENTS.md` or `.gitignore` was
+  edited keeps the owner's text and replaces only the generated sections, as
+  long as those sections are unchanged.
+- The project starter gains `docs/` and `workbench/`.
+- `wsup guidance` requires `AGENTS.md` instead of `AI.md` and the rule index,
+  inspects top-level folder `AGENTS.md` files, and reports unpaired markers.
+
+### Removed
+
+- `AI.md`, `guidance/rules/`, and `WSUP-LICENSE` from generated workspaces and
+  projects. Generated output carries no license file.
+- The `private` collection. Its name suggested protection it never provided;
+  keep restricted records outside the workspace.
 
 ### Developer Experience
 
@@ -20,6 +83,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
   Contributor and agent instructions are in a short `AGENTS.md`.
 - CI and local packaging validate a freshly generated workspace instead of
   the repository root.
+- Starter content is organized as modules: each has a validated
+  `module.json` manifest and its files under `templates/modules/`, and skills
+  live once in a shared `templates/skills/` library. Generated output is
+  unchanged.
 
 ## 0.2.0 (2026-10-25)
 

@@ -7,7 +7,7 @@ checkout.
 ## Before changing code
 
 Read [AGENTS.md](AGENTS.md) and the
-[workspace model](templates/workspace/docs/workspace-model.md). Check Git status and preserve
+[workspace model](templates/modules/workspace-base/files/docs/workspace-model.md). Check Git status and preserve
 unrelated edits. For a defect, include a reproducible example; for a feature,
 describe the intended behavior and ownership boundaries before expanding scope.
 
@@ -48,24 +48,26 @@ Ordinary changes do not imply a version bump.
 
 - `cmd/wsup/` is the executable entry point; `internal/` contains services and
   colocated regression tests.
-- `templates/` is the complete starter authority, with `workspace/`, `project/`,
-  and `collections/` embedded directly by `templates/embed.go`. Embedding uses
+- `templates/` is the complete starter authority: module manifests, static
+  `files/`, and `text/template` `templates/` under `modules/<id>/`
+  (`workspace-base`, `project-base`, one per collection, and presets) and the
+  shared skill library under `skills/`, embedded directly
+  by `templates/embed.go`. `internal/catalogue` validates every manifest. Embedding uses
   `all:` for hidden assets. There is no generated catalogue archive, runtime
   overlay, workspace-local override, or refresh command.
 - `templates/` is the only copy of generated guidance, skills, and the
   workspace model. This repository is not itself a wsup workspace and has no
-  root `guidance/`, `.agents/`, `AI.md`, or registry. Tests verify generated
+  root `.agents/` or registry. Tests verify generated
   output against `templates/`.
-- `LICENSE` is the repository's license notice. Each starter retains its own
-  `WSUP-LICENSE` so generated content carries attribution without choosing the
-  owner's project license; no second root license copy is needed.
+- `LICENSE` is the repository's license notice. Generated starters carry no
+  license file; the license covers this repository only.
 - Record CLI, starter, and skill changes together in root `CHANGELOG.md`.
   Starters are not independently released products and do not carry separate
   WSUP changelogs. Owners may create changelogs for their own projects.
 - Keep WSUP repository-only material here, not in either starter: the product
   changelog, contributor guide, release procedures, and distribution tutorials.
-  Starters carry only generated-owner documentation, guidance, configuration,
-  attribution, and scaffold files.
+  Starters carry only generated-owner documentation, agent instructions,
+  configuration, and scaffold files.
 - Never implement source changes by editing generated output.
 - Keep generated workspaces/projects, executables, release archives, and checksum
   manifests outside this checkout; tests use disposable temporary destinations.

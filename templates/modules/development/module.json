@@ -1,0 +1,12 @@
+{
+  "id": "development",
+  "kind": "preset",
+  "version": "1.0.0",
+  "description": "Apps, packages, tools, and infra.",
+  "modules": [
+    "apps",
+    "infra",
+    "packages",
+    "tools"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "issues",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Keyed Markdown issue files.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

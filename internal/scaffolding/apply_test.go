@@ -54,7 +54,8 @@ func TestNativeApplyPreservesOwnershipAndSettles(t *testing.T) {
 		loaded.State.Files["custom.md"] != state.Files["custom.md"] ||
 		loaded.State.Files["workspace.json"] != state.Files["workspace.json"] ||
 		loaded.State.Files["README.md"] != contentDigest([]byte("new")) ||
-		!reflect.DeepEqual(loaded.State.Collections, state.Collections) ||
+		// A managed former default home implies its collection; an omitted one does not.
+		!reflect.DeepEqual(loaded.State.Collections, []string{"archive", "packages"}) ||
 		!reflect.DeepEqual(loaded.State.OmittedHomeFiles, state.OmittedHomeFiles) {
 		t.Fatalf("incorrect next state: %+v", loaded.State)
 	}
@@ -92,7 +93,7 @@ func prepareFixture(t *testing.T) (string, preparedUpdate) {
 	var prepared preparedUpdate
 	_, err := planUpdate(root, "0.2.0", map[string][]byte{
 		"README.md": []byte("new"), "new/nested.md": []byte("new file"),
-	}, nil, &prepared)
+	}, nil, nil, &prepared)
 	if err != nil {
 		t.Fatal(err)
 	}

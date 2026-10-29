@@ -51,10 +51,10 @@ func TestEmbeddedCatalogueMatchesSource(t *testing.T) {
 		}
 	}
 	for _, name := range []string{
-		"workspace/.gitignore", "workspace/apps/.gitkeep",
-		"workspace/.agents/skills/workspace-check/SKILL.md",
-		"project/.gitignore", "project/WSUP-LICENSE",
-		"collections/journal/TEMPLATE.md",
+		"modules/workspace-base/module.json", "modules/workspace-base/templates/.gitignore", "modules/workspace-base/files/.editorconfig",
+		"modules/decisions/files/decisions/TEMPLATE.md", "skills/check-workspace/SKILL.md",
+		"modules/project-base/files/.gitignore", "modules/project-base/templates/AGENTS.md",
+		"modules/journal/files/journal/TEMPLATE.md",
 	} {
 		if _, exists := got[name]; !exists {
 			t.Errorf("missing required hidden/licensed asset: %s", name)

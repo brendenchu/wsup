@@ -1,0 +1,15 @@
+{
+  "id": "vscode",
+  "kind": "editor",
+  "version": "1.0.0",
+  "description": "VS Code, Cursor, Windsurf, and VSCodium multi-root workspace file.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": [
+    "code-workspace"
+  ]
+}

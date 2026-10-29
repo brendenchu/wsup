@@ -23,9 +23,15 @@ const (
 )
 
 var (
-	collections   = catalogue.CollectionNames()
+	collections = catalogue.CollectionNames()
+	// defaultHomes are the home files v0.2.0 installed in every workspace and
+	// the only paths an owner could record as omitted.
 	defaultHomes  = []string{"apps/.gitkeep", "infrastructure/.gitkeep", "packages/README.md", "tools/README.md", "workbench/README.md"}
 	digestPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
+	// retiredCollections maps v0.2.0 collection names to their replacement;
+	// an empty replacement means the collection was removed. Converting such a
+	// state is a migration, which this version does not perform.
+	retiredCollections = map[string]string{"artifacts": "releases", "private": ""}
 )
 
 // State retains baseline hashes, not current content hashes. A customization
@@ -37,6 +43,13 @@ type State struct {
 	Files            map[string]string `json:"files"`
 	Collections      []string          `json:"collections,omitempty"`
 	OmittedHomeFiles []string          `json:"omitted_home_files,omitempty"`
+	// Agents are the installed agent adapters. A state without them gets no
+	// adapters on update: new adapters are offered, never installed silently.
+	Agents []string `json:"agents,omitempty"`
+	// Editors are the installed editor adapters, recorded like Agents.
+	Editors []string `json:"editors,omitempty"`
+	// Links maps each managed symlink to its relative target.
+	Links map[string]string `json:"links,omitempty"`
 }
 
 // LoadedState carries exact original bytes for a later apply-time change check.
@@ -107,7 +120,7 @@ func ParseState(body []byte) (State, error) {
 		return State{}, fmt.Errorf("unsupported template state fields")
 	}
 	for name := range raw {
-		if !slices.Contains([]string{"version", "template_version", "template", "files", "collections", "omitted_home_files"}, name) {
+		if !slices.Contains([]string{"version", "template_version", "template", "files", "collections", "omitted_home_files", "agents", "editors", "links"}, name) {
 			return State{}, fmt.Errorf("unsupported template state field %s", name)
 		}
 	}
@@ -135,6 +148,28 @@ func ParseState(body []byte) (State, error) {
 			}
 		}
 	}
+	for name, target := range state.Links {
+		if _, file := state.Files[name]; file || !portableFile(name) || target == "" || path.IsAbs(target) ||
+			strings.HasPrefix(name, ".wsup/") || !portableFile(path.Join(path.Dir(name), target)) {
+			return State{}, fmt.Errorf("template state contains an invalid managed link")
+		}
+	}
+	for _, adapters := range []struct {
+		name      string
+		values    *[]string
+		available []string
+	}{{"agents", &state.Agents, catalogue.AgentNames()}, {"editors", &state.Editors, catalogue.EditorNames()}} {
+		for _, value := range *adapters.values {
+			if !slices.Contains(adapters.available, value) {
+				return State{}, fmt.Errorf("invalid %s selection", adapters.name)
+			}
+		}
+		slices.Sort(*adapters.values)
+		*adapters.values = slices.Compact(*adapters.values)
+	}
+	if len(state.Editors) != 0 && state.Template != "workspace" {
+		return State{}, fmt.Errorf("editors require a workspace template")
+	}
 	for _, field := range []struct {
 		name    string
 		values  *[]string
@@ -147,6 +182,12 @@ func ParseState(body []byte) (State, error) {
 			return State{}, fmt.Errorf("%s must be a list", field.name)
 		}
 		for _, value := range *field.values {
+			if replacement, retired := retiredCollections[value]; retired && field.name == "collections" {
+				if replacement == "" {
+					return State{}, fmt.Errorf("collection %q was removed; this workspace needs a migration that this wsup does not provide", value)
+				}
+				return State{}, fmt.Errorf("collection %q is now %q; this workspace needs a migration that this wsup does not provide", value, replacement)
+			}
 			if !slices.Contains(field.allowed, value) {
 				return State{}, fmt.Errorf("invalid %s selection", field.name)
 			}
@@ -160,8 +201,56 @@ func ParseState(body []byte) (State, error) {
 	return state, nil
 }
 
+// SelectedCollections returns the recorded collections plus every former
+// default home this state still manages. Those homes moved from the workspace
+// base into collections, so a state that predates the move selects them
+// implicitly. Each home was a single file, so an omitted one means the owner
+// removed the home and its collection stays unselected. The former
+// infrastructure/ home has no same-named collection (it is now infra/) and is
+// left to migration.
+func (s State) SelectedCollections() []string {
+	selected := slices.Clone(s.Collections)
+	if s.Template != "workspace" {
+		return selected
+	}
+	for _, name := range defaultHomes {
+		home := strings.SplitN(name, "/", 2)[0]
+		if _, managed := s.Files[name]; managed && slices.Contains(collections, home) {
+			selected = append(selected, home)
+		}
+	}
+	slices.Sort(selected)
+	return slices.Compact(selected)
+}
+
 func portableFile(name string) bool {
 	return utf8.ValidString(name) && name != "" && name != "." && path.Clean(name) == name &&
 		!path.IsAbs(name) && !strings.ContainsAny(name, "\\:\x00") &&
 		name != ".." && !strings.HasPrefix(name, "../")
+}
+
+// selection describes this state's installed modules with the given
+// collections, for catalogue.Starter.
+func (s State) selection(collections []string, registry []byte) catalogue.Selection {
+	return catalogue.Selection{Collections: collections, Agents: s.Agents, Editors: s.Editors, Registry: registry}
+}
+
+// readRegistry returns the workspace registry's bytes for generators, or nil
+// when it is absent so the starter's own registry is used. It never follows a
+// symlink at the registry path.
+func readRegistry(root string) ([]byte, error) {
+	root, err := registry.Resolve(root)
+	if err != nil {
+		return nil, err
+	}
+	handle, err := os.OpenRoot(root)
+	if err != nil {
+		return nil, err
+	}
+	defer handle.Close()
+	current, err := observeFile(handle, "workspace.json")
+	if err != nil || !current.regular {
+		return nil, err
+	}
+	return handle.ReadFile("workspace.json")
 }

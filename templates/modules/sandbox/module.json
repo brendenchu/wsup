@@ -1,0 +1,19 @@
+{
+  "id": "sandbox",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Experiments, spikes, and throwaway prototypes.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [
+    "diagnose-issue",
+    "infer-conventions",
+    "make-change",
+    "review-change",
+    "write-commit"
+  ],
+  "ignore": [],
+  "generate": []
+}

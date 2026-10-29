@@ -5,11 +5,13 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path"
 	"slices"
 	"strings"
 
+	"github.com/brendenchu/wsup/internal/catalogue"
 	"github.com/brendenchu/wsup/internal/registry"
 )
 
@@ -32,10 +34,11 @@ type UpdatePlan struct {
 // The caller supplies the matching template/collections; omissions are applied
 // here. No registry, reports, unknown files, or orphan files are overwritten.
 func PlanUpdate(root, version string, files map[string][]byte, keep []string) (UpdatePlan, error) {
-	return planUpdate(root, version, files, keep, nil)
+	return planUpdate(root, version, files, nil, keep, nil)
 }
 
-func planUpdate(root, version string, files map[string][]byte, keep []string, prepared *preparedUpdate) (UpdatePlan, error) {
+// planUpdate also plans the starter's links; nil links keeps the state's own.
+func planUpdate(root, version string, files map[string][]byte, links map[string]string, keep []string, prepared *preparedUpdate) (UpdatePlan, error) {
 	if files == nil {
 		return UpdatePlan{}, fmt.Errorf("native template bundle is unavailable")
 	}
@@ -47,7 +50,14 @@ func planUpdate(root, version string, files map[string][]byte, keep []string, pr
 	proposed := State{
 		Version: StateVersion, TemplateVersion: version, Template: state.Template,
 		Files:       make(map[string]string, len(files)),
-		Collections: state.Collections, OmittedHomeFiles: state.OmittedHomeFiles,
+		Collections: state.SelectedCollections(), OmittedHomeFiles: state.OmittedHomeFiles,
+		Agents: state.Agents, Editors: state.Editors, Links: links,
+	}
+	if links == nil {
+		proposed.Links = state.Links
+	}
+	if len(proposed.Links) == 0 {
+		proposed.Links = nil
 	}
 	for name, body := range files {
 		if !portableFile(name) {
@@ -117,6 +127,18 @@ func planUpdate(root, version string, files map[string][]byte, keep []string, pr
 		switch {
 		case kept[name]:
 			action = "keep-customization"
+		case !supplied && managed && catalogue.Generated(name):
+			// A generated path that followed workspace data (a rename) is
+			// replaced: removed while unedited, a conflict once edited.
+			switch {
+			case !current.exists:
+				continue
+			case current.digest == baseline:
+				action = "remove"
+			default:
+				result.Conflicts = append(result.Conflicts, name)
+				continue
+			}
 		case !supplied:
 			action = "retain-orphan"
 		case current.regular && current.digest == target:
@@ -130,6 +152,21 @@ func planUpdate(root, version string, files map[string][]byte, keep []string, pr
 			continue
 		}
 		result.Actions = append(result.Actions, Action{Path: name, Action: action})
+	}
+	// Links are re-created when missing. Anything else at a link path (a real
+	// directory, or a link pointing elsewhere) is reported and left alone.
+	for _, name := range slices.Sorted(maps.Keys(proposed.Links)) {
+		status, err := linkStatus(handle, name, proposed.Links[name])
+		if err != nil {
+			return UpdatePlan{}, err
+		}
+		switch status {
+		case linkOK:
+		case linkMissing:
+			result.Actions = append(result.Actions, Action{Path: name, Action: "link"})
+		default:
+			result.Conflicts = append(result.Conflicts, name)
+		}
 	}
 	if prepared != nil {
 		// Registry ownership and kept baseline hashes survive state replacement.
@@ -154,7 +191,7 @@ func planUpdate(root, version string, files map[string][]byte, keep []string, pr
 		}
 		*prepared = preparedUpdate{
 			root: root, plan: result, observed: observed,
-			stateBefore: loaded.Original, stateAfter: body, files: bodies,
+			stateBefore: loaded.Original, stateAfter: body, files: bodies, links: proposed.Links,
 		}
 	}
 	return result, nil

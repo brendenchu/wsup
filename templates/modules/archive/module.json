@@ -1,0 +1,13 @@
+{
+  "id": "archive",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Parked or historical work with a clear owner and status.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

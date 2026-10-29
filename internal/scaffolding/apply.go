@@ -18,6 +18,8 @@ type preparedUpdate struct {
 	stateBefore []byte
 	stateAfter  []byte
 	files       map[string][]byte
+	// links holds the targets of planned "link" actions.
+	links map[string]string
 }
 
 // ApplyUpdate plans and applies native same-path content changes. Conflicts and
@@ -26,7 +28,7 @@ type preparedUpdate struct {
 // or protection against concurrent writers after the final per-file recheck.
 func ApplyUpdate(root, version string, files map[string][]byte, keep []string) (UpdatePlan, error) {
 	var prepared preparedUpdate
-	plan, err := planUpdate(root, version, files, keep, &prepared)
+	plan, err := planUpdate(root, version, files, nil, keep, &prepared)
 	if err != nil {
 		return plan, err
 	}
@@ -75,6 +77,16 @@ func (p preparedUpdate) applyWith(write func(*os.Root, string, []byte, bool) err
 		return result, fmt.Errorf("native update incomplete; content or directories may already be written; template state was not committed: %w", err)
 	}
 	for _, action := range result.Actions {
+		if action.Action == "link" {
+			// A link is created only where nothing exists yet.
+			if status, err := linkStatus(root, action.Path, p.links[action.Path]); err != nil || status != linkMissing {
+				return fail(fmt.Errorf("link path changed during update planning: %s", action.Path))
+			}
+			if err := createLink(root, action.Path, p.links[action.Path]); err != nil {
+				return fail(err)
+			}
+			continue
+		}
 		if action.Action != "write" {
 			continue
 		}
@@ -83,6 +95,18 @@ func (p preparedUpdate) applyWith(write func(*os.Root, string, []byte, bool) err
 		}
 		if err := write(root, action.Path, p.files[action.Path], !p.observed[action.Path].exists); err != nil {
 			return fail(err)
+		}
+	}
+	// Removals follow writes, so a failure never leaves neither old nor new file.
+	for _, action := range result.Actions {
+		if action.Action != "remove" {
+			continue
+		}
+		if err := p.recheck(root, action.Path); err != nil {
+			return fail(err)
+		}
+		if err := root.Remove(action.Path); err != nil {
+			return fail(fmt.Errorf("remove replaced file %s: %w", action.Path, err))
 		}
 	}
 	if err := checkState(); err != nil {

@@ -1,4 +1,5 @@
-// Package catalogue selects complete embedded native starters.
+// Package catalogue selects complete embedded native starters from the
+// built-in module catalogue.
 package catalogue
 
 import (
@@ -10,9 +11,80 @@ import (
 	"github.com/brendenchu/wsup/templates"
 )
 
+const (
+	// DefaultPreset is the preset init applies when nothing else is selected.
+	DefaultPreset = "development"
+	// NoPreset selects the base plus explicit collections only. It is reserved
+	// and can never be a module id.
+	NoPreset = "none"
+)
+
+// mustLoad returns the embedded catalogue. It is validated by tests, so a load
+// failure is a build defect and panics rather than silently offering nothing.
+func mustLoad() *Catalogue {
+	c, err := Load()
+	if err != nil {
+		panic("embedded module catalogue is invalid: " + err.Error())
+	}
+	return c
+}
+
 // CollectionNames returns a fresh ordered list of supported optional homes.
 func CollectionNames() []string {
-	return []string{"archive", "artifacts", "journal", "learning", "private", "reference", "research"}
+	return mustLoad().IDs(KindCollection)
+}
+
+// AgentNames returns a fresh ordered list of built-in agent adapters.
+func AgentNames() []string {
+	return mustLoad().IDs(KindAgent)
+}
+
+// EditorNames returns a fresh ordered list of built-in editor adapters.
+func EditorNames() []string {
+	return mustLoad().IDs(KindEditor)
+}
+
+// ComposeAdapters resolves an --agent or --editor selection for the adapter
+// kind: no names means every adapter, a lone NoPreset ("none") means none,
+// and anything else is validated, sorted, and deduplicated.
+func ComposeAdapters(kind string, names []string) ([]string, error) {
+	available := mustLoad().IDs(kind)
+	if len(names) == 0 {
+		return available, nil
+	}
+	if slices.Contains(names, NoPreset) {
+		if slices.ContainsFunc(names, func(name string) bool { return name != NoPreset }) {
+			return nil, fmt.Errorf("--%s %s cannot be combined with other %ss", kind, NoPreset, kind)
+		}
+		return []string{}, nil
+	}
+	selected := slices.Sorted(slices.Values(names))
+	selected = slices.Compact(selected)
+	for _, name := range selected {
+		if !slices.Contains(available, name) {
+			return nil, fmt.Errorf("unknown %s %q; select from %s, or %s", kind, name, strings.Join(available, ", "), NoPreset)
+		}
+	}
+	return selected, nil
+}
+
+// PresetNames returns a fresh ordered list of built-in presets.
+func PresetNames() []string {
+	return mustLoad().IDs(KindPreset)
+}
+
+// ComposeCollections expands a preset (or NoPreset) and adds explicit
+// collections, returning a validated, sorted, deduplicated selection.
+func ComposeCollections(preset string, collections []string) ([]string, error) {
+	members := []string{}
+	if preset != NoPreset {
+		module, ok := mustLoad().Module(preset)
+		if !ok || module.Kind != KindPreset {
+			return nil, fmt.Errorf("unknown preset %q; select from %s", preset, strings.Join(append(PresetNames(), NoPreset), ", "))
+		}
+		members = module.Modules
+	}
+	return SelectCollections(append(slices.Clone(members), collections...))
 }
 
 // SelectCollections validates, sorts, and deduplicates explicit selections.
@@ -36,49 +108,86 @@ func Bundle(kind string) (map[string][]byte, error) {
 
 // BundleSelected includes only explicitly selected collection scaffolds.
 func BundleSelected(kind string, collections []string) (map[string][]byte, error) {
+	files, _, err := Starter(kind, Selection{Collections: collections})
+	return files, err
+}
+
+// Selection names everything a starter installs beyond its base. Adapters are
+// already resolved (see ComposeAdapters).
+type Selection struct {
+	Collections []string
+	Agents      []string
+	Editors     []string
+	// Registry is the workspace registry generators read; nil uses the
+	// starter's own, as at init.
+	Registry []byte
+}
+
+// Starter returns the files, including generated ones, and links for a
+// starter with the given selection.
+func Starter(kind string, selection Selection) (map[string][]byte, map[string]string, error) {
+	collections := selection.Collections
 	if kind != "workspace" && kind != "project" {
-		return nil, fmt.Errorf("template must be workspace or project")
+		return nil, nil, fmt.Errorf("template must be workspace or project")
 	}
 	if kind != "workspace" && len(collections) != 0 {
-		return nil, fmt.Errorf("optional collections require a workspace template")
+		return nil, nil, fmt.Errorf("optional collections require a workspace template")
 	}
 	selected, err := SelectCollections(collections)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	tree := Open()
-	files := make(map[string][]byte)
-	read := func(tree fs.FS, base, prefix string) error {
-		return fs.WalkDir(tree, base, func(name string, entry fs.DirEntry, err error) error {
-			if err != nil {
-				return err
+	for _, adapter := range []struct {
+		kind  string
+		names []string
+	}{{KindAgent, selection.Agents}, {KindEditor, selection.Editors}} {
+		for _, name := range adapter.names {
+			if !slices.Contains(mustLoad().IDs(adapter.kind), name) {
+				return nil, nil, fmt.Errorf("unknown %s %q", adapter.kind, name)
 			}
-			if entry.IsDir() {
-				return nil
-			}
-			if !entry.Type().IsRegular() {
-				return fmt.Errorf("starter catalogue must contain only regular files")
-			}
-			body, err := fs.ReadFile(tree, name)
-			if err != nil {
-				return err
-			}
-			files[prefix+strings.TrimPrefix(name, base+"/")] = body
-			return nil
-		})
-	}
-	if err := read(tree, kind, ""); err != nil {
-		return nil, err
-	}
-	for _, name := range selected {
-		if err := read(tree, "collections/"+name, name+"/"); err != nil {
-			return nil, err
 		}
 	}
-	if len(files) == 0 {
-		return nil, fmt.Errorf("embedded starter catalogue is empty")
+	c, err := Load()
+	if err != nil {
+		return nil, nil, err
 	}
-	return files, nil
+	ids, err := c.Resolve(kind, slices.Concat(selected, selection.Agents, selection.Editors))
+	if err != nil {
+		return nil, nil, err
+	}
+	files, err := c.Files(ids)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(files) == 0 {
+		return nil, nil, fmt.Errorf("embedded starter catalogue is empty")
+	}
+	// The registry is read only when a resolved module has a generator.
+	if slices.ContainsFunc(ids, func(id string) bool { return len(c.modules[id].Generate) != 0 }) {
+		registry := selection.Registry
+		if registry == nil {
+			registry = files["workspace.json"]
+		}
+		workspace, err := ParseWorkspace(registry)
+		if err != nil {
+			return nil, nil, err
+		}
+		generated, err := c.Generate(ids, workspace)
+		if err != nil {
+			return nil, nil, err
+		}
+		for name, body := range generated {
+			if _, clash := files[name]; clash {
+				return nil, nil, fmt.Errorf("generated %s collides with a starter file", name)
+			}
+			files[name] = body
+		}
+	}
+	links, err := c.Links(ids)
+	if err != nil {
+		return nil, nil, err
+	}
+	return files, links, nil
 }
 
 // Open returns a read-only filesystem without accessing the checkout or extracting files.

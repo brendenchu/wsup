@@ -1,0 +1,19 @@
+{
+  "id": "tools",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Local developer tools.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [
+    "diagnose-issue",
+    "infer-conventions",
+    "make-change",
+    "review-change",
+    "write-commit"
+  ],
+  "ignore": [],
+  "generate": []
+}

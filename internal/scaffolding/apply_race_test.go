@@ -55,7 +55,7 @@ func TestPreparedUpdateCopiesBundleBytes(t *testing.T) {
 	root, _ := nativeFixture(t, map[string][]byte{"README.md": []byte("old")})
 	body := []byte("new")
 	var prepared preparedUpdate
-	if _, err := planUpdate(root, "0.2.0", map[string][]byte{"README.md": body}, nil, &prepared); err != nil {
+	if _, err := planUpdate(root, "0.2.0", map[string][]byte{"README.md": body}, nil, nil, &prepared); err != nil {
 		t.Fatal(err)
 	}
 	copy(body, "bad")

@@ -1,0 +1,14 @@
+{
+  "id": "gemini",
+  "kind": "agent",
+  "version": "1.0.0",
+  "description": "Gemini CLI: GEMINI.md importing AGENTS.md.",
+  "applies_to": [
+    "project",
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

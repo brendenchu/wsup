@@ -1,6 +1,7 @@
 package scaffolding
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"slices"
@@ -59,10 +60,20 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 		return result, preparedUpdate{}, err
 	}
 	state := loaded.State
+	state.Collections = state.SelectedCollections()
 	if state.Version != StateVersion || state.Template != "workspace" {
 		return result, preparedUpdate{}, fmt.Errorf("adding collections requires a managed workspace")
 	}
-	bundle, err := catalogue.BundleSelected("workspace", selected)
+	// Render for the whole resulting selection: base templates depend on it.
+	registryBody, err := readRegistry(root)
+	if err != nil {
+		return result, preparedUpdate{}, err
+	}
+	bundle, _, err := catalogue.Starter("workspace", state.selection(append(slices.Clone(state.Collections), selected...), registryBody))
+	if err != nil {
+		return result, preparedUpdate{}, err
+	}
+	installed, _, err := catalogue.Starter("workspace", state.selection(state.Collections, registryBody))
 	if err != nil {
 		return result, preparedUpdate{}, err
 	}
@@ -76,8 +87,13 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 	}
 	defer handle.Close()
 	paths := []string{}
-	for name := range bundle {
-		if slices.Contains(selected, strings.SplitN(name, "/", 2)[0]) {
+	// The addition covers the selected folders, skills not yet deployed, and
+	// files whose rendered content depends on the selection (such as the
+	// .gitignore block). Files only an already-selected collection installs are
+	// unchanged by definition and left alone.
+	for name, body := range bundle {
+		prior, deployed := installed[name]
+		if slices.Contains(selected, strings.SplitN(name, "/", 2)[0]) || !deployed || !bytes.Equal(prior, body) {
 			paths = append(paths, name)
 		}
 	}
@@ -92,8 +108,38 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 			return result, preparedUpdate{}, err
 		}
 		prepared.observed[name] = current
-		if _, managed := state.Files[name]; managed {
-			enabled := slices.Contains(state.Collections, strings.SplitN(name, "/", 2)[0])
+		baseline, managed := state.Files[name]
+		prior, deployed := installed[name]
+		if managed && deployed && !bytes.Equal(prior, bundle[name]) {
+			// A rendered file changes with the selection. An unedited copy is
+			// replaced and takes the new baseline. An edited copy keeps its owner
+			// text and baseline: only its generated sections are replaced, and
+			// only when the owner left them as wsup wrote them.
+			switch {
+			case !current.regular:
+				result.Conflicts = append(result.Conflicts, name)
+			case current.digest == baseline:
+				result.Actions = append(result.Actions, Action{Path: name, Action: "write"})
+				prepared.files[name] = bundle[name]
+				state.Files[name] = contentDigest(bundle[name])
+			default:
+				body, err := handle.ReadFile(name)
+				if err != nil {
+					return result, preparedUpdate{}, err
+				}
+				spliced, ok := spliceBlocks(body, prior, bundle[name])
+				if !ok || contentDigest(body) != current.digest {
+					result.Conflicts = append(result.Conflicts, name)
+					break
+				}
+				result.Actions = append(result.Actions, Action{Path: name, Action: "write"})
+				prepared.files[name] = spliced
+			}
+			continue
+		}
+		if managed {
+			// A managed skill is shared, so it never belongs to an unselected collection.
+			enabled := isSkill(name) || slices.Contains(state.Collections, strings.SplitN(name, "/", 2)[0])
 			formerDefault := slices.Contains([]string{"journal/README.md", "journal/TEMPLATE.md", "learning/README.md", "reference/README.md", "research/README.md"}, name)
 			if (!enabled && !formerDefault) || !current.regular {
 				result.Conflicts = append(result.Conflicts, name)
@@ -115,4 +161,8 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 	}
 	prepared.plan = UpdatePlan{Actions: result.Actions, Conflicts: result.Conflicts}
 	return result, prepared, nil
+}
+
+func isSkill(name string) bool {
+	return strings.HasPrefix(name, ".agents/skills/")
 }

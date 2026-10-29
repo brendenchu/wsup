@@ -2,6 +2,7 @@ package scaffolding
 
 import (
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -23,15 +24,25 @@ func Initialise(destination, version, kind string) (string, error) {
 
 // InitialiseSelected creates only explicitly selected optional workspace homes.
 func InitialiseSelected(destination, version, kind string, names []string) (string, error) {
-	selected, err := catalogue.SelectCollections(names)
+	return InitialiseWith(destination, version, kind, catalogue.Selection{Collections: names})
+}
+
+// InitialiseWith creates a starter with explicit collections and resolved
+// adapters (see catalogue.ComposeAdapters). Generators read the starter's own
+// registry. Adapter links are created after the files and before state, so a
+// failure never commits state for missing links.
+func InitialiseWith(destination, version, kind string, selection catalogue.Selection) (string, error) {
+	selected, err := catalogue.SelectCollections(selection.Collections)
 	if err != nil {
 		return "", err
 	}
-	files, err := catalogue.BundleSelected(kind, selected)
+	selection.Collections, selection.Registry = selected, nil
+	files, links, err := catalogue.Starter(kind, selection)
 	if err != nil {
 		return "", err
 	}
-	return initialiseSelected(destination, version, kind, files, selected, writeManaged)
+	state := State{Collections: selected, Agents: selection.Agents, Editors: selection.Editors}
+	return initialiseStarter(destination, version, kind, files, links, state, writeManaged)
 }
 
 func initialiseProject(destination, version string, files map[string][]byte, write func(*os.Root, string, []byte, bool) error) (string, error) {
@@ -43,10 +54,20 @@ func initialise(destination, version, kind string, files map[string][]byte, writ
 }
 
 func initialiseSelected(destination, version, kind string, files map[string][]byte, selected []string, write func(*os.Root, string, []byte, bool) error) (string, error) {
+	return initialiseStarter(destination, version, kind, files, nil, State{Collections: selected}, write)
+}
+
+// initialiseStarter writes files, then links, then state built from selected
+// (its Collections, Agents, and Editors).
+func initialiseStarter(destination, version, kind string, files map[string][]byte, links map[string]string, selected State, write func(*os.Root, string, []byte, bool) error) (string, error) {
 	if len(files) == 0 {
 		return "", fmt.Errorf("embedded starter catalogue is empty")
 	}
-	state := State{Version: StateVersion, TemplateVersion: version, Template: kind, Files: make(map[string]string, len(files)), Collections: selected}
+	state := State{Version: StateVersion, TemplateVersion: version, Template: kind, Files: make(map[string]string, len(files)),
+		Collections: selected.Collections, Agents: selected.Agents, Editors: selected.Editors}
+	if len(links) != 0 {
+		state.Links = links
+	}
 	names := make([]string, 0, len(files))
 	for name, body := range files {
 		if kind == "project" && name == "workspace.json" {
@@ -86,6 +107,11 @@ func initialiseSelected(destination, version, kind string, files map[string][]by
 	slices.Sort(names)
 	for _, name := range names {
 		if err := write(root, name, files[name], true); err != nil {
+			return fail(err)
+		}
+	}
+	for _, name := range slices.Sorted(maps.Keys(links)) {
+		if err := createLink(root, name, links[name]); err != nil {
 			return fail(err)
 		}
 	}

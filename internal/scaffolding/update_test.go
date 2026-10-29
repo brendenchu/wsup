@@ -10,15 +10,15 @@ import (
 )
 
 func TestEmbeddedUpdatePreservesSelectedCollectionsAndOmissions(t *testing.T) {
-	files, err := catalogue.BundleSelected("workspace", []string{"archive", "journal"})
+	files, err := catalogue.BundleSelected("workspace", []string{"archive", "journal", "packages"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	root, state := nativeFixture(t, files)
-	state.Collections = []string{"archive", "journal"}
-	state.OmittedHomeFiles = []string{"apps/.gitkeep"}
+	state.Collections = []string{"archive", "journal", "packages"}
+	state.OmittedHomeFiles = []string{"packages/README.md"}
 	saveState(t, root, state)
-	if err := os.Remove(filepath.Join(root, "apps/.gitkeep")); err != nil {
+	if err := os.Remove(filepath.Join(root, "packages/README.md")); err != nil {
 		t.Fatal(err)
 	}
 	writeFixture(t, root, "archive/README.md", []byte("Owner archive policy"))
@@ -40,13 +40,13 @@ func TestEmbeddedUpdatePreservesSelectedCollectionsAndOmissions(t *testing.T) {
 		loaded.State.Files["archive/README.md"] != state.Files["archive/README.md"] {
 		t.Fatalf("selection or baseline changed: %+v %v", loaded.State, err)
 	}
-	if _, err := os.Stat(filepath.Join(root, "apps/.gitkeep")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(root, "packages/README.md")); !os.IsNotExist(err) {
 		t.Fatal("omitted home recreated")
 	}
 	if _, exists := loaded.State.Files["journal/TEMPLATE.md"]; !exists {
 		t.Fatal("selected journal template dropped")
 	}
-	for _, name := range []string{"learning", "private", "research"} {
+	for _, name := range []string{"learning", "research", "sandbox"} {
 		if _, err := os.Stat(filepath.Join(root, name)); !os.IsNotExist(err) {
 			t.Fatalf("unselected collection created: %s", name)
 		}

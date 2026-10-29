@@ -1,0 +1,17 @@
+{
+  "id": "claude",
+  "kind": "agent",
+  "version": "1.0.0",
+  "description": "Claude Code: CLAUDE.md importing AGENTS.md, and .claude/skills linked to .agents/skills.",
+  "applies_to": [
+    "project",
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": [],
+  "links": {
+    ".claude/skills": "../.agents/skills"
+  }
+}

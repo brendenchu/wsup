@@ -49,6 +49,10 @@ absolute path to create a workspace or project at a new destination:
 /absolute/path/to/wsup_0.2.0_darwin_arm64/wsup init /path/to/project --template project
 ```
 
+In a terminal, `init` asks for the preset, agents, and editors (a project:
+agents only) that flags leave open; press Enter to accept a default. Without a
+terminal, or with `--yes`, it uses the defaults without asking.
+
 Inspect the new workspace without installing anything or changing PATH:
 
 ```sh
@@ -62,12 +66,12 @@ all templates and works without this checkout. Build outside the tracked tree
 with `go build -o /path/to/wsup ./cmd/wsup`, then invoke `/path/to/wsup` (or
 `wsup` if separately made available on PATH). Workspaces contain state/reports
 under `.wsup/`, not an executable, runtime, or copied catalogue. Relocation
-requires a compatible external binary. Shared rules live in `guidance/rules/`
-and portable skills remain in `.agents/skills/`.
-Generated workspaces include a focused set of development homes, with optional
-collections selected explicitly; see the workspace layout below.
-The project starter contains project documentation, guidance, ignore rules, and
-template state, but no bundled CLI or workspace registry.
+requires a compatible external binary. Agent instructions live in `AGENTS.md`
+(plus one per collection folder) and portable skills in `.agents/skills/`.
+Generated workspaces include the `development` preset's homes by default, with
+other collections selected explicitly; see the workspace layout below.
+The project starter contains project documentation, guidance, its own skills,
+ignore rules, and template state, but no bundled CLI or workspace registry.
 
 Follow the [first-workspace tutorial](docs/getting-started.md) for a complete
 create/register/check walkthrough, or see
@@ -88,7 +92,7 @@ to PATH. The main commands:
 | `config` | Show effective settings and their sources |
 | `guidance` | Check workspace instructions and local links |
 | `guidance --project ID` | Check one project's instructions |
-| `editor` | Create a relative-path VS Code workspace file |
+| `editor` | Create a relative-path VS Code workspace file (the `vscode` adapter generates one at init) |
 | `check --project ID` | Run only that project's configured checks |
 | `collections` | List available optional collection scaffolds |
 | `collections --add NAME` | Preview adding a collection; repeat `--add` to select more |
@@ -106,7 +110,7 @@ does not search parent directories:
 wsup check --help
 ```
 
-See the [command reference](templates/workspace/docs/workspace-model.md#command-reference) for
+See the [command reference](templates/modules/workspace-base/files/docs/workspace-model.md#command-reference) for
 flags, output formats, exit codes, and root/destination behavior.
 
 Use `--project ID` repeatedly to select more projects and `--check NAME`
@@ -124,19 +128,26 @@ Only schema-2 managed workspaces can update. There is no in-place conversion of
 unsupported state. Never edit schema numbers to bypass validation; create a new
 destination and explicitly transfer reviewed owner content instead. Before
 applying updates, preserve a matched backup of files and state.
-See [updates and recovery](templates/workspace/docs/workspace-model.md#generated-files-and-updates).
+See [updates and recovery](templates/modules/workspace-base/files/docs/workspace-model.md#generated-files-and-updates).
 
 ## Workspace layout
 
-Every generated workspace includes `apps/`, `packages/`, `tools/`,
-`infrastructure/`, `docs/`, and `workbench/`, alongside the workspace-owned
-`guidance/`, `.agents/skills/`, and `.wsup/` foundation. This baseline focuses
-on organizing development work, not prescribing a knowledge-management workflow.
-`learning/`, `research/`, `reference/`, and `journal/` are CLI-selectable
-additions, as are `archive/`, `artifacts/`, and `private/`. Folder
+Every generated workspace includes `docs/` and `workbench/`, alongside the
+workspace-owned `AGENTS.md`, `.agents/skills/`, and `.wsup/` foundation. The
+default `development` preset adds the `apps/`, `packages/`, `tools/`, and
+`infra/` collections; `--preset none` creates the base only. Every other
+collection is a CLI-selectable addition:
+
+| Group | Collections |
+| --- | --- |
+| Projects | `apps`, `packages`, `tools`, `infra`, `sandbox`, `templates`, `forks` |
+| Knowledge and lifecycle | `research`, `reference`, `decisions`, `learning`, `journal`, `archive`, `releases` |
+| Work and making | `issues`, `ai`, `design`, `content`, `data` |
+
+Folder
 names describe placement, not Git ownership, project kind, sensitivity
 controls, backup, or retention guarantees. See the
-[workspace model](templates/workspace/docs/workspace-model.md#default-layout-and-optional-collections)
+[workspace model](templates/modules/workspace-base/files/docs/workspace-model.md#default-layout-and-optional-collections)
 for guidance. The template catalogue is embedded in the external binary, never
 read from workspace-local overrides. Register projects in
 `workspace.json`; projects own their code, tests, dependencies, setup and
@@ -145,13 +156,13 @@ required instructions.
 Select optional collections during initialization, or add them later:
 
 ```sh
-wsup init /path/to/workspace --collection archive --collection artifacts
-wsup --root /path/to/workspace collections --add private
-wsup --root /path/to/workspace collections --add private --apply
+wsup init /path/to/workspace --collection archive --collection releases
+wsup --root /path/to/workspace collections --add decisions
+wsup --root /path/to/workspace collections --add decisions --apply
 ```
 
-Each collection creates a purpose-and-boundaries README; journal also includes
-an entry template. Existing-workspace additions preview by default; any
+Each collection creates a purpose-and-boundaries README; decisions, issues,
+and journal also include a template. Existing-workspace additions preview by default; any
 conflicting scaffold file blocks the whole apply.
 An already-managed scaffold is left untouched, including local customizations.
 Selections are recorded in template state so normal updates include them.
@@ -159,18 +170,20 @@ They are not inherited when that workspace generates another workspace; select
 the desired collections explicitly for each new workspace. Project starters
 do not accept collection selections.
 
-These commands do not change ignore rules, permissions, encryption, backup,
-sync, indexing, or retention settings. In particular, the private scaffold is
-not protected storage.
+These commands do not change permissions, encryption, backup, sync, indexing,
+or retention settings. A collection's ignore entries (such as `data/**/*.local.*`)
+go in the `.gitignore` block between `# wsup:begin ignore` and
+`# wsup:end ignore`; adding a collection rewrites `.gitignore` only while it is
+unedited and otherwise reports a conflict.
 
 The registry does not imply a shared Git repository, build, dependency install,
-or release process. See the [workspace model](templates/workspace/docs/workspace-model.md) for the
+or release process. See the [workspace model](templates/modules/workspace-base/files/docs/workspace-model.md) for the
 registry, settings, checks, reports and update behavior. See [AI guidance](docs/ai-guidance.md)
 for the portable instruction kit and optional client integration.
 
 For independent project repositories, add each project's directory to the
 workspace `.gitignore` and mark it `independent` in the registry. Workspace-owned
-projects stay tracked normally. See [Git ownership](templates/workspace/docs/workspace-model.md)
+projects stay tracked normally. See [Git ownership](templates/modules/workspace-base/files/docs/workspace-model.md)
 for setup and existing-file precautions.
 
 ## This development checkout
@@ -190,22 +203,32 @@ skills of its own. Contributor and agent instructions are in
 
 ## Optional AI skills
 
-Workspace initialization includes 12 portable skills in `.agents/skills/`.
+Every workspace includes seven base skills in `.agents/skills/` (check-workspace,
+run-checks, update-workspace, onboard-project, plan-work, recap-work,
+maintain-agents-md). The project collections (`apps`, `packages`, `tools`,
+`infra`, `sandbox`, `templates`, `forks`) add five code-change skills
+(make-change, review-change, diagnose-issue, write-commit, infer-conventions),
+installed once however many are selected. The project starter gets those five
+plus plan-work.
 Clients supporting this shared location need no installation command. Open the
 workspace root and inspect the client's available skills; otherwise explicitly
 ask the assistant to read a skill's `SKILL.md` and follow its procedure.
 
 Run `wsup guidance` in a generated workspace to check local structure and
 links. That does not prove a client loaded or invoked a skill. A generated
-workspace's `AI.md` and rule index hold its instructions.
-No client adapter, global installation, credential, or model configuration is
-created. There is no `skills install` command.
+workspace's `AGENTS.md` holds its instructions and a generated table of its
+installed skills.
+`init` also installs agent adapters: `CLAUDE.md` and a `.claude/skills` link
+to `.agents/skills/` for Claude Code, and `GEMINI.md` for Gemini CLI. Choose
+them with `--agent NAME` (repeatable) or skip them with `--agent none`. No
+global installation, credential, or model configuration is created, and there
+is no `skills install` command.
 
 Use the normal template-update preview/apply flow to refresh bundled content;
 it does not download a new release. To disable skill use, use the client's
-controls rather than deleting canonical files and breaking rule-index links.
+controls rather than deleting skill files that AGENTS.md links to.
 See [AI guidance](docs/ai-guidance.md) for the dated compatibility matrix and
-[workspace model](templates/workspace/docs/workspace-model.md) for safe managed-content updates.
+[workspace model](templates/modules/workspace-base/files/docs/workspace-model.md) for safe managed-content updates.
 
 ## Contributing and releases
 
@@ -218,6 +241,6 @@ These are maintainer documents, not generated starter files.
 
 WSUP is licensed under the [MIT License](LICENSE).
 When redistributing WSUP code or substantial template content, retain the
-copyright and permission notice. Both starters include a `WSUP-LICENSE` notice,
-kept in sync with this repository's license. This covers WSUP content and does
-not choose a license for your own projects.
+copyright and permission notice. Generated workspaces and projects carry no
+license file: the license applies to this repository, and choosing a license
+for your own projects is up to you.

@@ -154,10 +154,8 @@ a new version; do not rely on disabling the setting to unlock it.
 5. Check that root and bundled skill copies agree, relative references work,
    and independent repositories remain outside workspace staging. Distinguish
    structural checks from any live client-discovery tests.
-6. Review [LICENSE](../LICENSE) and distribution notices. Both starters include
-   `WSUP-LICENSE` copies that must match the repository license. Verify generated
-   and embedded templates retain the full MIT copyright and permission notice.
-   These notices cover WSUP content, not the user's own project license.
+6. Review [LICENSE](../LICENSE) and distribution notices. Generated starters
+   carry no license file; confirm none has been reintroduced under `templates/`.
 7. With explicit authorization, commit the release changes. From the clean,
    validated release commit, create the annotated tag for the newly selected
    version. Replace `MAJOR.MINOR.PATCH` below with that exact version; never move
@@ -192,4 +190,4 @@ GitHub binary release assets are published manually. Keep development notes
 and release-preparation drafts outside this repository. Publish
 user-facing changes and material limitations in the changelog or release notes.
 See [AI guidance](ai-guidance.md) for compatibility limits and the
-[workspace model](../templates/workspace/docs/workspace-model.md) for upgrade delivery.
+[workspace model](../templates/modules/workspace-base/files/docs/workspace-model.md) for upgrade delivery.

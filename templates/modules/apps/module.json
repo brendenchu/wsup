@@ -1,0 +1,19 @@
+{
+  "id": "apps",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Applications and user-facing deliverables.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [
+    "diagnose-issue",
+    "infer-conventions",
+    "make-change",
+    "review-change",
+    "write-commit"
+  ],
+  "ignore": [],
+  "generate": []
+}

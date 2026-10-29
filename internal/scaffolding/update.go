@@ -15,12 +15,16 @@ func Update(root, version string, keep []string, apply bool) (UpdatePlan, error)
 	if err != nil {
 		return UpdatePlan{}, err
 	}
-	files, err := catalogue.BundleSelected(loaded.State.Template, loaded.State.Collections)
+	registryBody, err := readRegistry(root)
+	if err != nil {
+		return UpdatePlan{}, err
+	}
+	files, links, err := catalogue.Starter(loaded.State.Template, loaded.State.selection(loaded.State.SelectedCollections(), registryBody))
 	if err != nil {
 		return UpdatePlan{}, err
 	}
 	var prepared preparedUpdate
-	plan, err := planUpdate(root, version, files, keep, &prepared)
+	plan, err := planUpdate(root, version, files, links, keep, &prepared)
 	if err != nil {
 		return plan, err
 	}

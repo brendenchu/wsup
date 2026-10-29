@@ -1,0 +1,13 @@
+{
+  "id": "design",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Mockups, design-system assets, and design sources.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

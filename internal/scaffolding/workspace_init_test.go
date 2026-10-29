@@ -35,10 +35,8 @@ func TestNativeWorkspaceInventoryStateAndGuidance(t *testing.T) {
 			t.Fatalf("workspace asset or baseline mismatch: %s %v", name, err)
 		}
 	}
-	for _, name := range defaultHomes {
-		if _, err := os.Stat(filepath.Join(destination, filepath.FromSlash(name))); err != nil {
-			t.Fatalf("missing default home %s: %v", name, err)
-		}
+	if _, err := os.Stat(filepath.Join(destination, "workbench/README.md")); err != nil {
+		t.Fatalf("missing base workbench: %v", err)
 	}
 	for _, name := range collections {
 		if _, err := os.Lstat(filepath.Join(destination, name)); !os.IsNotExist(err) {
@@ -54,7 +52,7 @@ func TestNativeWorkspaceInventoryStateAndGuidance(t *testing.T) {
 		t.Fatalf("invalid generated registry: %+v %v", data, err)
 	}
 	result, err := guidance.Inspect(destination)
-	if err != nil || len(result.Errors) != 0 || len(result.Skills) != 12 {
+	if err != nil || len(result.Errors) != 0 || len(result.Skills) != 7 {
 		t.Fatalf("workspace guidance: %+v %v", result, err)
 	}
 	before := snapshot(t, destination)

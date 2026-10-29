@@ -8,11 +8,13 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
+	"sort"
 	"strings"
 
+	"github.com/brendenchu/wsup/internal/catalogue"
 	"github.com/brendenchu/wsup/internal/configuration"
 	"github.com/brendenchu/wsup/internal/guidance"
-	"github.com/brendenchu/wsup/internal/jsoncompat"
 	"github.com/brendenchu/wsup/internal/registry"
 	"github.com/brendenchu/wsup/internal/scaffolding"
 	"github.com/spf13/cobra"
@@ -35,8 +37,13 @@ func Run(args []string, stdout, stderr io.Writer) int {
 }
 
 // RunContext accepts cancellation explicitly; the executable maps Ctrl-C to it.
+// init asks its questions only when stdin and stdout are terminals.
 func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer) int {
-	command := newCommand()
+	return runSession(ctx, args, stdout, stderr, terminalSession(stdout))
+}
+
+func runSession(ctx context.Context, args []string, stdout, stderr io.Writer, s session) int {
+	command := newCommand(s)
 	command.SetArgs(args)
 	command.SetOut(stdout)
 	command.SetErr(stderr)
@@ -50,7 +57,7 @@ func RunContext(ctx context.Context, args []string, stdout, stderr io.Writer) in
 	return 0
 }
 
-func newCommand() *cobra.Command {
+func newCommand(s session) *cobra.Command {
 	root := &cobra.Command{
 		Use:              "wsup",
 		Short:            "WSUP portable local workspace tools",
@@ -100,10 +107,76 @@ func newCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			preset, err := command.Flags().GetString("preset")
+			if err != nil {
+				return err
+			}
+			agentNames, err := command.Flags().GetStringArray("agent")
+			if err != nil {
+				return err
+			}
+			editorNames, err := command.Flags().GetStringArray("editor")
+			if err != nil {
+				return err
+			}
 			if kind != "workspace" && kind != "project" {
 				return fmt.Errorf("template must be workspace or project")
 			}
-			destination, err := scaffolding.InitialiseSelected(args[0], Version, kind, collections)
+			if kind == "project" && command.Flags().Changed("preset") {
+				return fmt.Errorf("presets require a workspace template")
+			}
+			if kind == "project" && len(editorNames) != 0 && !slices.Equal(editorNames, []string{catalogue.NoPreset}) {
+				return fmt.Errorf("editor adapters require a workspace template")
+			}
+			// Flag values fail before any question is asked.
+			if _, err := catalogue.ComposeAdapters(catalogue.KindAgent, agentNames); err != nil {
+				return err
+			}
+			if _, err := catalogue.ComposeAdapters(catalogue.KindEditor, editorNames); err != nil {
+				return err
+			}
+			if kind == "workspace" {
+				if _, err := catalogue.ComposeCollections(preset, collections); err != nil {
+					return err
+				}
+			}
+			yes, err := command.Flags().GetBool("yes")
+			if err != nil {
+				return err
+			}
+			if s.interactive && !yes {
+				answers, err := askInit(s, command.OutOrStdout(), kind, collections, command.Flags().Changed)
+				if err != nil {
+					return err
+				}
+				if answers.preset != nil {
+					preset = *answers.preset
+				}
+				if answers.agents != nil {
+					agentNames = answers.agents
+				}
+				if answers.editors != nil {
+					editorNames = answers.editors
+				}
+			}
+			agents, err := catalogue.ComposeAdapters(catalogue.KindAgent, agentNames)
+			if err != nil {
+				return err
+			}
+			editors, err := catalogue.ComposeAdapters(catalogue.KindEditor, editorNames)
+			if err != nil {
+				return err
+			}
+			if kind == "workspace" {
+				// Unknown presets and collections fail here, before any write.
+				if collections, err = catalogue.ComposeCollections(preset, collections); err != nil {
+					return err
+				}
+			} else {
+				// Editor adapters are workspace-only.
+				editors = nil
+			}
+			destination, err := scaffolding.InitialiseWith(args[0], Version, kind, catalogue.Selection{Collections: collections, Agents: agents, Editors: editors})
 			if err != nil {
 				return err
 			}
@@ -112,7 +185,11 @@ func newCommand() *cobra.Command {
 		},
 	}
 	init.Flags().String("template", "workspace", "Starter kind (workspace or project)")
-	init.Flags().StringArray("collection", nil, "Optional workspace collection (repeatable)")
+	init.Flags().String("preset", catalogue.DefaultPreset, "Workspace preset ("+strings.Join(catalogue.PresetNames(), ", ")+"; "+catalogue.NoPreset+" for the base only)")
+	init.Flags().StringArray("collection", nil, "Workspace collection added to the preset (repeatable)")
+	init.Flags().StringArray("editor", nil, "Workspace editor adapter ("+strings.Join(catalogue.EditorNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
+	init.Flags().Bool("yes", false, "Use defaults for any question flags leave open, even in a terminal")
+	init.Flags().StringArray("agent", nil, "Agent adapter ("+strings.Join(catalogue.AgentNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
 	root.AddCommand(init)
 	update := &cobra.Command{
 		Use: "update", Short: "Preview native managed-content updates; --apply writes",
@@ -232,6 +309,13 @@ func inspectWorkspace(command *cobra.Command, args []string) error {
 	}
 	switch command.Name() {
 	case "validate":
+		findings, err := scaffolding.CheckLinks(root)
+		if err != nil {
+			return err
+		}
+		if len(findings) != 0 {
+			return fmt.Errorf("%s", strings.Join(findings, "; "))
+		}
 		_, err = fmt.Fprintf(command.OutOrStdout(), "Valid: %s (%d projects)\n", data.Name, len(data.Projects))
 		return err
 	case "projects":
@@ -271,6 +355,11 @@ func inspectGuidance(output io.Writer, root string) error {
 	if err != nil {
 		return err
 	}
+	// Managed adapter links are structural guidance, recorded in starter state.
+	if links, err := scaffolding.CheckLinks(root); err == nil {
+		result.Errors = append(result.Errors, links...)
+		sort.Strings(result.Errors)
+	}
 	if err := writeJSON(output, result); err != nil {
 		return err
 	}
@@ -292,25 +381,24 @@ func createEditor(output io.Writer, root, name string, data registry.Registry) e
 	if !os.IsNotExist(statErr) {
 		return statErr
 	}
-	type folder struct {
-		Name string `json:"name"`
-		Path string `json:"path"`
-	}
-	document := struct {
-		Folders  []folder       `json:"folders"`
-		Settings map[string]any `json:"settings"`
-	}{Folders: []folder{{Name: "Workspace", Path: "."}}, Settings: map[string]any{}}
+	// The same generator writes the vscode adapter's file, so output matches.
+	workspace := catalogue.Workspace{Name: data.Name, Projects: []catalogue.Project{}}
 	for _, project := range data.Projects {
-		if project.Path != "." {
-			document.Folders = append(document.Folders, folder{Name: project.ID, Path: project.Path})
-		}
+		workspace.Projects = append(workspace.Projects, catalogue.Project{ID: project.ID, Path: project.Path})
+	}
+	body, err := catalogue.CodeWorkspace(workspace)
+	if err != nil {
+		return err
 	}
 	// Exclusive creation also refuses files created after the preflight check.
 	file, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
 	if err != nil {
 		return err
 	}
-	writeErr := writeEditorJSON(file, document)
+	written, writeErr := file.Write(body)
+	if writeErr == nil && written != len(body) {
+		writeErr = io.ErrShortWrite
+	}
 	closeErr := file.Close()
 	if writeErr != nil {
 		return writeErr
@@ -319,21 +407,6 @@ func createEditor(output io.Writer, root, name string, data registry.Registry) e
 		return closeErr
 	}
 	_, err = fmt.Fprintf(output, "Created %s\n", target)
-	return err
-}
-
-// Managed editor files use ASCII escapes; preserve those bytes, including
-// UTF-16 surrogate pairs for non-BMP characters, rather than just parsed equality.
-func writeEditorJSON(destination io.Writer, value any) error {
-	encoded, err := jsoncompat.Marshal(value, "  ")
-	if err != nil {
-		return err
-	}
-	encoded = append(encoded, '\n')
-	written, err := destination.Write(encoded)
-	if err == nil && written != len(encoded) {
-		return io.ErrShortWrite
-	}
 	return err
 }
 

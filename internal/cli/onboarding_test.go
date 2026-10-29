@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/brendenchu/wsup/internal/catalogue"
 	"github.com/brendenchu/wsup/internal/scaffolding"
 )
 
@@ -35,20 +36,17 @@ func TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles(t *test
 	trackable := []string{
 		".env.example", "apps/example/.env.example", ".wsup/template-state.json",
 		"workspace.json", "workbench/draft.md", "apps/example/README.md",
-		"private/README.md", "WSUP-LICENSE", "README.md",
+		"decisions/README.md", "WSUP-LICENSE", "README.md",
 		"wsup", "wsup.exe", "wsup_0.2.0_darwin_arm64.tar.gz",
 		"wsup_0.2.0_windows_amd64.zip", "SHA256SUMS",
 	}
-	license, err := os.ReadFile("../../LICENSE")
-	if err != nil {
-		t.Fatal(err)
-	}
 	for _, kind := range []string{"workspace", "project"} {
 		t.Run(kind, func(t *testing.T) {
-			sourceIgnore, err := os.ReadFile(filepath.Join("../../templates", kind, ".gitignore"))
+			starter, err := catalogue.Bundle(kind)
 			if err != nil {
 				t.Fatal(err)
 			}
+			sourceIgnore := starter[".gitignore"]
 			root := filepath.Join(t.TempDir(), kind)
 			if _, err := scaffolding.Initialise(root, Version, kind); err != nil {
 				t.Fatal(err)
@@ -57,9 +55,9 @@ func TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles(t *test
 			if err != nil || !bytes.Equal(body, sourceIgnore) {
 				t.Fatal("starter ignore baseline changed")
 			}
-			body, err = os.ReadFile(filepath.Join(root, "WSUP-LICENSE"))
-			if err != nil || !bytes.Equal(body, license) {
-				t.Fatal("starter license changed")
+			// The license applies to the wsup repository, never to generated output.
+			if _, err := os.Lstat(filepath.Join(root, "WSUP-LICENSE")); !os.IsNotExist(err) {
+				t.Fatal("starter carries a license file")
 			}
 			if _, err := os.Stat(filepath.Join(root, ".git")); !os.IsNotExist(err) {
 				t.Fatal("starter silently initialized Git")
@@ -177,14 +175,15 @@ func TestNativeGeneratedWorkspaceMixedGitOnboarding(t *testing.T) {
 	if !reflect.DeepEqual(paths, []string{".", "apps/owned", "apps/independent"}) {
 		t.Fatalf("editor folders: %v", paths)
 	}
-	for _, name := range []string{".agents/skills", ".wsup/templates", "workspace.json"} {
+	// A project has its own skills but none of the workspace-only ones.
+	for _, name := range []string{".agents/skills/onboard-project", ".wsup/templates", "workspace.json"} {
 		if _, err := os.Lstat(filepath.Join(independent, filepath.FromSlash(name))); !os.IsNotExist(err) {
 			t.Fatalf("project inherited workspace runtime/guidance: %s", name)
 		}
 	}
 	fixtureGit(t, root, "add", "--all")
 	tracked := strings.Split(strings.TrimSpace(fixtureGit(t, root, "ls-files")), "\n")
-	for _, name := range []string{"workspace.json", "apps/owned/README.md", ".wsup/template-state.json", ".agents/skills/project-onboarding/SKILL.md"} {
+	for _, name := range []string{"workspace.json", "apps/owned/README.md", ".wsup/template-state.json", ".agents/skills/onboard-project/SKILL.md"} {
 		if !slices.Contains(tracked, name) {
 			t.Fatalf("workspace-owned file not staged: %s", name)
 		}
