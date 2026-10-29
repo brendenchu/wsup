@@ -165,12 +165,12 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	run("--root", selected, "update", "--apply")
 	run("--root", selected, "guidance")
 	selectedState, err := scaffolding.LoadState(selected)
-	if err != nil || !reflect.DeepEqual(selectedState.State.Collections, []string{"archive", "journal", "private"}) {
+	if err != nil || !reflect.DeepEqual(selectedState.State.Collections, []string{"apps", "archive", "infrastructure", "journal", "packages", "private", "tools"}) {
 		t.Fatalf("standalone selections: %+v %v", selectedState.State, err)
 	}
 	run("--root", selected, "init", "unselected-child")
 	childState, err := scaffolding.LoadState(filepath.Join(directory, "unselected-child"))
-	if err != nil || len(childState.State.Collections) != 0 {
+	if err != nil || !reflect.DeepEqual(childState.State.Collections, []string{"apps", "infrastructure", "packages", "tools"}) {
 		t.Fatalf("child inherited collection defaults: %+v %v", childState.State, err)
 	}
 }

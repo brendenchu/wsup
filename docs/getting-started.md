@@ -32,7 +32,8 @@ Expected version: `0.2.0`. Stop if this is not the intended trusted executable.
 "$WSUP" --root "$WORKSPACE" guidance
 ```
 
-Initialization creates documentation, guidance, development homes, an empty
+Initialization creates documentation, guidance, the `development` preset's
+homes (`apps/`, `packages/`, `tools/`, `infrastructure/`), an empty
 `workspace.json` registry, and schema-2 state under `.wsup/`. `projects` initially
 prints `[]`; `guidance` should have no errors. These commands do not run project
 checks. The package stays separate; `.wsup/` does not contain an executable.

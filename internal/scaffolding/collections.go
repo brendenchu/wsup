@@ -59,6 +59,7 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 		return result, preparedUpdate{}, err
 	}
 	state := loaded.State
+	state.Collections = state.SelectedCollections()
 	if state.Version != StateVersion || state.Template != "workspace" {
 		return result, preparedUpdate{}, fmt.Errorf("adding collections requires a managed workspace")
 	}

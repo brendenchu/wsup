@@ -1,0 +1,13 @@
+{
+  "id": "apps",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Applications and user-facing deliverables.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

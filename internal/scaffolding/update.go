@@ -15,7 +15,7 @@ func Update(root, version string, keep []string, apply bool) (UpdatePlan, error)
 	if err != nil {
 		return UpdatePlan{}, err
 	}
-	files, err := catalogue.BundleSelected(loaded.State.Template, loaded.State.Collections)
+	files, err := catalogue.BundleSelected(loaded.State.Template, loaded.State.SelectedCollections())
 	if err != nil {
 		return UpdatePlan{}, err
 	}

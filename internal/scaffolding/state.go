@@ -23,7 +23,9 @@ const (
 )
 
 var (
-	collections   = catalogue.CollectionNames()
+	collections = catalogue.CollectionNames()
+	// defaultHomes are the home files v0.2.0 installed in every workspace and
+	// the only paths an owner could record as omitted.
 	defaultHomes  = []string{"apps/.gitkeep", "infrastructure/.gitkeep", "packages/README.md", "tools/README.md", "workbench/README.md"}
 	digestPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
 )
@@ -158,6 +160,26 @@ func ParseState(body []byte) (State, error) {
 		*field.values = slices.Compact(*field.values)
 	}
 	return state, nil
+}
+
+// SelectedCollections returns the recorded collections plus every former
+// default home this state still manages or omits. Those homes moved from the
+// workspace base into collections, so a state that predates the move selects
+// them implicitly rather than turning their files into orphans.
+func (s State) SelectedCollections() []string {
+	selected := slices.Clone(s.Collections)
+	if s.Template != "workspace" {
+		return selected
+	}
+	for _, name := range defaultHomes {
+		home := strings.SplitN(name, "/", 2)[0]
+		_, managed := s.Files[name]
+		if slices.Contains(collections, home) && (managed || slices.Contains(s.OmittedHomeFiles, name)) {
+			selected = append(selected, home)
+		}
+	}
+	slices.Sort(selected)
+	return slices.Compact(selected)
 }
 
 func portableFile(name string) bool {

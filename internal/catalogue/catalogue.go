@@ -11,15 +11,46 @@ import (
 	"github.com/brendenchu/wsup/templates"
 )
 
-// CollectionNames returns a fresh ordered list of supported optional homes.
-// The embedded catalogue is validated by tests, so a load failure here is a
-// build defect and panics rather than silently offering no collections.
-func CollectionNames() []string {
+const (
+	// DefaultPreset is the preset init applies when nothing else is selected.
+	DefaultPreset = "development"
+	// NoPreset selects the base plus explicit collections only. It is reserved
+	// and can never be a module id.
+	NoPreset = "none"
+)
+
+// mustLoad returns the embedded catalogue. It is validated by tests, so a load
+// failure is a build defect and panics rather than silently offering nothing.
+func mustLoad() *Catalogue {
 	c, err := Load()
 	if err != nil {
 		panic("embedded module catalogue is invalid: " + err.Error())
 	}
-	return c.IDs(KindCollection)
+	return c
+}
+
+// CollectionNames returns a fresh ordered list of supported optional homes.
+func CollectionNames() []string {
+	return mustLoad().IDs(KindCollection)
+}
+
+// PresetNames returns a fresh ordered list of built-in presets.
+func PresetNames() []string {
+	return mustLoad().IDs(KindPreset)
+}
+
+// ComposeCollections expands a preset (or NoPreset) and adds explicit
+// collections, returning a validated, sorted, deduplicated selection.
+func ComposeCollections(preset string, collections []string) ([]string, error) {
+	members := []string{}
+	if preset != NoPreset {
+		module, ok := mustLoad().Module(preset)
+		if !ok || module.Kind != KindPreset {
+			return nil, fmt.Errorf("unknown preset %q; select from %s", preset, strings.Join(append(PresetNames(), NoPreset), ", "))
+		}
+		members = module.Modules
+	}
+	return SelectCollections(append(slices.Clone(members), collections...))
 }
 
 // SelectCollections validates, sorts, and deduplicates explicit selections.

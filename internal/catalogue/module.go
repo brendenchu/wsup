@@ -277,6 +277,8 @@ func (c *Catalogue) validate() error {
 		switch {
 		case !idPattern.MatchString(id):
 			return fail("id must be lowercase letters, digits, and hyphens")
+		case id == NoPreset:
+			return fail("id is reserved")
 		case !slices.Contains(kinds, module.Kind):
 			return fail("unknown kind %q", module.Kind)
 		case !versionPattern.MatchString(module.Version):

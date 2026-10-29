@@ -60,7 +60,8 @@ func TestSelectedCollectionScaffoldUpdatesWithNewBundle(t *testing.T) {
 }
 
 func TestUpdateAddsUnmanagedDefaultMarkersAndKeepsOmissionsLocal(t *testing.T) {
-	root := collectionWorkspace(t)
+	development := []string{"apps", "infrastructure", "packages", "tools"}
+	root := collectionWorkspace(t, development...)
 	loaded, err := LoadState(root)
 	if err != nil {
 		t.Fatal(err)
@@ -111,7 +112,7 @@ func TestUpdateAddsUnmanagedDefaultMarkersAndKeepsOmissionsLocal(t *testing.T) {
 	if err != nil || !reflect.DeepEqual(loaded.State.OmittedHomeFiles, []string{"apps/.gitkeep", "packages/README.md"}) {
 		t.Fatal("omissions lost")
 	}
-	child := collectionWorkspace(t)
+	child := collectionWorkspace(t, development...)
 	for _, name := range markers {
 		if _, err := os.Stat(filepath.Join(child, filepath.FromSlash(name))); err != nil {
 			t.Fatalf("child inherited omission: %s", name)

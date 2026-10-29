@@ -47,7 +47,7 @@ func planUpdate(root, version string, files map[string][]byte, keep []string, pr
 	proposed := State{
 		Version: StateVersion, TemplateVersion: version, Template: state.Template,
 		Files:       make(map[string]string, len(files)),
-		Collections: state.Collections, OmittedHomeFiles: state.OmittedHomeFiles,
+		Collections: state.SelectedCollections(), OmittedHomeFiles: state.OmittedHomeFiles,
 	}
 	for name, body := range files {
 		if !portableFile(name) {

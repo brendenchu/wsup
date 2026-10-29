@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/brendenchu/wsup/internal/catalogue"
 	"github.com/brendenchu/wsup/internal/configuration"
 	"github.com/brendenchu/wsup/internal/guidance"
 	"github.com/brendenchu/wsup/internal/jsoncompat"
@@ -100,8 +101,20 @@ func newCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			preset, err := command.Flags().GetString("preset")
+			if err != nil {
+				return err
+			}
 			if kind != "workspace" && kind != "project" {
 				return fmt.Errorf("template must be workspace or project")
+			}
+			if kind == "workspace" {
+				// Unknown presets and collections fail here, before any write.
+				if collections, err = catalogue.ComposeCollections(preset, collections); err != nil {
+					return err
+				}
+			} else if command.Flags().Changed("preset") {
+				return fmt.Errorf("presets require a workspace template")
 			}
 			destination, err := scaffolding.InitialiseSelected(args[0], Version, kind, collections)
 			if err != nil {
@@ -112,7 +125,8 @@ func newCommand() *cobra.Command {
 		},
 	}
 	init.Flags().String("template", "workspace", "Starter kind (workspace or project)")
-	init.Flags().StringArray("collection", nil, "Optional workspace collection (repeatable)")
+	init.Flags().String("preset", catalogue.DefaultPreset, "Workspace preset ("+strings.Join(catalogue.PresetNames(), ", ")+"; "+catalogue.NoPreset+" for the base only)")
+	init.Flags().StringArray("collection", nil, "Workspace collection added to the preset (repeatable)")
 	root.AddCommand(init)
 	update := &cobra.Command{
 		Use: "update", Short: "Preview native managed-content updates; --apply writes",

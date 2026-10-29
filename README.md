@@ -64,8 +64,8 @@ with `go build -o /path/to/wsup ./cmd/wsup`, then invoke `/path/to/wsup` (or
 under `.wsup/`, not an executable, runtime, or copied catalogue. Relocation
 requires a compatible external binary. Shared rules live in `guidance/rules/`
 and portable skills remain in `.agents/skills/`.
-Generated workspaces include a focused set of development homes, with optional
-collections selected explicitly; see the workspace layout below.
+Generated workspaces include the `development` preset's homes by default, with
+other collections selected explicitly; see the workspace layout below.
 The project starter contains project documentation, guidance, ignore rules, and
 template state, but no bundled CLI or workspace registry.
 
@@ -128,9 +128,10 @@ See [updates and recovery](templates/modules/workspace-base/files/docs/workspace
 
 ## Workspace layout
 
-Every generated workspace includes `apps/`, `packages/`, `tools/`,
-`infrastructure/`, `docs/`, and `workbench/`, alongside the workspace-owned
-`guidance/`, `.agents/skills/`, and `.wsup/` foundation. This baseline focuses
+Every generated workspace includes `docs/` and `workbench/`, alongside the
+workspace-owned `guidance/`, `.agents/skills/`, and `.wsup/` foundation. The
+default `development` preset adds the `apps/`, `packages/`, `tools/`, and
+`infrastructure/` collections; `--preset none` creates the base only. This baseline focuses
 on organizing development work, not prescribing a knowledge-management workflow.
 `learning/`, `research/`, `reference/`, and `journal/` are CLI-selectable
 additions, as are `archive/`, `artifacts/`, and `private/`. Folder

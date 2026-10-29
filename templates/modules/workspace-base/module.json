@@ -2,7 +2,7 @@
   "id": "workspace-base",
   "kind": "base",
   "version": "1.0.0",
-  "description": "Workspace starter: README, registry, guidance, docs, workbench, and default homes.",
+  "description": "Workspace starter: README, registry, guidance, docs, and workbench.",
   "applies_to": [
     "workspace"
   ],

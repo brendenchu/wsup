@@ -54,7 +54,8 @@ func TestNativeApplyPreservesOwnershipAndSettles(t *testing.T) {
 		loaded.State.Files["custom.md"] != state.Files["custom.md"] ||
 		loaded.State.Files["workspace.json"] != state.Files["workspace.json"] ||
 		loaded.State.Files["README.md"] != contentDigest([]byte("new")) ||
-		!reflect.DeepEqual(loaded.State.Collections, state.Collections) ||
+		// Omitted former default homes imply their collections.
+		!reflect.DeepEqual(loaded.State.Collections, []string{"apps", "archive", "packages"}) ||
 		!reflect.DeepEqual(loaded.State.OmittedHomeFiles, state.OmittedHomeFiles) {
 		t.Fatalf("incorrect next state: %+v", loaded.State)
 	}

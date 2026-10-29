@@ -48,7 +48,8 @@ func TestCollectionCLIListPreviewApplyAndErrors(t *testing.T) {
 		t.Fatalf("selected init: %d %s", code, &stderr)
 	}
 	loaded, err := scaffolding.LoadState(root)
-	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"archive", "private"}) {
+	// The default preset combines with explicit collections.
+	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"apps", "archive", "infrastructure", "packages", "private", "tools"}) {
 		t.Fatalf("selected init state: %+v %v", loaded, err)
 	}
 	before := workspaceBytes(t, root)
@@ -60,6 +61,9 @@ func TestCollectionCLIListPreviewApplyAndErrors(t *testing.T) {
 		{"collections", "--add", "unknown", "--apply"}, {"collections", "--add", "archive,journal"},
 		{"collections", "--invalid"}, {"collections", "extra"},
 		{"init", filepath.Join(root, "bad"), "--template", "project", "--collection", "archive"},
+		{"init", filepath.Join(root, "bad"), "--template", "project", "--preset", "none"},
+		{"init", filepath.Join(root, "bad"), "--preset", "unknown"},
+		{"init", filepath.Join(root, "bad"), "--preset", "none", "--collection", "unknown"},
 	} {
 		invoke(2, args...)
 	}
@@ -71,7 +75,7 @@ func TestCollectionCLIListPreviewApplyAndErrors(t *testing.T) {
 		t.Fatal("apply not reported")
 	}
 	loaded, err = scaffolding.LoadState(root)
-	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"archive", "journal", "private"}) {
+	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"apps", "archive", "infrastructure", "journal", "packages", "private", "tools"}) {
 		t.Fatalf("addition lost selections: %+v %v", loaded, err)
 	}
 	if err := os.MkdirAll(filepath.Join(root, "artifacts"), 0755); err != nil {

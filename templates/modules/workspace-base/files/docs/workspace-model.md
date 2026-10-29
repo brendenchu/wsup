@@ -33,7 +33,7 @@ for product changes. Binary replacement and managed-content updates are separate
 | `guidance` | Prints structural findings as JSON; optional `--project ID` selects a registered owner. |
 | `editor` | Creates a relative-path VS Code workspace file; `--output NAME` must be a new file directly in the root. |
 | `check` | Requires repeatable `--project ID`; optional repeatable `--check NAME`, `--timeout SECONDS`, `--show-output`. |
-| `init DESTINATION` | Creates a new workspace immediately; repeatable `--collection NAME` selects optional homes. `--template project` creates a project without a registry/runtime; collections are workspace-only. |
+| `init DESTINATION` | Creates a new workspace immediately; `--preset NAME` selects a preset (default `development`; `none` for the base only) and repeatable `--collection NAME` adds collections to it. `--template project` creates a project without a registry/runtime; presets and collections are workspace-only. |
 | `update` | Prints a managed-content plan; `--apply` writes when conflict-free, repeatable `--keep PATH` retains eligible same-path customizations. |
 | `collections` | Lists available names; repeatable `--add NAME` previews additions, `--apply` writes when conflict-free. |
 
@@ -57,14 +57,17 @@ CLI exit codes.
 
 | Home | Responsibility |
 | --- | --- |
-| `apps/` | Applications and user-facing deliverables |
-| `packages/` | Reusable libraries/packages |
-| `tools/` | Local developer tools |
-| `infrastructure/` | Provisioning and operations code |
+| `apps/`\* | Applications and user-facing deliverables |
+| `packages/`\* | Reusable libraries/packages |
+| `tools/`\* | Local developer tools |
+| `infrastructure/`\* | Provisioning and operations code |
 | `docs/` | Maintained workspace documentation |
 | `workbench/` | Shareable drafts and temporary analysis |
 | `guidance/`, `.agents/skills/` | Local rules and portable procedures |
 | `.wsup/` | Template state and ignored check reports |
+
+\* Collections selected by the default `development` preset. `--preset none`
+omits them; they can be added later like any other collection.
 
 Homes organize responsibility, not repository topology or required population.
 Project `kind` is independent of directory name.
@@ -74,7 +77,7 @@ under `.wsup/reports/`, not workbench. Review and sanitize drafts before staging
 Promote accepted knowledge to its maintained owner rather than keeping competing
 canonical copies. A journal is optional.
 
-Optional collection homes are `archive`, `artifacts`, `journal`, `learning`,
+Other optional collection homes are `archive`, `artifacts`, `journal`, `learning`,
 `private`, `reference`, and `research`. None are created by default. These are organizational
 choices, not permissions, encryption, sync, backup, or retention controls.
 Restricted material belongs outside documentation and Git unless appropriate
@@ -82,14 +85,16 @@ controls are separately established. Ignored does not mean confidential.
 
 ```sh
 wsup init /path/to/new-workspace --collection archive --collection journal
+wsup init /path/to/new-workspace --preset none --collection research
 wsup collections
 wsup collections --add artifacts --add private
 wsup collections --add artifacts --add private --apply
 ```
 
-Names are validated, sorted, and deduplicated. The binary carries all seven
-scaffold sources; only explicitly selected ones are installed and managed.
-A child workspace starts with no collections unless selected explicitly.
+Preset and collection names are validated, sorted, and deduplicated before
+anything is written. The binary carries every collection source; only selected
+ones are installed and managed. A child workspace starts from its own preset
+and selections; it never inherits the parent's collections.
 Listing needs no managed state; additions require a native managed workspace.
 Unknown names, project selections, and symlink destinations fail explicitly.
 
@@ -98,7 +103,9 @@ never adopted or overwritten. Missing selected managed files are conflicts.
 Already-selected regular managed files, including customizations, are left
 unchanged with their original hashes; use update to review those customizations.
 Former default-managed journal/learning/reference/research files can be explicitly
-selected without accepting customized bytes as baselines. Other unselected
+selected without accepting customized bytes as baselines. Workspaces created when
+`apps/`, `packages/`, `tools/`, and `infrastructure/` were part of the base keep
+them: managed or omitted files there select their collection. Other unselected
 managed collection files conflict rather than being implicitly adopted.
 All conflicts block additions. State and observed paths are rechecked before
 exclusive writes; state is replaced last, preserving unrelated hashes, template

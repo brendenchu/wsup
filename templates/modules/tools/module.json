@@ -1,0 +1,13 @@
+{
+  "id": "tools",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Local developer tools.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

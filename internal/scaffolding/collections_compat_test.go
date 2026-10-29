@@ -83,3 +83,27 @@ func TestCollectionAdditionsRejectUnsupportedStateWithoutWrites(t *testing.T) {
 		t.Fatal("unsupported state modified")
 	}
 }
+
+func TestFormerDefaultHomesStayManagedForEarlierWorkspaces(t *testing.T) {
+	// An earlier base installed the development homes without selecting them.
+	files, err := catalogue.BundleSelected("workspace", []string{"apps", "infrastructure", "packages", "tools"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	root, _ := nativeFixture(t, files)
+	plan, err := Update(root, "0.2.0", nil, false)
+	if err != nil || len(plan.Actions) != 0 || len(plan.Conflicts) != 0 {
+		t.Fatalf("earlier workspace update: %+v %v", plan, err)
+	}
+	added, err := AddCollections(root, []string{"apps", "journal"}, true)
+	if err != nil || len(added.Conflicts) != 0 || !added.Applied {
+		t.Fatalf("earlier workspace addition: %+v %v", added, err)
+	}
+	loaded, err := LoadState(root)
+	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"apps", "infrastructure", "journal", "packages", "tools"}) {
+		t.Fatalf("recorded collections: %+v %v", loaded.State, err)
+	}
+	if _, managed := loaded.State.Files["apps/.gitkeep"]; !managed {
+		t.Fatal("former default home stopped being managed")
+	}
+}

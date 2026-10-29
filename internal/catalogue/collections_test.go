@@ -50,3 +50,33 @@ func TestSelectedCollectionBundleInventoryAndExactBytes(t *testing.T) {
 		t.Fatal("project collection selection accepted")
 	}
 }
+
+func TestComposeCollectionsExpandsPresetsAndAddsSelections(t *testing.T) {
+	development := []string{"apps", "infrastructure", "packages", "tools"}
+	for _, tc := range []struct {
+		preset      string
+		collections []string
+		want        []string
+	}{
+		{DefaultPreset, nil, development},
+		{DefaultPreset, []string{"journal", "apps"}, []string{"apps", "infrastructure", "journal", "packages", "tools"}},
+		{NoPreset, nil, []string{}},
+		{NoPreset, []string{"research", "apps", "research"}, []string{"apps", "research"}},
+	} {
+		got, err := ComposeCollections(tc.preset, tc.collections)
+		if err != nil || !reflect.DeepEqual(got, tc.want) {
+			t.Fatalf("%s %v: %v %v", tc.preset, tc.collections, got, err)
+		}
+	}
+	for _, preset := range []string{"", "unknown", "apps", "workspace-base"} {
+		if _, err := ComposeCollections(preset, nil); err == nil {
+			t.Fatalf("invalid preset accepted: %q", preset)
+		}
+	}
+	if _, err := ComposeCollections(DefaultPreset, []string{"unknown"}); err == nil {
+		t.Fatal("unknown collection accepted with a preset")
+	}
+	if !reflect.DeepEqual(PresetNames(), []string{DefaultPreset}) {
+		t.Fatalf("presets: %v", PresetNames())
+	}
+}

@@ -119,6 +119,7 @@ func TestLoadRejectsInvalidModules(t *testing.T) {
 		"skill path in files": {"modules/notes/files/.agents/skills/plan/SKILL.md": {Data: []byte("x")}},
 		"missing base":        {"modules/project-base/module.json": nil},
 		"skill without body":  {"skills/empty/notes.md": {Data: []byte("x")}},
+		"reserved id":         {"modules/none/module.json": manifest(`"id":"none","kind":"collection","version":"1.0.0","description":"x","applies_to":["workspace"],"requires":[],"skills":[],"ignore":[],"generate":[]`)},
 	} {
 		if _, err := load(testTree(change)); err == nil {
 			t.Errorf("%s accepted", name)

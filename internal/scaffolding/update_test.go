@@ -10,12 +10,12 @@ import (
 )
 
 func TestEmbeddedUpdatePreservesSelectedCollectionsAndOmissions(t *testing.T) {
-	files, err := catalogue.BundleSelected("workspace", []string{"archive", "journal"})
+	files, err := catalogue.BundleSelected("workspace", []string{"apps", "archive", "journal"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	root, state := nativeFixture(t, files)
-	state.Collections = []string{"archive", "journal"}
+	state.Collections = []string{"apps", "archive", "journal"}
 	state.OmittedHomeFiles = []string{"apps/.gitkeep"}
 	saveState(t, root, state)
 	if err := os.Remove(filepath.Join(root, "apps/.gitkeep")); err != nil {

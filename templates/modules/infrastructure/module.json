@@ -1,0 +1,13 @@
+{
+  "id": "infrastructure",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Provisioning and operations code.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

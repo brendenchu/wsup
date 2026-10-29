@@ -40,7 +40,10 @@ func TestCollectionsInitSelectionAndAllOptionalHomes(t *testing.T) {
 			}
 		}
 		for _, name := range catalogue.CollectionNames() {
-			_, exists := state.State.Files[name+"/README.md"]
+			exists := false
+			for file := range state.State.Files {
+				exists = exists || strings.HasPrefix(file, name+"/")
+			}
 			found := false
 			for _, enabled := range want {
 				if name == enabled {

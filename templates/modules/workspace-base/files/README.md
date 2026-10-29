@@ -53,9 +53,10 @@ never installed automatically.
 
 ## Layout and local work
 
-Default homes are `apps/`, `packages/`, `tools/`, `infrastructure/`, `docs/`,
-and `workbench/`. Use them by responsibility without requiring every home to be
-populated. Shareable human drafts can live in `workbench/`; local plans and
+Every workspace has `docs/` and `workbench/`. The `development` preset, used by
+default, adds the `apps/`, `packages/`, `tools/`, and `infrastructure/`
+collections; `wsup init --preset none` creates only the base. Use homes by
+responsibility without requiring every home to be populated. Shareable human drafts can live in `workbench/`; local plans and
 notes belong under ignored `workbench/.local/`, created on demand. Ignored does
 not mean backed up, disposable, or secure. Promote approved knowledge to the
 owning project's maintained documentation.
@@ -65,6 +66,7 @@ Knowledge and lifecycle homes (`archive`, `artifacts`, `journal`, `learning`,
 
 ```sh
 wsup init /path/to/new-workspace --collection archive --collection journal
+wsup init /path/to/new-workspace --preset none --collection research
 wsup collections
 wsup collections --add private --add artifacts
 wsup collections --add private --add artifacts --apply

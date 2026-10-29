@@ -8,9 +8,20 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Added
 
+- `wsup init --preset NAME` selects a preset of collections; explicit
+  `--collection` choices add to it. `--preset none` creates a base-only
+  workspace. Unknown presets fail before anything is written.
 - One-command local macOS ARM64 candidate verification and packaging with the
   pinned Go toolchain, full notices, checksums, repeated binary builds, and
   extracted-binary smoke checks. Tagging and publication remain explicit.
+
+### Changed
+
+- `apps/`, `packages/`, `tools/`, and `infrastructure/` are collections
+  instead of part of the workspace base. The default `development` preset
+  selects all four, so a plain `wsup init` creates the same homes as before
+  and records them as selected collections. Existing workspaces keep managing
+  these homes on update.
 
 ### Developer Experience
 

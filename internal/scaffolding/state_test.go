@@ -134,3 +134,19 @@ func TestStateSymlinksRefusedWithoutTouchingTargets(t *testing.T) {
 		})
 	}
 }
+
+func TestSelectedCollectionsInfersFormerDefaultHomes(t *testing.T) {
+	state := State{Template: "workspace", Collections: []string{"journal"}, Files: map[string]string{
+		"apps/.gitkeep": "", "tools/README.md": "", "workbench/README.md": "",
+	}, OmittedHomeFiles: []string{"packages/README.md", "workbench/README.md"}}
+	if got := state.SelectedCollections(); !reflect.DeepEqual(got, []string{"apps", "journal", "packages", "tools"}) {
+		t.Fatalf("inferred collections: %v", got)
+	}
+	if !reflect.DeepEqual(state.Collections, []string{"journal"}) {
+		t.Fatal("inference changed recorded collections")
+	}
+	project := State{Template: "project", Files: map[string]string{"apps/.gitkeep": ""}}
+	if got := project.SelectedCollections(); len(got) != 0 {
+		t.Fatalf("project inferred collections: %v", got)
+	}
+}
