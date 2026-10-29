@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"io/fs"
 	"reflect"
+	"slices"
 	"testing"
 )
 
 func TestSelectedCollectionBundleInventoryAndExactBytes(t *testing.T) {
-	all := []string{"archive", "artifacts", "journal", "learning", "private", "reference", "research"}
+	all := CollectionNames()
+	templated := []string{"decisions", "issues", "journal"}
 	files, err := BundleSelected("workspace", all)
 	if err != nil {
 		t.Fatal(err)
@@ -22,7 +24,7 @@ func TestSelectedCollectionBundleInventoryAndExactBytes(t *testing.T) {
 	for _, collection := range all {
 		for _, filename := range []string{"README.md", "TEMPLATE.md"} {
 			body, err := fs.ReadFile(source, "modules/"+collection+"/files/"+collection+"/"+filename)
-			if filename == "TEMPLATE.md" && collection != "journal" {
+			if filename == "TEMPLATE.md" && !slices.Contains(templated, collection) {
 				if err == nil {
 					t.Fatalf("unexpected collection source: %s", collection)
 				}
@@ -52,14 +54,14 @@ func TestSelectedCollectionBundleInventoryAndExactBytes(t *testing.T) {
 }
 
 func TestComposeCollectionsExpandsPresetsAndAddsSelections(t *testing.T) {
-	development := []string{"apps", "infrastructure", "packages", "tools"}
+	development := []string{"apps", "infra", "packages", "tools"}
 	for _, tc := range []struct {
 		preset      string
 		collections []string
 		want        []string
 	}{
 		{DefaultPreset, nil, development},
-		{DefaultPreset, []string{"journal", "apps"}, []string{"apps", "infrastructure", "journal", "packages", "tools"}},
+		{DefaultPreset, []string{"journal", "apps"}, []string{"apps", "infra", "journal", "packages", "tools"}},
 		{NoPreset, nil, []string{}},
 		{NoPreset, []string{"research", "apps", "research"}, []string{"apps", "research"}},
 	} {

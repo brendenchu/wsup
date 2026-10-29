@@ -28,6 +28,10 @@ var (
 	// the only paths an owner could record as omitted.
 	defaultHomes  = []string{"apps/.gitkeep", "infrastructure/.gitkeep", "packages/README.md", "tools/README.md", "workbench/README.md"}
 	digestPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
+	// retiredCollections maps v0.2.0 collection names to their replacement;
+	// an empty replacement means the collection was removed. Converting such a
+	// state is a migration, which this version does not perform.
+	retiredCollections = map[string]string{"artifacts": "releases", "private": ""}
 )
 
 // State retains baseline hashes, not current content hashes. A customization
@@ -149,6 +153,12 @@ func ParseState(body []byte) (State, error) {
 			return State{}, fmt.Errorf("%s must be a list", field.name)
 		}
 		for _, value := range *field.values {
+			if replacement, retired := retiredCollections[value]; retired && field.name == "collections" {
+				if replacement == "" {
+					return State{}, fmt.Errorf("collection %q was removed; this workspace needs a migration that this wsup does not provide", value)
+				}
+				return State{}, fmt.Errorf("collection %q is now %q; this workspace needs a migration that this wsup does not provide", value, replacement)
+			}
 			if !slices.Contains(field.allowed, value) {
 				return State{}, fmt.Errorf("invalid %s selection", field.name)
 			}
@@ -163,9 +173,12 @@ func ParseState(body []byte) (State, error) {
 }
 
 // SelectedCollections returns the recorded collections plus every former
-// default home this state still manages or omits. Those homes moved from the
-// workspace base into collections, so a state that predates the move selects
-// them implicitly rather than turning their files into orphans.
+// default home this state still manages. Those homes moved from the workspace
+// base into collections, so a state that predates the move selects them
+// implicitly. Each home was a single file, so an omitted one means the owner
+// removed the home and its collection stays unselected. The former
+// infrastructure/ home has no same-named collection (it is now infra/) and is
+// left to migration.
 func (s State) SelectedCollections() []string {
 	selected := slices.Clone(s.Collections)
 	if s.Template != "workspace" {
@@ -173,8 +186,7 @@ func (s State) SelectedCollections() []string {
 	}
 	for _, name := range defaultHomes {
 		home := strings.SplitN(name, "/", 2)[0]
-		_, managed := s.Files[name]
-		if slices.Contains(collections, home) && (managed || slices.Contains(s.OmittedHomeFiles, name)) {
+		if _, managed := s.Files[name]; managed && slices.Contains(collections, home) {
 			selected = append(selected, home)
 		}
 	}

@@ -101,7 +101,7 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 		t.Fatal(err)
 	}
 	parentState := workspaceState.State
-	parentState.OmittedHomeFiles = []string{"apps/.gitkeep", "packages/README.md"}
+	parentState.OmittedHomeFiles = []string{"packages/README.md", "tools/README.md"}
 	stateBody, err := scaffolding.EncodeNativeState(parentState)
 	if err != nil {
 		t.Fatal(err)
@@ -109,7 +109,7 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(movedWorkspace, filepath.FromSlash(scaffolding.StatePath)), stateBody, 0600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Remove(filepath.Join(movedWorkspace, "apps/.gitkeep")); err != nil {
+	if err := os.Remove(filepath.Join(movedWorkspace, "tools/README.md")); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(movedWorkspace, "packages/README.md"), []byte("Owner omitted home"), 0600); err != nil {
@@ -157,20 +157,20 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	}
 	run("init", "selected-workspace", "--collection", "archive", "--collection", "journal")
 	selected := filepath.Join(directory, "selected-workspace")
-	previewCollections := run("--root", selected, "collections", "--add", "private")
+	previewCollections := run("--root", selected, "collections", "--add", "research")
 	if !strings.Contains(string(previewCollections), `"applied": false`) {
 		t.Fatalf("collection preview: %s", previewCollections)
 	}
-	run("--root", selected, "collections", "--add", "private", "--apply")
+	run("--root", selected, "collections", "--add", "research", "--apply")
 	run("--root", selected, "update", "--apply")
 	run("--root", selected, "guidance")
 	selectedState, err := scaffolding.LoadState(selected)
-	if err != nil || !reflect.DeepEqual(selectedState.State.Collections, []string{"apps", "archive", "infrastructure", "journal", "packages", "private", "tools"}) {
+	if err != nil || !reflect.DeepEqual(selectedState.State.Collections, []string{"apps", "archive", "infra", "journal", "packages", "research", "tools"}) {
 		t.Fatalf("standalone selections: %+v %v", selectedState.State, err)
 	}
 	run("--root", selected, "init", "unselected-child")
 	childState, err := scaffolding.LoadState(filepath.Join(directory, "unselected-child"))
-	if err != nil || !reflect.DeepEqual(childState.State.Collections, []string{"apps", "infrastructure", "packages", "tools"}) {
+	if err != nil || !reflect.DeepEqual(childState.State.Collections, []string{"apps", "infra", "packages", "tools"}) {
 		t.Fatalf("child inherited collection defaults: %+v %v", childState.State, err)
 	}
 }

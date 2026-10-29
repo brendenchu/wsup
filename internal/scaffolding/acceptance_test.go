@@ -60,13 +60,13 @@ func TestSelectedCollectionScaffoldUpdatesWithNewBundle(t *testing.T) {
 }
 
 func TestUpdateAddsUnmanagedDefaultMarkersAndKeepsOmissionsLocal(t *testing.T) {
-	development := []string{"apps", "infrastructure", "packages", "tools"}
+	development := []string{"apps", "infra", "packages", "tools"}
 	root := collectionWorkspace(t, development...)
 	loaded, err := LoadState(root)
 	if err != nil {
 		t.Fatal(err)
 	}
-	markers := []string{"apps/.gitkeep", "infrastructure/.gitkeep", "packages/README.md", "tools/README.md", "workbench/README.md"}
+	markers := []string{"apps/README.md", "infra/README.md", "packages/README.md", "tools/README.md", "workbench/README.md"}
 	want := []Action{}
 	for _, name := range markers {
 		if err := os.Remove(filepath.Join(root, filepath.FromSlash(name))); err != nil {
@@ -89,19 +89,19 @@ func TestUpdateAddsUnmanagedDefaultMarkersAndKeepsOmissionsLocal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	loaded.State.OmittedHomeFiles = []string{"apps/.gitkeep", "packages/README.md"}
+	loaded.State.OmittedHomeFiles = []string{"packages/README.md", "tools/README.md"}
 	saveState(t, root, loaded.State)
-	if err := os.Remove(filepath.Join(root, "apps/.gitkeep")); err != nil {
+	if err := os.Remove(filepath.Join(root, "tools/README.md")); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Remove(filepath.Join(root, "apps")); err != nil {
+	if err := os.Remove(filepath.Join(root, "tools")); err != nil {
 		t.Fatal(err)
 	}
 	writeFixture(t, root, "packages/README.md", []byte("Owner home policy"))
 	if _, err := Update(root, "0.1.0", nil, true); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Lstat(filepath.Join(root, "apps")); !os.IsNotExist(err) {
+	if _, err := os.Lstat(filepath.Join(root, "tools")); !os.IsNotExist(err) {
 		t.Fatal("omitted home recreated")
 	}
 	body, err := os.ReadFile(filepath.Join(root, "packages/README.md"))
@@ -109,7 +109,7 @@ func TestUpdateAddsUnmanagedDefaultMarkersAndKeepsOmissionsLocal(t *testing.T) {
 		t.Fatal("omitted home overwritten")
 	}
 	loaded, err = LoadState(root)
-	if err != nil || !reflect.DeepEqual(loaded.State.OmittedHomeFiles, []string{"apps/.gitkeep", "packages/README.md"}) {
+	if err != nil || !reflect.DeepEqual(loaded.State.OmittedHomeFiles, []string{"packages/README.md", "tools/README.md"}) {
 		t.Fatal("omissions lost")
 	}
 	child := collectionWorkspace(t, development...)
@@ -172,7 +172,7 @@ func TestCollectionFileSymlinkAndNonDirectoryParentsBlockAllWrites(t *testing.T)
 				}
 			}
 			before, outside := snapshot(t, root), snapshot(t, external)
-			if _, err := AddCollections(root, []string{"archive", "artifacts"}, true); err == nil {
+			if _, err := AddCollections(root, []string{"archive", "releases"}, true); err == nil {
 				t.Fatal("invalid destination accepted")
 			}
 			if !reflect.DeepEqual(before, snapshot(t, root)) || !reflect.DeepEqual(outside, snapshot(t, external)) {

@@ -33,7 +33,7 @@ Expected version: `0.2.0`. Stop if this is not the intended trusted executable.
 ```
 
 Initialization creates documentation, guidance, the `development` preset's
-homes (`apps/`, `packages/`, `tools/`, `infrastructure/`), an empty
+homes (`apps/`, `packages/`, `tools/`, `infra/`), an empty
 `workspace.json` registry, and schema-2 state under `.wsup/`. `projects` initially
 prints `[]`; `guidance` should have no errors. These commands do not run project
 checks. The package stays separate; `.wsup/` does not contain an executable.

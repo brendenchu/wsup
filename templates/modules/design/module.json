@@ -1,8 +1,8 @@
 {
-  "id": "artifacts",
+  "id": "design",
   "kind": "collection",
   "version": "1.0.0",
-  "description": "Intentional deliverables with provenance and retention purpose.",
+  "description": "Mockups, design-system assets, and design sources.",
   "applies_to": [
     "workspace"
   ],

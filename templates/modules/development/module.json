@@ -2,10 +2,10 @@
   "id": "development",
   "kind": "preset",
   "version": "1.0.0",
-  "description": "Apps, packages, tools, and infrastructure.",
+  "description": "Apps, packages, tools, and infra.",
   "modules": [
     "apps",
-    "infrastructure",
+    "infra",
     "packages",
     "tools"
   ]

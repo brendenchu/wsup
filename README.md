@@ -131,10 +131,16 @@ See [updates and recovery](templates/modules/workspace-base/files/docs/workspace
 Every generated workspace includes `docs/` and `workbench/`, alongside the
 workspace-owned `guidance/`, `.agents/skills/`, and `.wsup/` foundation. The
 default `development` preset adds the `apps/`, `packages/`, `tools/`, and
-`infrastructure/` collections; `--preset none` creates the base only. This baseline focuses
-on organizing development work, not prescribing a knowledge-management workflow.
-`learning/`, `research/`, `reference/`, and `journal/` are CLI-selectable
-additions, as are `archive/`, `artifacts/`, and `private/`. Folder
+`infra/` collections; `--preset none` creates the base only. Every other
+collection is a CLI-selectable addition:
+
+| Group | Collections |
+| --- | --- |
+| Projects | `apps`, `packages`, `tools`, `infra`, `sandbox`, `templates`, `forks` |
+| Knowledge and lifecycle | `research`, `reference`, `decisions`, `learning`, `journal`, `archive`, `releases` |
+| Work and making | `issues`, `ai`, `design`, `content`, `data` |
+
+Folder
 names describe placement, not Git ownership, project kind, sensitivity
 controls, backup, or retention guarantees. See the
 [workspace model](templates/modules/workspace-base/files/docs/workspace-model.md#default-layout-and-optional-collections)
@@ -146,13 +152,13 @@ required instructions.
 Select optional collections during initialization, or add them later:
 
 ```sh
-wsup init /path/to/workspace --collection archive --collection artifacts
-wsup --root /path/to/workspace collections --add private
-wsup --root /path/to/workspace collections --add private --apply
+wsup init /path/to/workspace --collection archive --collection releases
+wsup --root /path/to/workspace collections --add decisions
+wsup --root /path/to/workspace collections --add decisions --apply
 ```
 
-Each collection creates a purpose-and-boundaries README; journal also includes
-an entry template. Existing-workspace additions preview by default; any
+Each collection creates a purpose-and-boundaries README; decisions, issues,
+and journal also include a template. Existing-workspace additions preview by default; any
 conflicting scaffold file blocks the whole apply.
 An already-managed scaffold is left untouched, including local customizations.
 Selections are recorded in template state so normal updates include them.
@@ -161,8 +167,7 @@ the desired collections explicitly for each new workspace. Project starters
 do not accept collection selections.
 
 These commands do not change ignore rules, permissions, encryption, backup,
-sync, indexing, or retention settings. In particular, the private scaffold is
-not protected storage.
+sync, indexing, or retention settings.
 
 The registry does not imply a shared Git repository, build, dependency install,
 or release process. See the [workspace model](templates/modules/workspace-base/files/docs/workspace-model.md) for the

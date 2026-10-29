@@ -1,0 +1,13 @@
+{
+  "id": "infra",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Provisioning, deployment, and operations code.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

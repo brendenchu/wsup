@@ -1,8 +1,8 @@
 {
-  "id": "private",
+  "id": "issues",
   "kind": "collection",
   "version": "1.0.0",
-  "description": "Planning notes for private storage; not protected storage.",
+  "description": "Keyed Markdown issue files.",
   "applies_to": [
     "workspace"
   ],

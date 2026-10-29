@@ -8,6 +8,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Added
 
+- New opt-in collections: `sandbox`, `templates`, `forks`, `decisions`,
+  `issues`, `ai`, `design`, `content`, and `data`. `decisions` and `issues`
+  include a template.
 - `wsup init --preset NAME` selects a preset of collections; explicit
   `--collection` choices add to it. `--preset none` creates a base-only
   workspace. Unknown presets fail before anything is written.
@@ -17,11 +20,18 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
-- `apps/`, `packages/`, `tools/`, and `infrastructure/` are collections
-  instead of part of the workspace base. The default `development` preset
-  selects all four, so a plain `wsup init` creates the same homes as before
-  and records them as selected collections. Existing workspaces keep managing
-  these homes on update.
+- `apps/`, `packages/`, `tools/`, and `infra/` are collections instead of
+  part of the workspace base, and the default `development` preset selects
+  all four. Existing workspaces keep managing `apps/`, `packages/`, and
+  `tools/` on update.
+- `infrastructure/` is now `infra/`, and `artifacts` is now `releases`.
+  `apps/` and `infra/` get a README instead of an empty placeholder. Workspaces
+  that selected `artifacts` or `private` report that they need a migration.
+
+### Removed
+
+- The `private` collection. Its name suggested protection it never provided;
+  keep restricted records outside the workspace.
 
 ### Developer Experience
 

@@ -60,7 +60,7 @@ CLI exit codes.
 | `apps/`\* | Applications and user-facing deliverables |
 | `packages/`\* | Reusable libraries/packages |
 | `tools/`\* | Local developer tools |
-| `infrastructure/`\* | Provisioning and operations code |
+| `infra/`\* | Provisioning, deployment, and operations code |
 | `docs/` | Maintained workspace documentation |
 | `workbench/` | Shareable drafts and temporary analysis |
 | `guidance/`, `.agents/skills/` | Local rules and portable procedures |
@@ -77,8 +77,15 @@ under `.wsup/reports/`, not workbench. Review and sanitize drafts before staging
 Promote accepted knowledge to its maintained owner rather than keeping competing
 canonical copies. A journal is optional.
 
-Other optional collection homes are `archive`, `artifacts`, `journal`, `learning`,
-`private`, `reference`, and `research`. None are created by default. These are organizational
+Every other collection is created only when selected:
+
+| Group | Collections |
+| --- | --- |
+| Projects | `apps`, `packages`, `tools`, `infra`, `sandbox`, `templates`, `forks` |
+| Knowledge and lifecycle | `research`, `reference`, `decisions`, `learning`, `journal`, `archive`, `releases` |
+| Work and making | `issues`, `ai`, `design`, `content`, `data` |
+
+These are organizational
 choices, not permissions, encryption, sync, backup, or retention controls.
 Restricted material belongs outside documentation and Git unless appropriate
 controls are separately established. Ignored does not mean confidential.
@@ -87,8 +94,8 @@ controls are separately established. Ignored does not mean confidential.
 wsup init /path/to/new-workspace --collection archive --collection journal
 wsup init /path/to/new-workspace --preset none --collection research
 wsup collections
-wsup collections --add artifacts --add private
-wsup collections --add artifacts --add private --apply
+wsup collections --add decisions --add issues
+wsup collections --add decisions --add issues --apply
 ```
 
 Preset and collection names are validated, sorted, and deduplicated before
@@ -104,8 +111,10 @@ Already-selected regular managed files, including customizations, are left
 unchanged with their original hashes; use update to review those customizations.
 Former default-managed journal/learning/reference/research files can be explicitly
 selected without accepting customized bytes as baselines. Workspaces created when
-`apps/`, `packages/`, `tools/`, and `infrastructure/` were part of the base keep
-them: managed or omitted files there select their collection. Other unselected
+`apps/`, `packages/`, and `tools/` were part of the base keep them: a managed file
+there selects its collection, while an omitted one leaves it unselected. A former
+`infrastructure/` home is retained but no longer managed; renamed (`artifacts`)
+or removed (`private`) selections fail until migrated. Other unselected
 managed collection files conflict rather than being implicitly adopted.
 All conflicts block additions. State and observed paths are rechecked before
 exclusive writes; state is replaced last, preserving unrelated hashes, template

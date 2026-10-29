@@ -136,10 +136,12 @@ func TestStateSymlinksRefusedWithoutTouchingTargets(t *testing.T) {
 }
 
 func TestSelectedCollectionsInfersFormerDefaultHomes(t *testing.T) {
+	// Managed homes imply their collection; omitted homes and the renamed
+	// infrastructure/ home do not.
 	state := State{Template: "workspace", Collections: []string{"journal"}, Files: map[string]string{
-		"apps/.gitkeep": "", "tools/README.md": "", "workbench/README.md": "",
+		"apps/.gitkeep": "", "infrastructure/.gitkeep": "", "tools/README.md": "", "workbench/README.md": "",
 	}, OmittedHomeFiles: []string{"packages/README.md", "workbench/README.md"}}
-	if got := state.SelectedCollections(); !reflect.DeepEqual(got, []string{"apps", "journal", "packages", "tools"}) {
+	if got := state.SelectedCollections(); !reflect.DeepEqual(got, []string{"apps", "journal", "tools"}) {
 		t.Fatalf("inferred collections: %v", got)
 	}
 	if !reflect.DeepEqual(state.Collections, []string{"journal"}) {
@@ -148,5 +150,14 @@ func TestSelectedCollectionsInfersFormerDefaultHomes(t *testing.T) {
 	project := State{Template: "project", Files: map[string]string{"apps/.gitkeep": ""}}
 	if got := project.SelectedCollections(); len(got) != 0 {
 		t.Fatalf("project inferred collections: %v", got)
+	}
+}
+
+func TestParseStateNamesRetiredCollections(t *testing.T) {
+	for name, want := range map[string]string{"artifacts": `is now "releases"`, "private": "was removed"} {
+		body := `{"version":2,"template_version":"0.2.0","template":"workspace","files":{},"collections":["` + name + `"]}`
+		if _, err := ParseState([]byte(body)); err == nil || !strings.Contains(err.Error(), want) || !strings.Contains(err.Error(), "migration") {
+			t.Fatalf("%s: %v", name, err)
+		}
 	}
 }

@@ -44,12 +44,12 @@ func TestCollectionCLIListPreviewApplyAndErrors(t *testing.T) {
 	}
 	invoke(2, "collections", "--apply")
 	var stdout, stderr bytes.Buffer
-	if code := Run([]string{"init", root, "--collection", "private", "--collection", "archive", "--collection", "private"}, &stdout, &stderr); code != 0 {
+	if code := Run([]string{"init", root, "--collection", "research", "--collection", "archive", "--collection", "research"}, &stdout, &stderr); code != 0 {
 		t.Fatalf("selected init: %d %s", code, &stderr)
 	}
 	loaded, err := scaffolding.LoadState(root)
 	// The default preset combines with explicit collections.
-	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"apps", "archive", "infrastructure", "packages", "private", "tools"}) {
+	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"apps", "archive", "infra", "packages", "research", "tools"}) {
 		t.Fatalf("selected init state: %+v %v", loaded, err)
 	}
 	before := workspaceBytes(t, root)
@@ -75,18 +75,18 @@ func TestCollectionCLIListPreviewApplyAndErrors(t *testing.T) {
 		t.Fatal("apply not reported")
 	}
 	loaded, err = scaffolding.LoadState(root)
-	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"apps", "archive", "infrastructure", "journal", "packages", "private", "tools"}) {
+	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"apps", "archive", "infra", "journal", "packages", "research", "tools"}) {
 		t.Fatalf("addition lost selections: %+v %v", loaded, err)
 	}
-	if err := os.MkdirAll(filepath.Join(root, "artifacts"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(root, "releases"), 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "artifacts/README.md"), []byte("owner"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "releases/README.md"), []byte("owner"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	before = workspaceBytes(t, root)
-	invoke(1, "collections", "--add", "artifacts", "--add", "research")
-	invoke(2, "collections", "--add", "artifacts", "--add", "research", "--apply")
+	invoke(1, "collections", "--add", "releases", "--add", "research")
+	invoke(2, "collections", "--add", "releases", "--add", "research", "--apply")
 	if !reflect.DeepEqual(before, workspaceBytes(t, root)) {
 		t.Fatal("conflicting addition wrote bytes")
 	}

@@ -2,6 +2,7 @@ package scaffolding
 
 import (
 	"bytes"
+	"maps"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -27,7 +28,7 @@ func TestFormerDefaultCollectionsRetainCustomizationsAndBaselines(t *testing.T) 
 		writeFixture(t, root, name, body)
 		loaded.State.Files[name] = contentDigest(body)
 	}
-	loaded.State.OmittedHomeFiles = []string{"apps/.gitkeep"}
+	loaded.State.OmittedHomeFiles = []string{"tools/README.md"}
 	saveState(t, root, loaded.State)
 	writeFixture(t, root, "learning/README.md", []byte("Owner learning policy"))
 	stateBefore, err := LoadState(root)
@@ -85,14 +86,21 @@ func TestCollectionAdditionsRejectUnsupportedStateWithoutWrites(t *testing.T) {
 }
 
 func TestFormerDefaultHomesStayManagedForEarlierWorkspaces(t *testing.T) {
-	// An earlier base installed the development homes without selecting them.
-	files, err := catalogue.BundleSelected("workspace", []string{"apps", "infrastructure", "packages", "tools"})
+	// v0.2.0 installed these homes in every workspace base without selecting them.
+	files, err := catalogue.Bundle("workspace")
 	if err != nil {
 		t.Fatal(err)
 	}
+	homes, err := catalogue.BundleSelected("workspace", []string{"packages", "tools"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	maps.Copy(files, homes)
+	files["apps/.gitkeep"], files["infrastructure/.gitkeep"] = []byte{}, []byte{}
 	root, _ := nativeFixture(t, files)
 	plan, err := Update(root, "0.2.0", nil, false)
-	if err != nil || len(plan.Actions) != 0 || len(plan.Conflicts) != 0 {
+	want := []Action{{"apps/.gitkeep", "retain-orphan"}, {"apps/README.md", "write"}, {"infrastructure/.gitkeep", "retain-orphan"}}
+	if err != nil || !reflect.DeepEqual(plan.Actions, want) || len(plan.Conflicts) != 0 {
 		t.Fatalf("earlier workspace update: %+v %v", plan, err)
 	}
 	added, err := AddCollections(root, []string{"apps", "journal"}, true)
@@ -100,10 +108,10 @@ func TestFormerDefaultHomesStayManagedForEarlierWorkspaces(t *testing.T) {
 		t.Fatalf("earlier workspace addition: %+v %v", added, err)
 	}
 	loaded, err := LoadState(root)
-	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"apps", "infrastructure", "journal", "packages", "tools"}) {
+	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"apps", "journal", "packages", "tools"}) {
 		t.Fatalf("recorded collections: %+v %v", loaded.State, err)
 	}
-	if _, managed := loaded.State.Files["apps/.gitkeep"]; !managed {
+	if _, managed := loaded.State.Files["tools/README.md"]; !managed {
 		t.Fatal("former default home stopped being managed")
 	}
 }

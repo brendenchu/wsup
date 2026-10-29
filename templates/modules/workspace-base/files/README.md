@@ -54,29 +54,34 @@ never installed automatically.
 ## Layout and local work
 
 Every workspace has `docs/` and `workbench/`. The `development` preset, used by
-default, adds the `apps/`, `packages/`, `tools/`, and `infrastructure/`
-collections; `wsup init --preset none` creates only the base. Use homes by
+default, adds the `apps/`, `packages/`, `tools/`, and `infra/` collections; `wsup init --preset none` creates only the base. Use homes by
 responsibility without requiring every home to be populated. Shareable human drafts can live in `workbench/`; local plans and
 notes belong under ignored `workbench/.local/`, created on demand. Ignored does
 not mean backed up, disposable, or secure. Promote approved knowledge to the
 owning project's maintained documentation.
 
-Knowledge and lifecycle homes (`archive`, `artifacts`, `journal`, `learning`,
-`private`, `reference`, `research`) are not created by default. Select explicitly:
+Every other collection is created only when selected:
+
+| Group | Collections |
+| --- | --- |
+| Projects | `apps`, `packages`, `tools`, `infra`, `sandbox`, `templates`, `forks` |
+| Knowledge and lifecycle | `research`, `reference`, `decisions`, `learning`, `journal`, `archive`, `releases` |
+| Work and making | `issues`, `ai`, `design`, `content`, `data` |
+
 
 ```sh
 wsup init /path/to/new-workspace --collection archive --collection journal
 wsup init /path/to/new-workspace --preset none --collection research
 wsup collections
-wsup collections --add private --add artifacts
-wsup collections --add private --add artifacts --apply
+wsup collections --add decisions --add issues
+wsup collections --add decisions --add issues --apply
 ```
 
 Selections are deduplicated and retained for template updates, not inherited by
 child workspaces. Existing unmanaged scaffold files are conflicts even when
 identical; all conflicts block additions. Already-selected managed files retain
-customizations; review them with `update`. Additions create documentation (journal
-also includes a template), not permissions, ignore rules, backups, encryption,
+customizations; review them with `update`. Additions create documentation (decisions,
+issues, and journal also include a template), not permissions, ignore rules, backups, encryption,
 or retention policies. A directory or ignore rule is not an access-control
 boundary; keep restricted records out of documentation and Git.
 

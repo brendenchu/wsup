@@ -52,7 +52,7 @@ func TestEmbeddedCatalogueMatchesSource(t *testing.T) {
 	}
 	for _, name := range []string{
 		"modules/workspace-base/module.json", "modules/workspace-base/files/.gitignore",
-		"modules/apps/files/apps/.gitkeep", "skills/workspace-check/SKILL.md",
+		"modules/decisions/files/decisions/TEMPLATE.md", "skills/workspace-check/SKILL.md",
 		"modules/project-base/files/.gitignore", "modules/project-base/files/WSUP-LICENSE",
 		"modules/journal/files/journal/TEMPLATE.md",
 	} {

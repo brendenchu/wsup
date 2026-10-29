@@ -35,7 +35,7 @@ func TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles(t *test
 	trackable := []string{
 		".env.example", "apps/example/.env.example", ".wsup/template-state.json",
 		"workspace.json", "workbench/draft.md", "apps/example/README.md",
-		"private/README.md", "WSUP-LICENSE", "README.md",
+		"decisions/README.md", "WSUP-LICENSE", "README.md",
 		"wsup", "wsup.exe", "wsup_0.2.0_darwin_arm64.tar.gz",
 		"wsup_0.2.0_windows_amd64.zip", "SHA256SUMS",
 	}

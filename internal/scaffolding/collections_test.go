@@ -22,7 +22,7 @@ func collectionWorkspace(t *testing.T, selected ...string) string {
 }
 
 func TestCollectionsInitSelectionAndAllOptionalHomes(t *testing.T) {
-	for _, selected := range [][]string{{"private", "archive", "archive"}, catalogue.CollectionNames()} {
+	for _, selected := range [][]string{{"research", "archive", "archive"}, catalogue.CollectionNames()} {
 		root := collectionWorkspace(t, selected...)
 		state, err := LoadState(root)
 		want, _ := catalogue.SelectCollections(selected)
@@ -133,11 +133,11 @@ func TestCollectionConflictsBlockAllAdditionsEvenIdenticalUnmanagedBytes(t *test
 			writeFixture(t, root, "archive/README.md", bundle["archive/README.md"])
 		}
 		before := snapshot(t, root)
-		preview, err := AddCollections(root, []string{"archive", "artifacts"}, false)
+		preview, err := AddCollections(root, []string{"archive", "releases"}, false)
 		if err != nil || !reflect.DeepEqual(preview.Conflicts, []string{"archive/README.md"}) {
 			t.Fatalf("conflicts: %+v %v", preview, err)
 		}
-		result, err := AddCollections(root, []string{"archive", "artifacts"}, true)
+		result, err := AddCollections(root, []string{"archive", "releases"}, true)
 		if err == nil || result.Applied || !reflect.DeepEqual(before, snapshot(t, root)) {
 			t.Fatal("conflict did not block all additions")
 		}

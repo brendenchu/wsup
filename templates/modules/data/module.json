@@ -1,0 +1,13 @@
+{
+  "id": "data",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Datasets, samples, and fixtures shared across projects.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

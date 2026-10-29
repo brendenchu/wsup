@@ -1,0 +1,13 @@
+{
+  "id": "forks",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Forks and vendored copies of external repositories.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}
