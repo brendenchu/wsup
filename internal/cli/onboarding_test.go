@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/brendenchu/wsup/internal/catalogue"
 	"github.com/brendenchu/wsup/internal/scaffolding"
 )
 
@@ -45,10 +46,11 @@ func TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles(t *test
 	}
 	for _, kind := range []string{"workspace", "project"} {
 		t.Run(kind, func(t *testing.T) {
-			sourceIgnore, err := os.ReadFile(filepath.Join("../../templates/modules", kind+"-base", "files", ".gitignore"))
+			starter, err := catalogue.Bundle(kind)
 			if err != nil {
 				t.Fatal(err)
 			}
+			sourceIgnore := starter[".gitignore"]
 			root := filepath.Join(t.TempDir(), kind)
 			if _, err := scaffolding.Initialise(root, Version, kind); err != nil {
 				t.Fatal(err)

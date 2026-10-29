@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"text/template"
 
 	"github.com/brendenchu/wsup/templates"
 )
@@ -47,10 +48,29 @@ type Manifest struct {
 }
 
 // Module is a validated manifest with the files it installs, keyed by
-// workspace-relative path.
+// workspace-relative path. Templates are rendered against RenderData for the
+// resolved selection before they are written.
 type Module struct {
 	Manifest
-	Files map[string][]byte
+	Files     map[string][]byte
+	Templates map[string]*template.Template
+}
+
+// Entry names one selected collection or deployed skill for templates.
+type Entry struct {
+	Name        string
+	Description string
+}
+
+// RenderData is the fixed, read-only data set templates see. Templates get no
+// functions that touch the filesystem, network, or environment.
+type RenderData struct {
+	// Collections are the selected collection modules, sorted by id.
+	Collections []Entry
+	// Skills are the deployed skills, sorted by name.
+	Skills []Entry
+	// Ignore holds every selected module's ignore entries, sorted and unique.
+	Ignore []string
 }
 
 // Catalogue holds every validated built-in module and the shared skill library.
@@ -58,6 +78,8 @@ type Catalogue struct {
 	modules map[string]Module
 	// skills maps a skill name to its files, keyed by path inside the skill.
 	skills map[string]map[string][]byte
+	// descriptions maps a skill name to its SKILL.md frontmatter description.
+	descriptions map[string]string
 }
 
 var builtIn = sync.OnceValues(func() (*Catalogue, error) { return load(templates.Files) })
@@ -141,9 +163,13 @@ func (c *Catalogue) Resolve(starter string, selected []string) ([]string, error)
 	return append([]string{base}, ids...), nil
 }
 
-// Files returns the union of the resolved modules' files and their skills.
-// Two modules writing the same path is a catalogue defect, not a merge.
+// Files returns the union of the resolved modules' files, rendered templates,
+// and skills. Two modules writing the same path is a catalogue defect, not a merge.
 func (c *Catalogue) Files(ids []string) (map[string][]byte, error) {
+	data, err := c.renderData(ids)
+	if err != nil {
+		return nil, err
+	}
 	files := map[string][]byte{}
 	owners := map[string]string{}
 	put := func(name string, body []byte, owner string) error {
@@ -164,6 +190,15 @@ func (c *Catalogue) Files(ids []string) (map[string][]byte, error) {
 				return nil, err
 			}
 		}
+		for name, tmpl := range module.Templates {
+			var rendered bytes.Buffer
+			if err := tmpl.Execute(&rendered, data); err != nil {
+				return nil, fmt.Errorf("module %q: render %s: %w", id, name, err)
+			}
+			if err := put(name, rendered.Bytes(), id); err != nil {
+				return nil, err
+			}
+		}
 		for _, skill := range module.Skills {
 			for name, body := range c.skills[skill] {
 				// Skills are shared, so any owning module installs identical bytes.
@@ -176,8 +211,33 @@ func (c *Catalogue) Files(ids []string) (map[string][]byte, error) {
 	return files, nil
 }
 
+// renderData describes the resolved selection for templates.
+func (c *Catalogue) renderData(ids []string) (RenderData, error) {
+	data := RenderData{Collections: []Entry{}, Skills: []Entry{}, Ignore: []string{}}
+	skills := []string{}
+	for _, id := range ids {
+		module, ok := c.modules[id]
+		if !ok {
+			return RenderData{}, fmt.Errorf("unknown module %q", id)
+		}
+		if module.Kind == KindCollection {
+			data.Collections = append(data.Collections, Entry{Name: id, Description: module.Description})
+		}
+		skills = append(skills, module.Skills...)
+		data.Ignore = append(data.Ignore, module.Ignore...)
+	}
+	slices.SortFunc(data.Collections, func(a, b Entry) int { return strings.Compare(a.Name, b.Name) })
+	slices.Sort(skills)
+	for _, skill := range slices.Compact(skills) {
+		data.Skills = append(data.Skills, Entry{Name: skill, Description: c.descriptions[skill]})
+	}
+	slices.Sort(data.Ignore)
+	data.Ignore = slices.Compact(data.Ignore)
+	return data, nil
+}
+
 func load(tree fs.FS) (*Catalogue, error) {
-	c := &Catalogue{modules: map[string]Module{}, skills: map[string]map[string][]byte{}}
+	c := &Catalogue{modules: map[string]Module{}, skills: map[string]map[string][]byte{}, descriptions: map[string]string{}}
 	skillDirs, err := fs.ReadDir(tree, "skills")
 	if err != nil {
 		return nil, fmt.Errorf("embedded skill library: %w", err)
@@ -191,10 +251,16 @@ func load(tree fs.FS) (*Catalogue, error) {
 		if err != nil {
 			return nil, err
 		}
-		if _, ok := files["SKILL.md"]; !ok {
+		body, ok := files["SKILL.md"]
+		if !ok {
 			return nil, fmt.Errorf("skill %q has no SKILL.md", name)
 		}
+		description, err := skillDescription(name, body)
+		if err != nil {
+			return nil, err
+		}
 		c.skills[name] = files
+		c.descriptions[name] = description
 	}
 	moduleDirs, err := fs.ReadDir(tree, "modules")
 	if err != nil {
@@ -222,13 +288,26 @@ func loadModule(tree fs.FS, entry fs.DirEntry) (Module, error) {
 	if err != nil {
 		return Module{}, err
 	}
-	module := Module{Files: map[string][]byte{}}
+	module := Module{Files: map[string][]byte{}, Templates: map[string]*template.Template{}}
 	for _, child := range children {
 		switch {
 		case child.Name() == "module.json" && child.Type().IsRegular():
 		case child.Name() == "files" && child.IsDir():
 			if module.Files, err = readTree(tree, dir+"/files"); err != nil {
 				return Module{}, err
+			}
+		case child.Name() == "templates" && child.IsDir():
+			sources, err := readTree(tree, dir+"/templates")
+			if err != nil {
+				return Module{}, err
+			}
+			for name, body := range sources {
+				// missingkey=error turns a typo in a field name into a load failure.
+				tmpl, err := template.New(name).Option("missingkey=error").Parse(string(body))
+				if err != nil {
+					return Module{}, fmt.Errorf("%s/templates: %w", dir, err)
+				}
+				module.Templates[name] = tmpl
 			}
 		default:
 			return Module{}, fmt.Errorf("%s contains unsupported entry %q", dir, child.Name())
@@ -247,6 +326,25 @@ func loadModule(tree fs.FS, entry fs.DirEntry) (Module, error) {
 		return Module{}, fmt.Errorf("%s/module.json id %q must match its directory", dir, module.ID)
 	}
 	return module, nil
+}
+
+// skillDescription reads the simple name/description frontmatter that every
+// shared skill carries, requiring the name to match its directory.
+func skillDescription(name string, body []byte) (string, error) {
+	text, ok := strings.CutPrefix(string(body), "---\n")
+	front, _, closed := strings.Cut(text, "\n---\n")
+	if !ok || !closed {
+		return "", fmt.Errorf("skill %q needs name and description frontmatter", name)
+	}
+	fields := map[string]string{}
+	for _, line := range strings.Split(front, "\n") {
+		key, value, _ := strings.Cut(line, ": ")
+		fields[key] = value
+	}
+	if fields["name"] != name || strings.TrimSpace(fields["description"]) == "" {
+		return "", fmt.Errorf("skill %q needs a matching name and a description", name)
+	}
+	return fields["description"], nil
 }
 
 // readTree returns regular files below base keyed by base-relative slash path.
@@ -288,8 +386,12 @@ func (c *Catalogue) validate() error {
 		case len(module.Generate) != 0:
 			// Generators arrive with the editor and agent adapters.
 			return fail("no generators are available yet")
-		case len(module.Ignore) != 0:
-			return fail("ignore entries are not supported yet")
+		}
+		for _, entry := range module.Ignore {
+			if strings.TrimSpace(entry) != entry || entry == "" || strings.HasPrefix(entry, "#") ||
+				strings.ContainsFunc(entry, func(r rune) bool { return r < ' ' }) {
+				return fail("ignore entry %q must be one trimmed, non-comment line", entry)
+			}
 		}
 		for _, name := range module.Requires {
 			if required, ok := c.modules[name]; !ok || required.Kind == KindPreset || required.Kind == KindBase {
@@ -301,13 +403,18 @@ func (c *Catalogue) validate() error {
 				return fail("lists unknown skill %q", skill)
 			}
 		}
-		for name := range module.Files {
+		for name := range module.Templates {
+			if _, clash := module.Files[name]; clash {
+				return fail("installs %s as both a file and a template", name)
+			}
+		}
+		for name := range mergedKeys(module.Files, module.Templates) {
 			if !portable(name) || name == ".agents" || strings.HasPrefix(name, ".agents/skills/") {
 				return fail("file %q must be a portable workspace path outside .agents/skills", name)
 			}
 		}
 		if module.Kind == KindPreset {
-			if len(module.Modules) == 0 || len(module.Files) != 0 || len(module.Skills) != 0 || len(module.Requires) != 0 {
+			if len(module.Modules) == 0 || len(module.Files) != 0 || len(module.Templates) != 0 || len(module.Ignore) != 0 || len(module.Skills) != 0 || len(module.Requires) != 0 {
 				return fail("a preset only lists modules")
 			}
 			for _, member := range module.Modules {
@@ -337,7 +444,26 @@ func (c *Catalogue) validate() error {
 			return fmt.Errorf("catalogue has no %s-base module", starter)
 		}
 	}
+	// Ignore entries are only written through the base's .gitignore template.
+	for id, module := range c.modules {
+		for _, starter := range module.AppliesTo {
+			if _, ok := c.modules[starter+"-base"].Templates[".gitignore"]; len(module.Ignore) != 0 && !ok {
+				return fmt.Errorf("module %q: ignore entries need a %s-base .gitignore template", id, starter)
+			}
+		}
+	}
 	return nil
+}
+
+func mergedKeys[V1, V2 any](a map[string]V1, b map[string]V2) map[string]bool {
+	keys := make(map[string]bool, len(a)+len(b))
+	for name := range a {
+		keys[name] = true
+	}
+	for name := range b {
+		keys[name] = true
+	}
+	return keys
 }
 
 func portable(name string) bool {

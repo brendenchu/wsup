@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
@@ -232,4 +234,55 @@ func TestCollectionAdditionInstallsOwnedSkillsOnce(t *testing.T) {
 	if err != nil || len(plan.Actions) != 0 || len(plan.Conflicts) != 0 {
 		t.Fatalf("additions did not settle: %+v %v", plan, err)
 	}
+}
+
+func TestDataIgnoreEntryRendersIntoTheGitignoreBlock(t *testing.T) {
+	block := "# wsup:begin ignore\ndata/**/*.local.*\n# wsup:end ignore\n"
+	root := collectionWorkspace(t, "data")
+	body, err := os.ReadFile(filepath.Join(root, ".gitignore"))
+	if err != nil || !strings.HasSuffix(string(body), block) {
+		t.Fatalf("init ignore block: %q %v", body, err)
+	}
+	git := exec.Command("git", "init", "--quiet", ".")
+	git.Dir = root
+	if output, err := git.CombinedOutput(); err != nil {
+		t.Fatalf("git init: %s %v", output, err)
+	}
+	git = exec.Command("git", "-c", "core.excludesFile=/dev/null", "check-ignore", "--no-index", "-q", "data/samples/survey.local.csv")
+	git.Dir = root
+	if err := git.Run(); err != nil {
+		t.Fatalf("data local copy not ignored: %v", err)
+	}
+
+	// Adding data later rewrites an unedited .gitignore with the entry.
+	root = collectionWorkspace(t)
+	added, err := AddCollections(root, []string{"data"}, true)
+	want := []Action{{".gitignore", "write"}, {"data/README.md", "write"}}
+	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, want) {
+		t.Fatalf("data addition: %+v %v", added, err)
+	}
+	body, err = os.ReadFile(filepath.Join(root, ".gitignore"))
+	if err != nil || !strings.HasSuffix(string(body), block) {
+		t.Fatalf("added ignore block: %q %v", body, err)
+	}
+	if plan, err := Update(root, "0.1.0", nil, false); err != nil || len(plan.Actions) != 0 || len(plan.Conflicts) != 0 {
+		t.Fatalf("data addition did not settle: %+v %v", plan, err)
+	}
+
+	// An owner-edited .gitignore is a conflict, never overwritten.
+	root = collectionWorkspace(t)
+	edited := append(slices.Clone(must(os.ReadFile(filepath.Join(root, ".gitignore")))), "/apps/independent/\n"...)
+	writeFixture(t, root, ".gitignore", edited)
+	before := snapshot(t, root)
+	if added, err := AddCollections(root, []string{"data"}, true); err == nil || added.Applied ||
+		!reflect.DeepEqual(added.Conflicts, []string{".gitignore"}) || !reflect.DeepEqual(before, snapshot(t, root)) {
+		t.Fatalf("edited ignore addition: %+v %v", added, err)
+	}
+}
+
+func must[T any](value T, err error) T {
+	if err != nil {
+		panic(err)
+	}
+	return value
 }

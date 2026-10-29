@@ -8,6 +8,8 @@
   ],
   "requires": [],
   "skills": [],
-  "ignore": [],
+  "ignore": [
+    "data/**/*.local.*"
+  ],
   "generate": []
 }

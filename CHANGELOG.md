@@ -11,6 +11,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
 - New opt-in collections: `sandbox`, `templates`, `forks`, `decisions`,
   `issues`, `ai`, `design`, `content`, and `data`. `decisions` and `issues`
   include a template.
+- Workspaces and projects include `.editorconfig` (UTF-8, LF, final newline,
+  trimmed trailing whitespace) and `.gitattributes` (`* text=auto eol=lf`).
+- Collections can declare ignore entries, written to a marked block in the
+  workspace `.gitignore`. `data` ignores `data/**/*.local.*`.
 - `wsup init --preset NAME` selects a preset of collections; explicit
   `--collection` choices add to it. `--preset none` creates a base-only
   workspace. Unknown presets fail before anything is written.

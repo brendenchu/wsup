@@ -81,8 +81,9 @@ Selections are deduplicated and retained for template updates, not inherited by
 child workspaces. Existing unmanaged scaffold files are conflicts even when
 identical; all conflicts block additions. Already-selected managed files retain
 customizations; review them with `update`. Additions create documentation (decisions,
-issues, and journal also include a template), not permissions, ignore rules, backups, encryption,
-or retention policies. A directory or ignore rule is not an access-control
+issues, and journal also include a template), not permissions, backups,
+encryption, or retention policies. A collection's ignore entries go in the
+`.gitignore` block marked `# wsup:begin ignore` / `# wsup:end ignore`. A directory or ignore rule is not an access-control
 boundary; keep restricted records out of documentation and Git.
 
 ## Generation, updates, and recovery

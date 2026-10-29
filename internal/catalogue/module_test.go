@@ -17,7 +17,7 @@ func base(starter string) string {
 
 func testTree(extra fstest.MapFS) fstest.MapFS {
 	tree := fstest.MapFS{
-		"skills/plan/SKILL.md":                   {Data: []byte("plan")},
+		"skills/plan/SKILL.md":                   {Data: []byte("---\nname: plan\ndescription: Plan work.\n---\n\nPlan.\n")},
 		"modules/workspace-base/module.json":     manifest(base("workspace")),
 		"modules/workspace-base/files/README.md": {Data: []byte("workspace")},
 		"modules/project-base/module.json":       manifest(base("project")),
@@ -106,23 +106,56 @@ func TestLoadRejectsInvalidModules(t *testing.T) {
 		return manifest(`"id":"notes","version":"1.0.0","description":"Notes.","applies_to":["workspace"],"ignore":[],"generate":[],` + fields)
 	}
 	for name, change := range map[string]fstest.MapFS{
-		"unknown field":       {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"extra":true,"requires":[]`)},
-		"unknown kind":        {"modules/notes/module.json": collection(`"kind":"plugin","skills":[],"requires":[]`)},
-		"unknown skill":       {"modules/notes/module.json": collection(`"kind":"collection","skills":["missing"],"requires":[]`)},
-		"id mismatch":         {"modules/notes/module.json": manifest(`"id":"other","kind":"collection","version":"1.0.0","description":"x","applies_to":["workspace"],"requires":[],"skills":[],"ignore":[],"generate":[]`)},
-		"bad version":         {"modules/notes/module.json": manifest(`"id":"notes","kind":"collection","version":"1","description":"x","applies_to":["workspace"],"requires":[],"skills":[],"ignore":[],"generate":[]`)},
-		"unknown generator":   {"modules/notes/module.json": manifest(`"id":"notes","kind":"collection","version":"1.0.0","description":"x","applies_to":["workspace"],"requires":[],"skills":[],"ignore":[],"generate":["shell"]`)},
-		"requires preset":     {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":["writing"]`)},
-		"preset with files":   {"modules/writing/files/x.md": {Data: []byte("x")}},
-		"preset bad member":   {"modules/writing/module.json": manifest(`"id":"writing","kind":"preset","version":"1.0.0","description":"x","applies_to":[],"requires":[],"skills":[],"ignore":[],"generate":[],"modules":["workspace-base"]`)},
-		"stray entry":         {"modules/notes/notes.txt": {Data: []byte("x")}},
-		"skill path in files": {"modules/notes/files/.agents/skills/plan/SKILL.md": {Data: []byte("x")}},
-		"missing base":        {"modules/project-base/module.json": nil},
-		"skill without body":  {"skills/empty/notes.md": {Data: []byte("x")}},
-		"reserved id":         {"modules/none/module.json": manifest(`"id":"none","kind":"collection","version":"1.0.0","description":"x","applies_to":["workspace"],"requires":[],"skills":[],"ignore":[],"generate":[]`)},
+		"unknown field":        {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"extra":true,"requires":[]`)},
+		"unknown kind":         {"modules/notes/module.json": collection(`"kind":"plugin","skills":[],"requires":[]`)},
+		"unknown skill":        {"modules/notes/module.json": collection(`"kind":"collection","skills":["missing"],"requires":[]`)},
+		"id mismatch":          {"modules/notes/module.json": manifest(`"id":"other","kind":"collection","version":"1.0.0","description":"x","applies_to":["workspace"],"requires":[],"skills":[],"ignore":[],"generate":[]`)},
+		"bad version":          {"modules/notes/module.json": manifest(`"id":"notes","kind":"collection","version":"1","description":"x","applies_to":["workspace"],"requires":[],"skills":[],"ignore":[],"generate":[]`)},
+		"unknown generator":    {"modules/notes/module.json": manifest(`"id":"notes","kind":"collection","version":"1.0.0","description":"x","applies_to":["workspace"],"requires":[],"skills":[],"ignore":[],"generate":["shell"]`)},
+		"requires preset":      {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":["writing"]`)},
+		"preset with files":    {"modules/writing/files/x.md": {Data: []byte("x")}},
+		"preset bad member":    {"modules/writing/module.json": manifest(`"id":"writing","kind":"preset","version":"1.0.0","description":"x","applies_to":[],"requires":[],"skills":[],"ignore":[],"generate":[],"modules":["workspace-base"]`)},
+		"stray entry":          {"modules/notes/notes.txt": {Data: []byte("x")}},
+		"skill path in files":  {"modules/notes/files/.agents/skills/plan/SKILL.md": {Data: []byte("x")}},
+		"missing base":         {"modules/project-base/module.json": nil},
+		"skill without body":   {"skills/empty/notes.md": {Data: []byte("x")}},
+		"skill name mismatch":  {"skills/plan/SKILL.md": {Data: []byte("---\nname: other\ndescription: x\n---\nx\n")}},
+		"skill no frontmatter": {"skills/plan/SKILL.md": {Data: []byte("plan")}},
+		"bad template":         {"modules/notes/templates/notes/x.md": {Data: []byte("{{.Missing")}},
+		"file and template":    {"modules/notes/templates/notes/README.md": {Data: []byte("x")}},
+		"multi-line ignore":    {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"ignore":["a\nb"]`)},
+		"comment ignore":       {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"ignore":["# x"]`)},
+		"ignore without base":  {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"ignore":["notes/*.tmp"]`)},
+		"reserved id":          {"modules/none/module.json": manifest(`"id":"none","kind":"collection","version":"1.0.0","description":"x","applies_to":["workspace"],"requires":[],"skills":[],"ignore":[],"generate":[]`)},
 	} {
 		if _, err := load(testTree(change)); err == nil {
 			t.Errorf("%s accepted", name)
 		}
+	}
+}
+
+func TestFilesRendersTemplatesForTheSelection(t *testing.T) {
+	tree := testTree(fstest.MapFS{
+		"modules/workspace-base/templates/.gitignore": {Data: []byte("{{range .Ignore}}{{.}}\n{{end}}")},
+		"modules/workspace-base/templates/LIST.md":    {Data: []byte("{{range .Collections}}{{.Name}}: {{.Description}}\n{{end}}{{range .Skills}}{{.Name}}: {{.Description}}\n{{end}}")},
+		"modules/notes/module.json":                   manifest(`"id":"notes","kind":"collection","version":"1.0.0","description":"Notes.","applies_to":["workspace"],"requires":[],"skills":["plan"],"ignore":["notes/*.tmp","notes/*.bak","notes/*.tmp"],"generate":[]`),
+	})
+	c, err := load(tree)
+	if err != nil {
+		t.Fatal(err)
+	}
+	files, err := c.Files([]string{"workspace-base", "drafts", "notes"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := string(files[".gitignore"]); got != "notes/*.bak\nnotes/*.tmp\n" {
+		t.Fatalf("ignore block: %q", got)
+	}
+	if got := string(files["LIST.md"]); got != "drafts: Drafts.\nnotes: Notes.\nplan: Plan work.\n" {
+		t.Fatalf("rendered list: %q", got)
+	}
+	base, err := c.Files([]string{"workspace-base"})
+	if err != nil || string(base[".gitignore"]) != "" || string(base["LIST.md"]) != "" {
+		t.Fatalf("base-only render: %q %v", base, err)
 	}
 }

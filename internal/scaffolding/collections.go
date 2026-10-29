@@ -1,6 +1,7 @@
 package scaffolding
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"slices"
@@ -63,12 +64,11 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 	if state.Version != StateVersion || state.Template != "workspace" {
 		return result, preparedUpdate{}, fmt.Errorf("adding collections requires a managed workspace")
 	}
-	bundle, err := catalogue.BundleSelected("workspace", selected)
+	// Render for the whole resulting selection: base templates depend on it.
+	bundle, err := catalogue.BundleSelected("workspace", append(slices.Clone(state.Collections), selected...))
 	if err != nil {
 		return result, preparedUpdate{}, err
 	}
-	// Skills already deployed by the base or another selected collection are
-	// shared; only skills new to this workspace are part of the addition.
 	installed, err := catalogue.BundleSelected("workspace", state.Collections)
 	if err != nil {
 		return result, preparedUpdate{}, err
@@ -83,9 +83,13 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 	}
 	defer handle.Close()
 	paths := []string{}
-	for name := range bundle {
-		_, deployed := installed[name]
-		if slices.Contains(selected, strings.SplitN(name, "/", 2)[0]) || (isSkill(name) && !deployed) {
+	// The addition covers the selected folders, skills not yet deployed, and
+	// files whose rendered content depends on the selection (such as the
+	// .gitignore block). Files only an already-selected collection installs are
+	// unchanged by definition and left alone.
+	for name, body := range bundle {
+		prior, deployed := installed[name]
+		if slices.Contains(selected, strings.SplitN(name, "/", 2)[0]) || !deployed || !bytes.Equal(prior, body) {
 			paths = append(paths, name)
 		}
 	}
@@ -100,7 +104,21 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 			return result, preparedUpdate{}, err
 		}
 		prepared.observed[name] = current
-		if _, managed := state.Files[name]; managed {
+		baseline, managed := state.Files[name]
+		prior, deployed := installed[name]
+		if managed && deployed && !bytes.Equal(prior, bundle[name]) {
+			// A rendered file changes with the selection. Replace it only while
+			// it still matches its baseline; owner edits are conflicts.
+			if !current.regular || current.digest != baseline {
+				result.Conflicts = append(result.Conflicts, name)
+			} else {
+				result.Actions = append(result.Actions, Action{Path: name, Action: "write"})
+				prepared.files[name] = bundle[name]
+				state.Files[name] = contentDigest(bundle[name])
+			}
+			continue
+		}
+		if managed {
 			// A managed skill is shared, so it never belongs to an unselected collection.
 			enabled := isSkill(name) || slices.Contains(state.Collections, strings.SplitN(name, "/", 2)[0])
 			formerDefault := slices.Contains([]string{"journal/README.md", "journal/TEMPLATE.md", "learning/README.md", "reference/README.md", "research/README.md"}, name)

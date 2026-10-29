@@ -120,7 +120,12 @@ All conflicts block additions. State and observed paths are rechecked before
 exclusive writes; state is replaced last, preserving unrelated hashes, template
 version, omitted homes, and previous selections. I/O failures can leave new files
 with old state and are explicit; inspect partial results before retrying.
-These commands configure no permissions, ACLs, ignores, sync, backups, or retention.
+These commands configure no permissions, ACLs, sync, backups, or retention.
+Selected collections' ignore entries are written to the `.gitignore` block
+between `# wsup:begin ignore` and `# wsup:end ignore` (today only `data`, which
+ignores `data/**/*.local.*`). Files rendered from the selection, such as that
+`.gitignore`, are rewritten by an addition only while they match their baseline;
+an edited copy is a conflict.
 
 ## Register projects
 
@@ -183,7 +188,10 @@ when converting ownership. Never force-add independent projects or create
 submodules implicitly.
 
 The starter ignores `.wsup/reports/`, `wsup.local.json`, `.env`/`.env.*` except
-`.env.example`, `.DS_Store`, `workbench/.local/`, and `.work/`.
+`.env.example`, `.DS_Store`, `workbench/.local/`, and `.work/`, plus the selected
+collections' entries in its marked block. `.editorconfig` (UTF-8, LF, final
+newline, trimmed trailing whitespace) and `.gitattributes` (`* text=auto eol=lf`)
+are owner-editable starter files.
 Every repository owns its ignore rules; these are staging hygiene, not security.
 Do not ignore template state or all of `.wsup/`.
 

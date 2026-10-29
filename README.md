@@ -166,8 +166,11 @@ They are not inherited when that workspace generates another workspace; select
 the desired collections explicitly for each new workspace. Project starters
 do not accept collection selections.
 
-These commands do not change ignore rules, permissions, encryption, backup,
-sync, indexing, or retention settings.
+These commands do not change permissions, encryption, backup, sync, indexing,
+or retention settings. A collection's ignore entries (such as `data/**/*.local.*`)
+go in the `.gitignore` block between `# wsup:begin ignore` and
+`# wsup:end ignore`; adding a collection rewrites `.gitignore` only while it is
+unedited and otherwise reports a conflict.
 
 The registry does not imply a shared Git repository, build, dependency install,
 or release process. See the [workspace model](templates/modules/workspace-base/files/docs/workspace-model.md) for the

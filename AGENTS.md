@@ -9,7 +9,9 @@ This repository is the wsup CLI: Go source, tests, and the starter content that
   registry, checks, reporting, and guidance packages with colocated tests.
 - `templates/`: the single source for everything generated, embedded by
   `templates/embed.go`: modules under `modules/<id>/` (a `module.json`
-  manifest plus `files/`) and shared skills under `skills/`.
+  manifest, `files/` copied as-is, and `templates/` rendered with Go
+  `text/template` against `catalogue.RenderData`) and shared skills under
+  `skills/`.
   Edit generated content here; there is no second copy elsewhere in the repo.
 - `docs/`: the product manual (install, getting started, releases, AI guidance).
 - `scripts/package.sh`: local macOS ARM64 release candidate packaging.

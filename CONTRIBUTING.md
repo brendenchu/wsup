@@ -48,9 +48,10 @@ Ordinary changes do not imply a version bump.
 
 - `cmd/wsup/` is the executable entry point; `internal/` contains services and
   colocated regression tests.
-- `templates/` is the complete starter authority: module manifests and files
-  under `modules/<id>/` (`workspace-base`, `project-base`, and one per
-  collection) and the shared skill library under `skills/`, embedded directly
+- `templates/` is the complete starter authority: module manifests, static
+  `files/`, and `text/template` `templates/` under `modules/<id>/`
+  (`workspace-base`, `project-base`, one per collection, and presets) and the
+  shared skill library under `skills/`, embedded directly
   by `templates/embed.go`. `internal/catalogue` validates every manifest. Embedding uses
   `all:` for hidden assets. There is no generated catalogue archive, runtime
   overlay, workspace-local override, or refresh command.
