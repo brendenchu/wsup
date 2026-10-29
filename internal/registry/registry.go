@@ -421,14 +421,25 @@ func Load(root string) (Registry, error) {
 		ids[id], paths[resolved] = true, true
 		result.Projects = append(result.Projects, project)
 	}
-	index := map[string]Project{}
+	dependencies := make(map[string][]string, len(result.Projects))
+	order := make([]string, 0, len(result.Projects))
 	for _, project := range result.Projects {
-		index[project.ID] = project
+		dependencies[project.ID] = project.Dependencies
+		order = append(order, project.ID)
 	}
+	if err := checkDependencies(order, dependencies); err != nil {
+		return Registry{}, err
+	}
+	return result, nil
+}
+
+// checkDependencies requires every dependency to name a project and the graph
+// to be acyclic, visiting projects in order so errors are deterministic.
+func checkDependencies(order []string, dependencies map[string][]string) error {
 	done, active := map[string]bool{}, map[string]bool{}
 	var visit func(string) error
 	visit = func(id string) error {
-		project, exists := index[id]
+		edges, exists := dependencies[id]
 		if !exists {
 			return fmt.Errorf("Unknown dependency: %s", id)
 		}
@@ -439,7 +450,7 @@ func Load(root string) (Registry, error) {
 			return nil
 		}
 		active[id] = true
-		for _, dependency := range project.Dependencies {
+		for _, dependency := range edges {
 			if err := visit(dependency); err != nil {
 				return err
 			}
@@ -448,12 +459,12 @@ func Load(root string) (Registry, error) {
 		done[id] = true
 		return nil
 	}
-	for _, project := range result.Projects {
-		if err := visit(project.ID); err != nil {
-			return Registry{}, err
+	for _, id := range order {
+		if err := visit(id); err != nil {
+			return err
 		}
 	}
-	return result, nil
+	return nil
 }
 
 func checkOrder(body []byte, index int) ([]string, error) {
@@ -465,7 +476,13 @@ func checkOrder(body []byte, index int) ([]string, error) {
 	if err := json.Unmarshal(body, &document); err != nil {
 		return nil, err
 	}
-	decoder := json.NewDecoder(bytes.NewReader(document.Projects[index].Checks))
+	return objectKeys(document.Projects[index].Checks)
+}
+
+// objectKeys returns a JSON object's distinct keys in source order, which Go
+// maps do not keep.
+func objectKeys(raw json.RawMessage) ([]string, error) {
+	decoder := json.NewDecoder(bytes.NewReader(raw))
 	if _, err := decoder.Token(); err != nil {
 		return nil, err
 	}
