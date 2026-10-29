@@ -1,21 +1,11 @@
-workbench/.local/
-**/workbench/.local/
-.work/
-**/.work/
-.wsup/reports/
-wsup.local.json
-.env
-.env.*
-!.env.example
-.DS_Store
-
-# Development output only; generated workspaces must track their own state.
-/.wsup/template-state.json
+# Build and release output
 /wsup
 /wsup.exe
 /wsup_*.tar.gz
 /wsup_*.zip
 /SHA256SUMS
 
-# Add one root-relative entry per independent project; see docs/workspace-model.md.
-# /apps/my-app/
+.env
+.env.*
+!.env.example
+.DS_Store

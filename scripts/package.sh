@@ -26,8 +26,6 @@ trap 'printf "Packaging failed; inspect retained staging: %s\n" "$output" >&2' E
 
 go test -race ./...
 go vet ./...
-go run ./cmd/wsup validate
-go run ./cmd/wsup guidance > "$output/guidance.json"
 version=$(go run ./cmd/wsup --version)
 name="wsup_${version}-local_darwin_arm64"
 package="$output/$name"
@@ -93,7 +91,6 @@ if [[ "$(git rev-parse HEAD)" != "$revision" ||
   exit 1
 fi
 rm -r "$verification"
-rm "$output/guidance.json"
 printf '\nVerified local candidate: %s/%s.tar.gz\n' "$output" "$name"
 printf 'Checksum manifest: %s/SHA256SUMS\n' "$output"
 printf 'No tag, publication, installation, or PATH changes performed.\n'

@@ -17,6 +17,7 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
+	templateSource := filepath.Join(source, "templates", "workspace")
 	workspace := collectionWorkspace(t)
 	project := filepath.Join(t.TempDir(), "project")
 	if _, err := InitialiseProject(project, "0.1.0"); err != nil {
@@ -25,7 +26,7 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 	contract := "Each workspace knows only itself and its descendants."
 	links := regexp.MustCompile(`\]\(([^)]+)\)`)
 	upward := regexp.MustCompile(`(?i)\bparent(?:'s)?\s+workspace\b`)
-	for _, root := range []string{source, workspace, project} {
+	for _, root := range []string{workspace, project} {
 		inspection, err := guidance.Inspect(root)
 		if err != nil || len(inspection.Errors) != 0 {
 			t.Fatalf("guidance: %+v %v", inspection, err)
@@ -33,9 +34,6 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 		ai, err := os.ReadFile(filepath.Join(root, "AI.md"))
 		if err != nil || !bytes.Contains(ai, []byte(contract)) {
 			t.Fatalf("missing independence contract: %s", root)
-		}
-		if root == source {
-			continue
 		}
 		err = filepath.WalkDir(root, func(name string, entry os.DirEntry, err error) error {
 			if err != nil || entry.IsDir() || !strings.HasSuffix(name, ".md") {
@@ -77,7 +75,7 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	skills, err := os.ReadDir(filepath.Join(source, ".agents/skills"))
+	skills, err := os.ReadDir(filepath.Join(templateSource, ".agents/skills"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +89,7 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 			!bytes.Contains(index, []byte("](../../.agents/skills/"+name+"/SKILL.md)")) {
 			t.Fatalf("missing canonical skill or route: %s", name)
 		}
-		want, err := os.ReadFile(filepath.Join(source, ".agents/skills", name, "SKILL.md"))
+		want, err := os.ReadFile(filepath.Join(templateSource, ".agents/skills", name, "SKILL.md"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -100,7 +98,7 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 			t.Fatalf("canonical native skill differs: %s", name)
 		}
 	}
-	wantModel, err := os.ReadFile(filepath.Join(source, "docs/workspace-model.md"))
+	wantModel, err := os.ReadFile(filepath.Join(templateSource, "docs/workspace-model.md"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +106,7 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 	if err != nil || !bytes.Equal(model, wantModel) {
 		t.Fatal("canonical native workspace model differs")
 	}
-	rules, err := os.ReadDir(filepath.Join(source, "guidance/rules"))
+	rules, err := os.ReadDir(filepath.Join(templateSource, "guidance/rules"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +114,7 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 		if !strings.HasSuffix(rule.Name(), ".md") {
 			continue
 		}
-		want, err := os.ReadFile(filepath.Join(source, "guidance/rules", rule.Name()))
+		want, err := os.ReadFile(filepath.Join(templateSource, "guidance/rules", rule.Name()))
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -134,9 +134,8 @@ a new version; do not rely on disabling the setting to unlock it.
    ```sh
    go version
    go run ./cmd/wsup --version
-   go run ./cmd/wsup validate
-   go run ./cmd/wsup guidance
-   go run ./cmd/wsup check --project wsup --show-output
+   go test -race ./...
+   go vet ./...
    git diff --check
    ```
 
@@ -189,9 +188,8 @@ a new version; do not rely on disabling the setting to unlock it.
 
 Local candidate verification and packaging are automated; there is no automatic
 release publication, package-manager publication, or remote self-update service.
-GitHub binary release assets are published manually. Keep development
-notes and release-preparation drafts under ignored
-`workbench/.local/`; CLI check reports are under ignored `.wsup/reports/`. Publish
+GitHub binary release assets are published manually. Keep development notes
+and release-preparation drafts outside this repository. Publish
 user-facing changes and material limitations in the changelog or release notes.
 See [AI guidance](ai-guidance.md) for compatibility limits and the
-[workspace model](workspace-model.md) for upgrade delivery.
+[workspace model](../templates/workspace/docs/workspace-model.md) for upgrade delivery.
