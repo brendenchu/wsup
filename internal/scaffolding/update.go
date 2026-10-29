@@ -15,7 +15,11 @@ func Update(root, version string, keep []string, apply bool) (UpdatePlan, error)
 	if err != nil {
 		return UpdatePlan{}, err
 	}
-	files, links, err := catalogue.Starter(loaded.State.Template, loaded.State.SelectedCollections(), loaded.State.Agents)
+	registryBody, err := readRegistry(root)
+	if err != nil {
+		return UpdatePlan{}, err
+	}
+	files, links, err := catalogue.Starter(loaded.State.Template, loaded.State.selection(loaded.State.SelectedCollections(), registryBody))
 	if err != nil {
 		return UpdatePlan{}, err
 	}

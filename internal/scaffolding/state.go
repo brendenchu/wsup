@@ -46,6 +46,8 @@ type State struct {
 	// Agents are the installed agent adapters. A state without them gets no
 	// adapters on update: new adapters are offered, never installed silently.
 	Agents []string `json:"agents,omitempty"`
+	// Editors are the installed editor adapters, recorded like Agents.
+	Editors []string `json:"editors,omitempty"`
 	// Links maps each managed symlink to its relative target.
 	Links map[string]string `json:"links,omitempty"`
 }
@@ -118,7 +120,7 @@ func ParseState(body []byte) (State, error) {
 		return State{}, fmt.Errorf("unsupported template state fields")
 	}
 	for name := range raw {
-		if !slices.Contains([]string{"version", "template_version", "template", "files", "collections", "omitted_home_files", "agents", "links"}, name) {
+		if !slices.Contains([]string{"version", "template_version", "template", "files", "collections", "omitted_home_files", "agents", "editors", "links"}, name) {
 			return State{}, fmt.Errorf("unsupported template state field %s", name)
 		}
 	}
@@ -152,14 +154,22 @@ func ParseState(body []byte) (State, error) {
 			return State{}, fmt.Errorf("template state contains an invalid managed link")
 		}
 	}
-	agents := catalogue.AgentNames()
-	for _, agent := range state.Agents {
-		if !slices.Contains(agents, agent) {
-			return State{}, fmt.Errorf("invalid agents selection")
+	for _, adapters := range []struct {
+		name      string
+		values    *[]string
+		available []string
+	}{{"agents", &state.Agents, catalogue.AgentNames()}, {"editors", &state.Editors, catalogue.EditorNames()}} {
+		for _, value := range *adapters.values {
+			if !slices.Contains(adapters.available, value) {
+				return State{}, fmt.Errorf("invalid %s selection", adapters.name)
+			}
 		}
+		slices.Sort(*adapters.values)
+		*adapters.values = slices.Compact(*adapters.values)
 	}
-	slices.Sort(state.Agents)
-	state.Agents = slices.Compact(state.Agents)
+	if len(state.Editors) != 0 && state.Template != "workspace" {
+		return State{}, fmt.Errorf("editors require a workspace template")
+	}
 	for _, field := range []struct {
 		name    string
 		values  *[]string
@@ -217,4 +227,30 @@ func portableFile(name string) bool {
 	return utf8.ValidString(name) && name != "" && name != "." && path.Clean(name) == name &&
 		!path.IsAbs(name) && !strings.ContainsAny(name, "\\:\x00") &&
 		name != ".." && !strings.HasPrefix(name, "../")
+}
+
+// selection describes this state's installed modules with the given
+// collections, for catalogue.Starter.
+func (s State) selection(collections []string, registry []byte) catalogue.Selection {
+	return catalogue.Selection{Collections: collections, Agents: s.Agents, Editors: s.Editors, Registry: registry}
+}
+
+// readRegistry returns the workspace registry's bytes for generators, or nil
+// when it is absent so the starter's own registry is used. It never follows a
+// symlink at the registry path.
+func readRegistry(root string) ([]byte, error) {
+	root, err := registry.Resolve(root)
+	if err != nil {
+		return nil, err
+	}
+	handle, err := os.OpenRoot(root)
+	if err != nil {
+		return nil, err
+	}
+	defer handle.Close()
+	current, err := observeFile(handle, "workspace.json")
+	if err != nil || !current.regular {
+		return nil, err
+	}
+	return handle.ReadFile("workspace.json")
 }

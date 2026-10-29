@@ -50,7 +50,7 @@ func planUpdate(root, version string, files map[string][]byte, links map[string]
 		Version: StateVersion, TemplateVersion: version, Template: state.Template,
 		Files:       make(map[string]string, len(files)),
 		Collections: state.SelectedCollections(), OmittedHomeFiles: state.OmittedHomeFiles,
-		Agents: state.Agents, Links: links,
+		Agents: state.Agents, Editors: state.Editors, Links: links,
 	}
 	if links == nil {
 		proposed.Links = state.Links

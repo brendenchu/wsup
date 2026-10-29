@@ -8,13 +8,13 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
 	"github.com/brendenchu/wsup/internal/catalogue"
 	"github.com/brendenchu/wsup/internal/configuration"
 	"github.com/brendenchu/wsup/internal/guidance"
-	"github.com/brendenchu/wsup/internal/jsoncompat"
 	"github.com/brendenchu/wsup/internal/registry"
 	"github.com/brendenchu/wsup/internal/scaffolding"
 	"github.com/spf13/cobra"
@@ -110,7 +110,15 @@ func newCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			agents, err := catalogue.ComposeAgents(agentNames)
+			agents, err := catalogue.ComposeAdapters(catalogue.KindAgent, agentNames)
+			if err != nil {
+				return err
+			}
+			editorNames, err := command.Flags().GetStringArray("editor")
+			if err != nil {
+				return err
+			}
+			editors, err := catalogue.ComposeAdapters(catalogue.KindEditor, editorNames)
 			if err != nil {
 				return err
 			}
@@ -124,8 +132,13 @@ func newCommand() *cobra.Command {
 				}
 			} else if command.Flags().Changed("preset") {
 				return fmt.Errorf("presets require a workspace template")
+			} else if len(editorNames) != 0 && !slices.Equal(editorNames, []string{catalogue.NoPreset}) {
+				return fmt.Errorf("editor adapters require a workspace template")
+			} else {
+				// Editor adapters are workspace-only.
+				editors = nil
 			}
-			destination, err := scaffolding.InitialiseWith(args[0], Version, kind, collections, agents)
+			destination, err := scaffolding.InitialiseWith(args[0], Version, kind, catalogue.Selection{Collections: collections, Agents: agents, Editors: editors})
 			if err != nil {
 				return err
 			}
@@ -136,6 +149,7 @@ func newCommand() *cobra.Command {
 	init.Flags().String("template", "workspace", "Starter kind (workspace or project)")
 	init.Flags().String("preset", catalogue.DefaultPreset, "Workspace preset ("+strings.Join(catalogue.PresetNames(), ", ")+"; "+catalogue.NoPreset+" for the base only)")
 	init.Flags().StringArray("collection", nil, "Workspace collection added to the preset (repeatable)")
+	init.Flags().StringArray("editor", nil, "Workspace editor adapter ("+strings.Join(catalogue.EditorNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
 	init.Flags().StringArray("agent", nil, "Agent adapter ("+strings.Join(catalogue.AgentNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
 	root.AddCommand(init)
 	update := &cobra.Command{
@@ -328,25 +342,24 @@ func createEditor(output io.Writer, root, name string, data registry.Registry) e
 	if !os.IsNotExist(statErr) {
 		return statErr
 	}
-	type folder struct {
-		Name string `json:"name"`
-		Path string `json:"path"`
-	}
-	document := struct {
-		Folders  []folder       `json:"folders"`
-		Settings map[string]any `json:"settings"`
-	}{Folders: []folder{{Name: "Workspace", Path: "."}}, Settings: map[string]any{}}
+	// The same generator writes the vscode adapter's file, so output matches.
+	workspace := catalogue.Workspace{Name: data.Name, Projects: []catalogue.Project{}}
 	for _, project := range data.Projects {
-		if project.Path != "." {
-			document.Folders = append(document.Folders, folder{Name: project.ID, Path: project.Path})
-		}
+		workspace.Projects = append(workspace.Projects, catalogue.Project{ID: project.ID, Path: project.Path})
+	}
+	body, err := catalogue.CodeWorkspace(workspace)
+	if err != nil {
+		return err
 	}
 	// Exclusive creation also refuses files created after the preflight check.
 	file, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
 	if err != nil {
 		return err
 	}
-	writeErr := writeEditorJSON(file, document)
+	written, writeErr := file.Write(body)
+	if writeErr == nil && written != len(body) {
+		writeErr = io.ErrShortWrite
+	}
 	closeErr := file.Close()
 	if writeErr != nil {
 		return writeErr
@@ -355,21 +368,6 @@ func createEditor(output io.Writer, root, name string, data registry.Registry) e
 		return closeErr
 	}
 	_, err = fmt.Fprintf(output, "Created %s\n", target)
-	return err
-}
-
-// Managed editor files use ASCII escapes; preserve those bytes, including
-// UTF-16 surrogate pairs for non-BMP characters, rather than just parsed equality.
-func writeEditorJSON(destination io.Writer, value any) error {
-	encoded, err := jsoncompat.Marshal(value, "  ")
-	if err != nil {
-		return err
-	}
-	encoded = append(encoded, '\n')
-	written, err := destination.Write(encoded)
-	if err == nil && written != len(encoded) {
-		return io.ErrShortWrite
-	}
 	return err
 }
 

@@ -65,11 +65,15 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 		return result, preparedUpdate{}, fmt.Errorf("adding collections requires a managed workspace")
 	}
 	// Render for the whole resulting selection: base templates depend on it.
-	bundle, _, err := catalogue.Starter("workspace", append(slices.Clone(state.Collections), selected...), state.Agents)
+	registryBody, err := readRegistry(root)
 	if err != nil {
 		return result, preparedUpdate{}, err
 	}
-	installed, _, err := catalogue.Starter("workspace", state.Collections, state.Agents)
+	bundle, _, err := catalogue.Starter("workspace", state.selection(append(slices.Clone(state.Collections), selected...), registryBody))
+	if err != nil {
+		return result, preparedUpdate{}, err
+	}
+	installed, _, err := catalogue.Starter("workspace", state.selection(state.Collections, registryBody))
 	if err != nil {
 		return result, preparedUpdate{}, err
 	}

@@ -421,9 +421,11 @@ func (c *Catalogue) validate() error {
 			return fail("version must be MAJOR.MINOR.PATCH")
 		case strings.TrimSpace(module.Description) == "":
 			return fail("description is required")
-		case len(module.Generate) != 0:
-			// Generators arrive with the editor and agent adapters.
-			return fail("no generators are available yet")
+		}
+		for _, name := range module.Generate {
+			if _, known := generators[name]; !known {
+				return fail("names unknown generator %q", name)
+			}
 		}
 		for _, entry := range module.Ignore {
 			if strings.TrimSpace(entry) != entry || entry == "" || strings.HasPrefix(entry, "#") ||
@@ -461,7 +463,7 @@ func (c *Catalogue) validate() error {
 			}
 		}
 		if module.Kind == KindPreset {
-			if len(module.Modules) == 0 || len(module.Files) != 0 || len(module.Templates) != 0 || len(module.Ignore) != 0 || len(module.Links) != 0 || len(module.Skills) != 0 || len(module.Requires) != 0 {
+			if len(module.Modules) == 0 || len(module.Files) != 0 || len(module.Templates) != 0 || len(module.Ignore) != 0 || len(module.Links) != 0 || len(module.Generate) != 0 || len(module.Skills) != 0 || len(module.Requires) != 0 {
 				return fail("a preset only lists modules")
 			}
 			for _, member := range module.Modules {

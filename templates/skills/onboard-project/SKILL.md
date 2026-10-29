@@ -25,8 +25,10 @@ description: Onboard a new or existing workspace project. Use when adding or reg
    its own commands; never record where it is placed, so it stays movable. Use
    [run-checks](../run-checks/SKILL.md) for checks and dependency changes.
 5. Run `wsup validate` and `wsup projects`. Review both owners' Git status.
-   Check project guidance if present. Generate an editor file only when requested;
-   an existing file requires deliberate manual review.
+   Check project guidance if present. With the `vscode` adapter, preview
+   `wsup update` to refresh `<name>.code-workspace` with the new project;
+   otherwise generate an editor file only when requested. A hand-edited editor
+   file requires deliberate manual review.
 
 Complete when registration validates and Git ownership matches intent. Report
 pending repository setup or migration. Use a compatible separately installed

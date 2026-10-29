@@ -31,9 +31,9 @@ for product changes. Binary replacement and managed-content updates are separate
 | `projects` | Prints project entries as JSON. |
 | `config` | Prints effective settings and their sources as JSON. |
 | `guidance` | Prints structural findings as JSON; optional `--project ID` selects a registered owner. |
-| `editor` | Creates a relative-path VS Code workspace file; `--output NAME` must be a new file directly in the root. |
+| `editor` | Creates a relative-path VS Code workspace file, identical to the `vscode` adapter's; `--output NAME` must be a new file directly in the root. |
 | `check` | Requires repeatable `--project ID`; optional repeatable `--check NAME`, `--timeout SECONDS`, `--show-output`. |
-| `init DESTINATION` | Creates a new workspace immediately; repeatable `--agent NAME` selects agent adapters (default all; `none` for none); `--preset NAME` selects a preset (default `development`; `none` for the base only) and repeatable `--collection NAME` adds collections to it. `--template project` creates a project without a registry/runtime; presets and collections are workspace-only. |
+| `init DESTINATION` | Creates a new workspace immediately; repeatable `--agent NAME` and `--editor NAME` select agent and editor adapters (default all; `none` for none; editors are workspace-only); `--preset NAME` selects a preset (default `development`; `none` for the base only) and repeatable `--collection NAME` adds collections to it. `--template project` creates a project without a registry/runtime; presets and collections are workspace-only. |
 | `update` | Prints a managed-content plan; `--apply` writes when conflict-free, repeatable `--keep PATH` retains eligible same-path customizations. |
 | `collections` | Lists available names; repeatable `--add NAME` previews additions, `--apply` writes when conflict-free. |
 
@@ -339,3 +339,16 @@ it is a real directory or points elsewhere. `validate` and `guidance` report a
 missing, wrong, or broken link. The relative target keeps working when the
 workspace is moved. Every other wsup read still refuses to follow links out of
 the workspace root.
+
+### Editor adapters
+
+`vscode` (installed by default for workspaces; `--editor none` skips it)
+generates `<name>.code-workspace`, named from the slugified `name` in
+`workspace.json` (for example `my-workspace.code-workspace`). It covers VS Code,
+Cursor, Windsurf, and VSCodium. The file lists the workspace root and one folder
+per registered project. It is a managed starter file: `update` regenerates it
+from the current registry and writes it while it is unedited, reports a
+hand-edited copy as a conflict, and stops if the registry cannot be read.
+Renaming the workspace generates a new file and retains the old one. There is
+no adapter for JetBrains, Zed, or terminal editors; every editor benefits from
+`.editorconfig`.

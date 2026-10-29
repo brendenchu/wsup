@@ -21,6 +21,11 @@ See the [release guide](docs/releases.md) for version and tag policy.
   skips them. `.claude/skills` is the only symlink wsup creates: `update`
   re-creates it when missing, and `validate` and `guidance` report a missing
   or broken link.
+- Editor adapter `vscode`: `init` generates `<name>.code-workspace` from
+  `workspace.json` (root plus one folder per project) and `update` refreshes
+  it, reporting hand edits as conflicts. `--editor NAME` selects and
+  `--editor none` skips it; editor adapters are workspace-only. `wsup editor`
+  writes the same document.
 - `wsup init --preset NAME` selects a preset of collections; explicit
   `--collection` choices add to it. `--preset none` creates a base-only
   workspace. Unknown presets fail before anything is written.

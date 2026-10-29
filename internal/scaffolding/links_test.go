@@ -6,12 +6,14 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/brendenchu/wsup/internal/catalogue"
 )
 
 func agentWorkspace(t *testing.T, agents ...string) string {
 	t.Helper()
 	root := filepath.Join(t.TempDir(), "workspace")
-	if _, err := InitialiseWith(root, "0.1.0", "workspace", nil, agents); err != nil {
+	if _, err := InitialiseWith(root, "0.1.0", "workspace", catalogue.Selection{Agents: agents}); err != nil {
 		t.Fatal(err)
 	}
 	return root
@@ -117,13 +119,13 @@ func TestAgentsAreNeverAddedSilently(t *testing.T) {
 		t.Fatalf("update added adapters: %+v %v", plan, err)
 	}
 	project := filepath.Join(t.TempDir(), "project")
-	if _, err := InitialiseWith(project, "0.1.0", "project", nil, []string{"claude"}); err != nil {
+	if _, err := InitialiseWith(project, "0.1.0", "project", catalogue.Selection{Agents: []string{"claude"}}); err != nil {
 		t.Fatal(err)
 	}
 	if target, err := os.Readlink(filepath.Join(project, ".claude/skills")); err != nil || target != "../.agents/skills" {
 		t.Fatalf("project link: %q %v", target, err)
 	}
-	if _, err := InitialiseWith(filepath.Join(t.TempDir(), "bad"), "0.1.0", "workspace", nil, []string{"unknown"}); err == nil {
+	if _, err := InitialiseWith(filepath.Join(t.TempDir(), "bad"), "0.1.0", "workspace", catalogue.Selection{Agents: []string{"unknown"}}); err == nil {
 		t.Fatal("unknown agent accepted")
 	}
 }

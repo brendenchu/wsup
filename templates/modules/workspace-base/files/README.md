@@ -27,8 +27,10 @@ Native check execution is verified on macOS ARM64. Other runtime platforms are
 not certified; non-Unix check execution explicitly refuses launch.
 
 Run from this directory or put `--root /path/to/workspace` before the command.
-The executable's location does not select a workspace. `editor` is optional
-and refuses existing files. See the [workspace model](docs/workspace-model.md)
+The executable's location does not select a workspace. With the `vscode`
+editor adapter (installed by default), `<name>.code-workspace` is generated
+from `workspace.json` and refreshed by `update`; `editor` is optional, writes
+the same document to a new file, and refuses existing files. See the [workspace model](docs/workspace-model.md)
 for command, registry, check, report, ownership, and recovery contracts.
 
 ## Projects and checks

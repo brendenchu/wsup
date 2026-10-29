@@ -88,7 +88,7 @@ to PATH. The main commands:
 | `config` | Show effective settings and their sources |
 | `guidance` | Check workspace instructions and local links |
 | `guidance --project ID` | Check one project's instructions |
-| `editor` | Create a relative-path VS Code workspace file |
+| `editor` | Create a relative-path VS Code workspace file (the `vscode` adapter generates one at init) |
 | `check --project ID` | Run only that project's configured checks |
 | `collections` | List available optional collection scaffolds |
 | `collections --add NAME` | Preview adding a collection; repeat `--add` to select more |

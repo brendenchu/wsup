@@ -222,3 +222,44 @@ func TestInitAgentSelection(t *testing.T) {
 		t.Fatalf("guidance missing link: %d %s", code, &stdout)
 	}
 }
+
+func TestInitEditorSelection(t *testing.T) {
+	parent := t.TempDir()
+	run := func(want int, args ...string) {
+		t.Helper()
+		var stdout, stderr bytes.Buffer
+		if code := Run(append([]string{"init"}, args...), &stdout, &stderr); code != want {
+			t.Fatalf("%v: %d %s", args, code, &stderr)
+		}
+	}
+	run(0, filepath.Join(parent, "default"))
+	run(0, filepath.Join(parent, "none"), "--editor", "none")
+	run(0, filepath.Join(parent, "project"), "--template", "project")
+	run(2, filepath.Join(parent, "bad"), "--template", "project", "--editor", "vscode")
+	run(2, filepath.Join(parent, "bad"), "--editor", "unknown")
+	if _, err := os.Lstat(filepath.Join(parent, "bad")); !os.IsNotExist(err) {
+		t.Fatal("invalid editor selection wrote output")
+	}
+	for name, want := range map[string]bool{"default": true, "none": false} {
+		_, err := os.Stat(filepath.Join(parent, name, "my-workspace.code-workspace"))
+		if (err == nil) != want {
+			t.Fatalf("%s editor file present=%v", name, err == nil)
+		}
+	}
+	loaded, err := scaffolding.LoadState(filepath.Join(parent, "project"))
+	if err != nil || len(loaded.State.Editors) != 0 {
+		t.Fatalf("project editors: %+v %v", loaded.State, err)
+	}
+	// wsup editor writes the same bytes the adapter generated.
+	adapter, err := os.ReadFile(filepath.Join(parent, "default", "my-workspace.code-workspace"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	if code := Run([]string{"--root", filepath.Join(parent, "default"), "editor", "--output", "copy.code-workspace"}, &stdout, &stderr); code != 0 {
+		t.Fatalf("editor: %s", &stderr)
+	}
+	if copied, err := os.ReadFile(filepath.Join(parent, "default", "copy.code-workspace")); err != nil || !bytes.Equal(copied, adapter) {
+		t.Fatalf("editor output differs from adapter: %s %v", copied, err)
+	}
+}

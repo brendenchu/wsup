@@ -100,19 +100,6 @@ func TestRootFlagMustPrecedeCommand(t *testing.T) {
 	}
 }
 
-func TestEditorJSONUsesStableASCIIEncoding(t *testing.T) {
-	var actual bytes.Buffer
-	if err := writeEditorJSON(&actual, map[string]string{
-		"path": "caf\u00e9/\U0001f680/\x7f/<>&/\u2028",
-	}); err != nil {
-		t.Fatal(err)
-	}
-	expected := "{\n  \"path\": \"caf\\u00e9/\\ud83d\\ude80/\\u007f/<>&/\\u2028\"\n}\n"
-	if actual.String() != expected {
-		t.Fatalf("got %q, want %q", actual.String(), expected)
-	}
-}
-
 func TestMalformedRegistryNeverProducesSuccessOrEditorOutput(t *testing.T) {
 	for _, body := range []string{
 		`{"version":`, `{} {}`, `null`, `[]`, `{"version":true}`,
