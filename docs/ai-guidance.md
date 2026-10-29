@@ -7,7 +7,7 @@ rules, and `.agents/skills/` contains reusable task procedures. Each project
 starter carries its own instructions so it remains understandable outside its
 workspace.
 
-In this generator repository, `templates/workspace/.agents/skills/` is the only
+In this generator repository, `templates/skills/` is the only
 skill source; it is embedded directly in the binary.
 Installed workspace skills are local procedures, not implicit starter overrides.
 An installed CLI generates from its embedded catalogue, even when local skills
@@ -20,10 +20,10 @@ diagnosis, review, and reporting workflows:
 
 | Domain | Procedure |
 | --- | --- |
-| Project onboarding and Git ownership | [project-onboarding](../templates/workspace/.agents/skills/project-onboarding/SKILL.md) |
-| Registry, dependencies, checks and settings | [registry-checks](../templates/workspace/.agents/skills/registry-checks/SKILL.md) |
-| Starter generation and template updates | [template-lifecycle](../templates/workspace/.agents/skills/template-lifecycle/SKILL.md) |
-| Instructions, skills and client discovery | [ai-guidance-maintenance](../templates/workspace/.agents/skills/ai-guidance-maintenance/SKILL.md) |
+| Project onboarding and Git ownership | [project-onboarding](../templates/skills/project-onboarding/SKILL.md) |
+| Registry, dependencies, checks and settings | [registry-checks](../templates/skills/registry-checks/SKILL.md) |
+| Starter generation and template updates | [template-lifecycle](../templates/skills/template-lifecycle/SKILL.md) |
+| Instructions, skills and client discovery | [ai-guidance-maintenance](../templates/skills/ai-guidance-maintenance/SKILL.md) |
 
 The generated workspace rule index routes to these skills.
 Language, framework, and provider procedures belong to the project that needs

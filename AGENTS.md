@@ -7,8 +7,9 @@ This repository is the wsup CLI: Go source, tests, and the starter content that
 
 - `cmd/wsup/`: entry point. `internal/`: CLI, catalogue, scaffolding,
   registry, checks, reporting, and guidance packages with colocated tests.
-- `templates/`: the single source for everything generated (starters,
-  collections, skills, rules, workspace docs), embedded by `templates/embed.go`.
+- `templates/`: the single source for everything generated, embedded by
+  `templates/embed.go`: modules under `modules/<id>/` (a `module.json`
+  manifest plus `files/`) and shared skills under `skills/`.
   Edit generated content here; there is no second copy elsewhere in the repo.
 - `docs/`: the product manual (install, getting started, releases, AI guidance).
 - `scripts/package.sh`: local macOS ARM64 release candidate packaging.
@@ -20,7 +21,7 @@ guidance, or skills of its own.
 
 - Use Go from `mise.toml` (pinned in `go.mod`). Git is required by the tests.
 - Before changing behavior, read the implementation, its tests, and the affected
-  files under `templates/`. Read `templates/workspace/docs/workspace-model.md`
+  files under `templates/`. Read `templates/modules/workspace-base/files/docs/workspace-model.md`
   for registry, CLI, or update changes.
 - Generated output must work without this checkout: no machine paths, client,
   provider, framework, or organization assumptions in `templates/`.

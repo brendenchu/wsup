@@ -192,4 +192,4 @@ GitHub binary release assets are published manually. Keep development notes
 and release-preparation drafts outside this repository. Publish
 user-facing changes and material limitations in the changelog or release notes.
 See [AI guidance](ai-guidance.md) for compatibility limits and the
-[workspace model](../templates/workspace/docs/workspace-model.md) for upgrade delivery.
+[workspace model](../templates/modules/workspace-base/files/docs/workspace-model.md) for upgrade delivery.

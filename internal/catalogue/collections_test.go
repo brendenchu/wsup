@@ -21,7 +21,7 @@ func TestSelectedCollectionBundleInventoryAndExactBytes(t *testing.T) {
 	count := len(plain)
 	for _, collection := range all {
 		for _, filename := range []string{"README.md", "TEMPLATE.md"} {
-			body, err := fs.ReadFile(source, "collections/"+collection+"/"+filename)
+			body, err := fs.ReadFile(source, "modules/"+collection+"/files/"+collection+"/"+filename)
 			if filename == "TEMPLATE.md" && collection != "journal" {
 				if err == nil {
 					t.Fatalf("unexpected collection source: %s", collection)

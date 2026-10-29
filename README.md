@@ -106,7 +106,7 @@ does not search parent directories:
 wsup check --help
 ```
 
-See the [command reference](templates/workspace/docs/workspace-model.md#command-reference) for
+See the [command reference](templates/modules/workspace-base/files/docs/workspace-model.md#command-reference) for
 flags, output formats, exit codes, and root/destination behavior.
 
 Use `--project ID` repeatedly to select more projects and `--check NAME`
@@ -124,7 +124,7 @@ Only schema-2 managed workspaces can update. There is no in-place conversion of
 unsupported state. Never edit schema numbers to bypass validation; create a new
 destination and explicitly transfer reviewed owner content instead. Before
 applying updates, preserve a matched backup of files and state.
-See [updates and recovery](templates/workspace/docs/workspace-model.md#generated-files-and-updates).
+See [updates and recovery](templates/modules/workspace-base/files/docs/workspace-model.md#generated-files-and-updates).
 
 ## Workspace layout
 
@@ -136,7 +136,7 @@ on organizing development work, not prescribing a knowledge-management workflow.
 additions, as are `archive/`, `artifacts/`, and `private/`. Folder
 names describe placement, not Git ownership, project kind, sensitivity
 controls, backup, or retention guarantees. See the
-[workspace model](templates/workspace/docs/workspace-model.md#default-layout-and-optional-collections)
+[workspace model](templates/modules/workspace-base/files/docs/workspace-model.md#default-layout-and-optional-collections)
 for guidance. The template catalogue is embedded in the external binary, never
 read from workspace-local overrides. Register projects in
 `workspace.json`; projects own their code, tests, dependencies, setup and
@@ -164,13 +164,13 @@ sync, indexing, or retention settings. In particular, the private scaffold is
 not protected storage.
 
 The registry does not imply a shared Git repository, build, dependency install,
-or release process. See the [workspace model](templates/workspace/docs/workspace-model.md) for the
+or release process. See the [workspace model](templates/modules/workspace-base/files/docs/workspace-model.md) for the
 registry, settings, checks, reports and update behavior. See [AI guidance](docs/ai-guidance.md)
 for the portable instruction kit and optional client integration.
 
 For independent project repositories, add each project's directory to the
 workspace `.gitignore` and mark it `independent` in the registry. Workspace-owned
-projects stay tracked normally. See [Git ownership](templates/workspace/docs/workspace-model.md)
+projects stay tracked normally. See [Git ownership](templates/modules/workspace-base/files/docs/workspace-model.md)
 for setup and existing-file precautions.
 
 ## This development checkout
@@ -205,7 +205,7 @@ Use the normal template-update preview/apply flow to refresh bundled content;
 it does not download a new release. To disable skill use, use the client's
 controls rather than deleting canonical files and breaking rule-index links.
 See [AI guidance](docs/ai-guidance.md) for the dated compatibility matrix and
-[workspace model](templates/workspace/docs/workspace-model.md) for safe managed-content updates.
+[workspace model](templates/modules/workspace-base/files/docs/workspace-model.md) for safe managed-content updates.
 
 ## Contributing and releases
 

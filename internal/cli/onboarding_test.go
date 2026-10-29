@@ -45,7 +45,7 @@ func TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles(t *test
 	}
 	for _, kind := range []string{"workspace", "project"} {
 		t.Run(kind, func(t *testing.T) {
-			sourceIgnore, err := os.ReadFile(filepath.Join("../../templates", kind, ".gitignore"))
+			sourceIgnore, err := os.ReadFile(filepath.Join("../../templates/modules", kind+"-base", "files", ".gitignore"))
 			if err != nil {
 				t.Fatal(err)
 			}

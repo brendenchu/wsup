@@ -1,0 +1,13 @@
+{
+  "id": "private",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Planning notes for private storage; not protected storage.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

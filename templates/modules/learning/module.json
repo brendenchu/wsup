@@ -1,0 +1,13 @@
+{
+  "id": "learning",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Curricula, exercises, and learning projects.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

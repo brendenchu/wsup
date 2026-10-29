@@ -7,7 +7,7 @@ checkout.
 ## Before changing code
 
 Read [AGENTS.md](AGENTS.md) and the
-[workspace model](templates/workspace/docs/workspace-model.md). Check Git status and preserve
+[workspace model](templates/modules/workspace-base/files/docs/workspace-model.md). Check Git status and preserve
 unrelated edits. For a defect, include a reproducible example; for a feature,
 describe the intended behavior and ownership boundaries before expanding scope.
 
@@ -48,8 +48,10 @@ Ordinary changes do not imply a version bump.
 
 - `cmd/wsup/` is the executable entry point; `internal/` contains services and
   colocated regression tests.
-- `templates/` is the complete starter authority, with `workspace/`, `project/`,
-  and `collections/` embedded directly by `templates/embed.go`. Embedding uses
+- `templates/` is the complete starter authority: module manifests and files
+  under `modules/<id>/` (`workspace-base`, `project-base`, and one per
+  collection) and the shared skill library under `skills/`, embedded directly
+  by `templates/embed.go`. `internal/catalogue` validates every manifest. Embedding uses
   `all:` for hidden assets. There is no generated catalogue archive, runtime
   overlay, workspace-local override, or refresh command.
 - `templates/` is the only copy of generated guidance, skills, and the

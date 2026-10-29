@@ -1,0 +1,13 @@
+{
+  "id": "project-base",
+  "kind": "base",
+  "version": "1.0.0",
+  "description": "Project starter: README, guidance, and ignore rules.",
+  "applies_to": [
+    "project"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}

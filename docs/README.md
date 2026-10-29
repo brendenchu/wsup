@@ -6,9 +6,9 @@ Maintain durable product and contributor documentation here:
   commands.
 - [First-workspace tutorial](getting-started.md): create a workspace, register
   a project, and run a check with the downloaded binary.
-- [Workspace model](../templates/workspace/docs/workspace-model.md): layout, ownership, registry, CLI
+- [Workspace model](../templates/modules/workspace-base/files/docs/workspace-model.md): layout, ownership, registry, CLI
   configuration, optional collections, and safe updates.
-  Its [command reference](../templates/workspace/docs/workspace-model.md#command-reference) covers options,
+  Its [command reference](../templates/modules/workspace-base/files/docs/workspace-model.md#command-reference) covers options,
   output, root selection, and exit codes.
 - [AI guidance](ai-guidance.md): portable instructions, skills, and optional
   client discovery.

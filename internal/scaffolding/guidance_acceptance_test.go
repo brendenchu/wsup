@@ -17,7 +17,8 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	templateSource := filepath.Join(source, "templates", "workspace")
+	templateSource := filepath.Join(source, "templates", "modules", "workspace-base", "files")
+	skillSource := filepath.Join(source, "templates", "skills")
 	workspace := collectionWorkspace(t)
 	project := filepath.Join(t.TempDir(), "project")
 	if _, err := InitialiseProject(project, "0.1.0"); err != nil {
@@ -75,7 +76,7 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	skills, err := os.ReadDir(filepath.Join(templateSource, ".agents/skills"))
+	skills, err := os.ReadDir(skillSource)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +90,7 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 			!bytes.Contains(index, []byte("](../../.agents/skills/"+name+"/SKILL.md)")) {
 			t.Fatalf("missing canonical skill or route: %s", name)
 		}
-		want, err := os.ReadFile(filepath.Join(templateSource, ".agents/skills", name, "SKILL.md"))
+		want, err := os.ReadFile(filepath.Join(skillSource, name, "SKILL.md"))
 		if err != nil {
 			t.Fatal(err)
 		}

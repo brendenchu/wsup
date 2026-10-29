@@ -1,7 +1,6 @@
 package guidance
 
 import (
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -135,24 +134,12 @@ func TestSymlinkScanRootButNotDescendant(t *testing.T) {
 
 func TestBundledSharedSkillsAndInvalidEdits(t *testing.T) {
 	root := t.TempDir()
-	assets := catalogue.Open()
-	starter, err := fs.Sub(assets, "workspace")
+	starter, err := catalogue.Bundle("workspace")
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = fs.WalkDir(starter, ".", func(name string, entry fs.DirEntry, err error) error {
-		if err != nil || entry.IsDir() {
-			return err
-		}
-		body, err := fs.ReadFile(starter, name)
-		if err != nil {
-			return err
-		}
+	for name, body := range starter {
 		put(t, root, name, string(body))
-		return nil
-	})
-	if err != nil {
-		t.Fatal(err)
 	}
 	result, err := Inspect(root)
 	if err != nil || len(result.Errors) != 0 || len(result.Skills) != 12 {

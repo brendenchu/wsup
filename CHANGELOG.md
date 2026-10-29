@@ -20,6 +20,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
   Contributor and agent instructions are in a short `AGENTS.md`.
 - CI and local packaging validate a freshly generated workspace instead of
   the repository root.
+- Starter content is organized as modules: each has a validated
+  `module.json` manifest and its files under `templates/modules/`, and skills
+  live once in a shared `templates/skills/` library. Generated output is
+  unchanged.
 
 ## 0.2.0 (2026-10-25)
 

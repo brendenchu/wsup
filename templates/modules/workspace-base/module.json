@@ -1,0 +1,26 @@
+{
+  "id": "workspace-base",
+  "kind": "base",
+  "version": "1.0.0",
+  "description": "Workspace starter: README, registry, guidance, docs, workbench, and default homes.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [
+    "ai-guidance-maintenance",
+    "commit-message",
+    "diagnose-issue",
+    "infer-conventions",
+    "plan-work",
+    "project-onboarding",
+    "recap-work",
+    "registry-checks",
+    "repository-change",
+    "review-change",
+    "template-lifecycle",
+    "workspace-check"
+  ],
+  "ignore": [],
+  "generate": []
+}

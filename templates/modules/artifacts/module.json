@@ -1,0 +1,13 @@
+{
+  "id": "artifacts",
+  "kind": "collection",
+  "version": "1.0.0",
+  "description": "Intentional deliverables with provenance and retention purpose.",
+  "applies_to": [
+    "workspace"
+  ],
+  "requires": [],
+  "skills": [],
+  "ignore": [],
+  "generate": []
+}
