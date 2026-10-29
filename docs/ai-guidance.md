@@ -7,9 +7,8 @@ rules, and `.agents/skills/` contains reusable task procedures. Each project
 starter carries its own instructions so it remains understandable outside its
 workspace.
 
-In this generator repository, root `.agents/skills/` is the canonical skill source.
-Native starter copies live under `templates/workspace/.agents/skills/` and are
-embedded directly in the binary. Tests verify exact canonical parity.
+In this generator repository, `templates/workspace/.agents/skills/` is the only
+skill source; it is embedded directly in the binary.
 Installed workspace skills are local procedures, not implicit starter overrides.
 An installed CLI generates from its embedded catalogue, even when local skills
 have been customized.
@@ -21,12 +20,12 @@ diagnosis, review, and reporting workflows:
 
 | Domain | Procedure |
 | --- | --- |
-| Project onboarding and Git ownership | [project-onboarding](../.agents/skills/project-onboarding/SKILL.md) |
-| Registry, dependencies, checks and settings | [registry-checks](../.agents/skills/registry-checks/SKILL.md) |
-| Starter generation and template updates | [template-lifecycle](../.agents/skills/template-lifecycle/SKILL.md) |
-| Instructions, skills and client discovery | [ai-guidance-maintenance](../.agents/skills/ai-guidance-maintenance/SKILL.md) |
+| Project onboarding and Git ownership | [project-onboarding](../templates/workspace/.agents/skills/project-onboarding/SKILL.md) |
+| Registry, dependencies, checks and settings | [registry-checks](../templates/workspace/.agents/skills/registry-checks/SKILL.md) |
+| Starter generation and template updates | [template-lifecycle](../templates/workspace/.agents/skills/template-lifecycle/SKILL.md) |
+| Instructions, skills and client discovery | [ai-guidance-maintenance](../templates/workspace/.agents/skills/ai-guidance-maintenance/SKILL.md) |
 
-Both the development and generated workspace rule indexes route to these skills.
+The generated workspace rule index routes to these skills.
 Language, framework, and provider procedures belong to the project that needs
 them rather than the generic workspace kit.
 

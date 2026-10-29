@@ -61,10 +61,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: go vet ./...
 
-      - name: Validate registry
+      - name: Validate a generated workspace
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: go run ./cmd/wsup validate
-
-      - name: Validate guidance
-        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: go run ./cmd/wsup guidance
+        run: |
+          workspace="$RUNNER_TEMP/workspace"
+          go run ./cmd/wsup init "$workspace"
+          go run ./cmd/wsup --root "$workspace" validate
+          go run ./cmd/wsup --root "$workspace" guidance

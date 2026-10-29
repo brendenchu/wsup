@@ -6,8 +6,8 @@ checkout.
 
 ## Before changing code
 
-Read [AI.md](AI.md), the [rule index](guidance/rules/index.md), and the
-[workspace model](docs/workspace-model.md). Check Git status and preserve
+Read [AGENTS.md](AGENTS.md) and the
+[workspace model](templates/workspace/docs/workspace-model.md). Check Git status and preserve
 unrelated edits. For a defect, include a reproducible example; for a feature,
 describe the intended behavior and ownership boundaries before expanding scope.
 
@@ -52,10 +52,10 @@ Ordinary changes do not imply a version bump.
   and `collections/` embedded directly by `templates/embed.go`. Embedding uses
   `all:` for hidden assets. There is no generated catalogue archive, runtime
   overlay, workspace-local override, or refresh command.
-- Root `guidance/rules/` and `.agents/skills/` are canonical. Synchronize their
-  copies under `templates/workspace/`; keep project-specific guidance local.
-- Keep `docs/workspace-model.md` identical to its workspace starter copy.
-  Tests enforce canonical skill, rule, model, asset, and license parity.
+- `templates/` is the only copy of generated guidance, skills, and the
+  workspace model. This repository is not itself a wsup workspace and has no
+  root `guidance/`, `.agents/`, `AI.md`, or registry. Tests verify generated
+  output against `templates/`.
 - `LICENSE` is the repository's license notice. Each starter retains its own
   `WSUP-LICENSE` so generated content carries attribution without choosing the
   owner's project license; no second root license copy is needed.
@@ -66,14 +66,11 @@ Ordinary changes do not imply a version bump.
   changelog, contributor guide, release procedures, and distribution tutorials.
   Starters carry only generated-owner documentation, guidance, configuration,
   attribution, and scaffold files.
-- `.wsup/` contains ignored local check reports in this development checkout.
-  It is not source or an installed runtime, and this repository has no managed
-  starter state. Never implement source changes by editing generated output.
+- Never implement source changes by editing generated output.
 - Keep generated workspaces/projects, executables, release archives, and checksum
   manifests outside this checkout; tests use disposable temporary destinations.
-  Development-only ignore rules guard common accidental root outputs, including
-  template state. Do not copy that state exclusion into starters: generated
-  owners must track their state for managed updates. Authored files under
+  Development-only ignore rules guard common accidental root build outputs.
+  Generated owners must track their own state for managed updates. Authored files under
   `templates/` are build inputs, not generated output.
 
 Inspect implementation, callers, and tests before editing. Add regression
@@ -82,9 +79,8 @@ Keep machine paths, credentials, provider assumptions, and framework setup out
 of the generic starter. Each workspace knows only itself and its descendants;
 do not introduce upward configuration or instruction inheritance.
 
-Use `workbench/` for reviewed human drafts and ignored `workbench/.local/` for
-local plans or disposable evidence. Promote approved knowledge to maintained
-documentation. Keep restricted records outside documentation and Git.
+Keep plans, drafts, and disposable evidence outside this repository. Keep
+restricted records outside documentation and Git.
 
 ## Contracts to preserve
 
@@ -125,26 +121,25 @@ Recovery requires matched files and state, not edited schema numbers.
 From the repository root:
 
 ```sh
-go run ./cmd/wsup validate
-go run ./cmd/wsup guidance
-go run ./cmd/wsup check --project wsup --show-output
+go test -race ./...
+go vet ./...
 git diff --check
 ```
 
-The registry runs `go test -race ./...` and `go vet ./...`. For focused changes,
-select the affected packages or a named check:
+For focused changes, select the affected packages:
 
 ```sh
 go test -race ./internal/scaffolding
-go run ./cmd/wsup check --project wsup --check vet --show-output
 ```
+
+CI also generates a workspace and runs `validate` and `guidance` against it.
 
 Native acceptance copies the source without installed state, builds offline from
 cached Go dependencies using `-trimpath -buildvcs=false` and cgo disabled, checks
 identical binary bytes across two output directories and the actual build
 metadata, and runs the suite with only Go/Git on PATH and cgo
 disabled. It excludes only that enclosing self-test to avoid recursion; the
-normal registry run covers it and runs race detection separately. Standalone
+full `go test -race ./...` run covers it. Standalone
 generation, inspection, collection additions, updates, and child generation
 also run with empty PATH.
 Build and verify a local candidate with

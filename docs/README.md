@@ -6,9 +6,9 @@ Maintain durable product and contributor documentation here:
   commands.
 - [First-workspace tutorial](getting-started.md): create a workspace, register
   a project, and run a check with the downloaded binary.
-- [Workspace model](workspace-model.md): layout, ownership, registry, CLI
+- [Workspace model](../templates/workspace/docs/workspace-model.md): layout, ownership, registry, CLI
   configuration, optional collections, and safe updates.
-  Its [command reference](workspace-model.md#command-reference) covers options,
+  Its [command reference](../templates/workspace/docs/workspace-model.md#command-reference) covers options,
   output, root selection, and exit codes.
 - [AI guidance](ai-guidance.md): portable instructions, skills, and optional
   client discovery.
@@ -25,8 +25,6 @@ is the verified runtime and has a compiled archive in the
 Other targets are not support claims. Download users need no Go toolchain;
 development verification uses the native Go suite and vet.
 
-Keep drafts in the [development workbench](../workbench/). Session logs and
-disposable evidence belong in ignored `workbench/.local/`, not public product docs.
-The [native template catalogue](../templates/) contains distributable starter content;
-this directory documents the product itself. The workspace model is also
-bundled into the workspace starter and must remain synchronized.
+The [native template catalogue](../templates/) contains distributable starter
+content, including the workspace model, which lives only there; this directory
+documents the product itself.

@@ -106,7 +106,7 @@ does not search parent directories:
 wsup check --help
 ```
 
-See the [command reference](docs/workspace-model.md#command-reference) for
+See the [command reference](templates/workspace/docs/workspace-model.md#command-reference) for
 flags, output formats, exit codes, and root/destination behavior.
 
 Use `--project ID` repeatedly to select more projects and `--check NAME`
@@ -124,7 +124,7 @@ Only schema-2 managed workspaces can update. There is no in-place conversion of
 unsupported state. Never edit schema numbers to bypass validation; create a new
 destination and explicitly transfer reviewed owner content instead. Before
 applying updates, preserve a matched backup of files and state.
-See [updates and recovery](docs/workspace-model.md#generated-files-and-updates).
+See [updates and recovery](templates/workspace/docs/workspace-model.md#generated-files-and-updates).
 
 ## Workspace layout
 
@@ -136,7 +136,7 @@ on organizing development work, not prescribing a knowledge-management workflow.
 additions, as are `archive/`, `artifacts/`, and `private/`. Folder
 names describe placement, not Git ownership, project kind, sensitivity
 controls, backup, or retention guarantees. See the
-[workspace model](docs/workspace-model.md#default-layout-and-optional-collections)
+[workspace model](templates/workspace/docs/workspace-model.md#default-layout-and-optional-collections)
 for guidance. The template catalogue is embedded in the external binary, never
 read from workspace-local overrides. Register projects in
 `workspace.json`; projects own their code, tests, dependencies, setup and
@@ -164,45 +164,29 @@ sync, indexing, or retention settings. In particular, the private scaffold is
 not protected storage.
 
 The registry does not imply a shared Git repository, build, dependency install,
-or release process. See the [workspace model](docs/workspace-model.md) for the
+or release process. See the [workspace model](templates/workspace/docs/workspace-model.md) for the
 registry, settings, checks, reports and update behavior. See [AI guidance](docs/ai-guidance.md)
 for the portable instruction kit and optional client integration.
 
 For independent project repositories, add each project's directory to the
 workspace `.gitignore` and mark it `independent` in the registry. Workspace-owned
-projects stay tracked normally. See [Git ownership](docs/workspace-model.md)
+projects stay tracked normally. See [Git ownership](templates/workspace/docs/workspace-model.md)
 for setup and existing-file precautions.
 
 ## This development checkout
 
-The source root separates product development from generated installation output:
+This repository holds only the CLI source and the content it generates:
 
-| Directory | Role here |
+| Directory | Role |
 | --- | --- |
-| [docs](docs/) | Maintained WSUP product and contributor documentation. |
-| [workbench](workbench/) | Reviewed human-authored development drafts, separate from maintained docs and disposable local notes. |
 | [cmd/wsup](cmd/wsup/) | Native executable entry point. |
-| [internal](internal/) | Go services and colocated regression tests. |
-| [templates](templates/) | Complete directly embedded native workspace/project/collection starters. |
+| [internal](internal/) | Go packages and colocated regression tests. |
+| [templates](templates/) | The single source for generated workspaces, projects, collections, skills, and guidance, embedded directly in the binary. |
+| [docs](docs/) | Product documentation: install, getting started, AI guidance, releases. |
 
-The registry describes this repository as one WSUP tool project. Guidance and
-portable skills live at the root and match native starter procedures.
-Edit native services in `internal/` and starters in `templates/`; rebuilding embeds
-starter changes directly. This source repository is not a generated starter and
-does not carry managed template state or an installed runtime.
-Check reports are created on demand under ignored `.wsup/reports/`.
-Use ignored `workbench/.local/` for local notes.
-
-The unused legacy research and journal scaffolds have been retired from this
-checkout; their distributable versions remain in the optional catalogue.
-No learning, reference, archive, artifacts, or private collection is needed
-merely because WSUP offers one. Introduce optional homes here only for actual
-development work, with an explicit purpose and owner. An optional `dist/`
-directory would hold release bundles, not active workspace tooling.
-
-The unused apps, packages, tools, and infrastructure collection scaffolds are
-also absent from this product repository. They remain defaults in
-`templates/workspace/`; new generated workspaces retain the full default layout.
+It is not itself a wsup workspace: it has no registry, workspace guidance, or
+skills of its own. Contributor and agent instructions are in
+[CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md).
 
 ## Optional AI skills
 
@@ -211,11 +195,9 @@ Clients supporting this shared location need no installation command. Open the
 workspace root and inspect the client's available skills; otherwise explicitly
 ask the assistant to read a skill's `SKILL.md` and follow its procedure.
 
-Run `go run ./cmd/wsup guidance` in development or `wsup guidance`
-in a generated workspace to check
-local structure and links.
-That does not prove a client loaded or invoked a skill. Read
-[AI.md](AI.md) and the rule index separately for workspace instructions.
+Run `wsup guidance` in a generated workspace to check local structure and
+links. That does not prove a client loaded or invoked a skill. A generated
+workspace's `AI.md` and rule index hold its instructions.
 No client adapter, global installation, credential, or model configuration is
 created. There is no `skills install` command.
 
@@ -223,7 +205,7 @@ Use the normal template-update preview/apply flow to refresh bundled content;
 it does not download a new release. To disable skill use, use the client's
 controls rather than deleting canonical files and breaking rule-index links.
 See [AI guidance](docs/ai-guidance.md) for the dated compatibility matrix and
-[workspace model](docs/workspace-model.md) for safe managed-content updates.
+[workspace model](templates/workspace/docs/workspace-model.md) for safe managed-content updates.
 
 ## Contributing and releases
 

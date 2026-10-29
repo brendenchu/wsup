@@ -86,7 +86,7 @@ and supply their tools separately.
 
 `repository: "workspace"` declares that this project belongs to the workspace's
 repository if you later create one; it does not initialize Git. For separately
-owned repositories, follow [Git ownership](workspace-model.md#git-ownership)
+owned repositories, follow [Git ownership](../templates/workspace/docs/workspace-model.md#git-ownership)
 before staging anything.
 
 ## 5. Validate and run the selected check
@@ -117,8 +117,8 @@ A missing tool or invalid configuration is an error, not a successful check.
 ## Next steps
 
 - Customize project documentation and register your real projects with explicit
-  ownership and checks; see the [workspace model](workspace-model.md).
-- Review [optional collections](workspace-model.md#default-layout-and-optional-collections)
+  ownership and checks; see the [workspace model](../templates/workspace/docs/workspace-model.md).
+- Review [optional collections](../templates/workspace/docs/workspace-model.md#default-layout-and-optional-collections)
   before adding organizational homes.
 - Treat binary replacement and workspace-content updates separately. Read
   [replacement and recovery](native-install.md#replace-a-binary-and-recover),

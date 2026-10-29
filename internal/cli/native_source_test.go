@@ -19,8 +19,8 @@ func TestNativeSourceBuildAndGenerationAreSelfContained(t *testing.T) {
 	checkout := t.TempDir()
 	for _, subtree := range []string{
 		"cmd", "internal", "templates", "go.mod", "go.sum",
-		".gitignore", "LICENSE", "AI.md", "AGENTS.md", "README.md", "CONTRIBUTING.md", "CHANGELOG.md",
-		".agents", "guidance", "docs", "workspace.json",
+		".gitignore", "LICENSE", "AGENTS.md", "CLAUDE.md", "README.md", "CONTRIBUTING.md", "CHANGELOG.md",
+		"docs",
 	} {
 		err := filepath.WalkDir(filepath.Join(source, subtree), func(name string, entry fs.DirEntry, err error) error {
 			if err != nil {

@@ -12,6 +12,15 @@ See the [release guide](docs/releases.md) for version and tag policy.
   pinned Go toolchain, full notices, checksums, repeated binary builds, and
   extracted-binary smoke checks. Tagging and publication remain explicit.
 
+### Developer Experience
+
+- The repository is no longer run as a wsup workspace: root `AI.md`,
+  `guidance/`, `.agents/skills/`, `workspace.json`, and `workbench/` are
+  removed, and `templates/` is the single source for generated content.
+  Contributor and agent instructions are in a short `AGENTS.md`.
+- CI and local packaging validate a freshly generated workspace instead of
+  the repository root.
+
 ## 0.2.0 (2026-10-25)
 
 ### Changed
