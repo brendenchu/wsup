@@ -1,9 +1,9 @@
 ---
-name: registry-checks
+name: run-checks
 description: Configure workspace registry entries, dependencies, check commands, or local check settings. Use when editing workspace.json, wsup.json, or wsup.local.json.
 ---
 
-# Registry and checks
+# Run checks
 
 1. Read the [workspace model](../../../docs/workspace-model.md), registry, and
    affected projects' instructions. Identify metadata, dependency, check, or
@@ -11,7 +11,7 @@ description: Configure workspace registry entries, dependencies, check commands,
 2. Verify affected project directories and READMEs exist within the workspace.
    Use unique IDs/paths, resolve dependencies, reject cycles. Repository metadata
    describes intent, not proof of Git setup; use
-   [project-onboarding](../project-onboarding/SKILL.md) for ownership changes.
+   [onboard-project](../onboard-project/SKILL.md) for ownership changes.
 3. Inspect project commands and required executables. Encode literal argv
    launched in the project directory. Executables must be available by explicit
    path or on PATH; missing tools are launch errors. Arguments are not substituted.
@@ -22,7 +22,7 @@ description: Configure workspace registry entries, dependencies, check commands,
    Inspect `wsup config` for effective values/source labels without publishing
    machine-specific configuration.
 5. Run `wsup validate` before project code. Review selected arguments, then use
-   [workspace-check](../workspace-check/SKILL.md) for explicitly affected checks.
+   [check-workspace](../check-workspace/SKILL.md) for explicitly affected checks.
    Dependencies do not imply automatic execution.
 
 Complete when validation and affected checks/settings are verified. Report

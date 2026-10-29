@@ -1,9 +1,9 @@
 ---
-name: template-lifecycle
+name: update-workspace
 description: Create workspace or project starters, maintain template content, or preview and apply workspace updates. Use for init, update, and generated-workspace portability.
 ---
 
-# Template lifecycle
+# Update the workspace
 
 1. Read the [workspace model](../../../docs/workspace-model.md) and affected
    guidance. Distinguish new generation, source-template maintenance, and updates.

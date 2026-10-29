@@ -52,7 +52,7 @@ func TestNativeWorkspaceInventoryStateAndGuidance(t *testing.T) {
 		t.Fatalf("invalid generated registry: %+v %v", data, err)
 	}
 	result, err := guidance.Inspect(destination)
-	if err != nil || len(result.Errors) != 0 || len(result.Skills) != 12 {
+	if err != nil || len(result.Errors) != 0 || len(result.Skills) != 7 {
 		t.Fatalf("workspace guidance: %+v %v", result, err)
 	}
 	before := snapshot(t, destination)

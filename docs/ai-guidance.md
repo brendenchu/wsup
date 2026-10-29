@@ -20,12 +20,16 @@ diagnosis, review, and reporting workflows:
 
 | Domain | Procedure |
 | --- | --- |
-| Project onboarding and Git ownership | [project-onboarding](../templates/skills/project-onboarding/SKILL.md) |
-| Registry, dependencies, checks and settings | [registry-checks](../templates/skills/registry-checks/SKILL.md) |
-| Starter generation and template updates | [template-lifecycle](../templates/skills/template-lifecycle/SKILL.md) |
-| Instructions, skills and client discovery | [ai-guidance-maintenance](../templates/skills/ai-guidance-maintenance/SKILL.md) |
+| Project onboarding and Git ownership | [onboard-project](../templates/skills/onboard-project/SKILL.md) |
+| Registry, dependencies, checks and settings | [run-checks](../templates/skills/run-checks/SKILL.md) |
+| Starter generation and template updates | [update-workspace](../templates/skills/update-workspace/SKILL.md) |
+| Instructions, skills and client discovery | [maintain-agents-md](../templates/skills/maintain-agents-md/SKILL.md) |
 
-The generated workspace rule index routes to these skills.
+These are base skills, so every workspace has them and its rule index routes to
+them. The code-change skills (make-change, review-change, diagnose-issue,
+write-commit, infer-conventions) are owned by the project collections and
+installed only when one is selected; the project starter always has them.
+Which modules install which skills is declared in each `module.json`.
 Language, framework, and provider procedures belong to the project that needs
 them rather than the generic workspace kit.
 

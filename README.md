@@ -66,8 +66,8 @@ requires a compatible external binary. Shared rules live in `guidance/rules/`
 and portable skills remain in `.agents/skills/`.
 Generated workspaces include the `development` preset's homes by default, with
 other collections selected explicitly; see the workspace layout below.
-The project starter contains project documentation, guidance, ignore rules, and
-template state, but no bundled CLI or workspace registry.
+The project starter contains project documentation, guidance, its own skills,
+ignore rules, and template state, but no bundled CLI or workspace registry.
 
 Follow the [first-workspace tutorial](docs/getting-started.md) for a complete
 create/register/check walkthrough, or see
@@ -196,7 +196,13 @@ skills of its own. Contributor and agent instructions are in
 
 ## Optional AI skills
 
-Workspace initialization includes 12 portable skills in `.agents/skills/`.
+Every workspace includes seven base skills in `.agents/skills/` (check-workspace,
+run-checks, update-workspace, onboard-project, plan-work, recap-work,
+maintain-agents-md). The project collections (`apps`, `packages`, `tools`,
+`infra`, `sandbox`, `templates`, `forks`) add five code-change skills
+(make-change, review-change, diagnose-issue, write-commit, infer-conventions),
+installed once however many are selected. The project starter gets those five
+plus plan-work.
 Clients supporting this shared location need no installation command. Open the
 workspace root and inspect the client's available skills; otherwise explicitly
 ask the assistant to read a skill's `SKILL.md` and follow its procedure.

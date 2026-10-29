@@ -1,9 +1,9 @@
 ---
-name: workspace-check
+name: check-workspace
 description: Run explicitly selected project checks and summarise failures. Use for local CI-style verification, not applying fixes or configuring remote workflows.
 ---
 
-# Workspace check
+# Check the workspace
 
 Read the local rule index and registry. Inspect selected check argv; commands run
 with your access and are not sandboxed. Use a compatible separately installed

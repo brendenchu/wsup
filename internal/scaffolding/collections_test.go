@@ -211,3 +211,25 @@ func TestCollectionsInvalidInputsAndSymlinkRefusal(t *testing.T) {
 		t.Fatal("symlink target or owner modified")
 	}
 }
+
+func TestCollectionAdditionInstallsOwnedSkillsOnce(t *testing.T) {
+	root := collectionWorkspace(t)
+	skills := []string{"diagnose-issue", "infer-conventions", "make-change", "review-change", "write-commit"}
+	want := []Action{}
+	for _, skill := range skills {
+		want = append(want, Action{".agents/skills/" + skill + "/SKILL.md", "write"})
+	}
+	want = append(want, Action{"apps/README.md", "write"})
+	added, err := AddCollections(root, []string{"apps"}, true)
+	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, want) {
+		t.Fatalf("first project collection: %+v %v", added, err)
+	}
+	added, err = AddCollections(root, []string{"tools"}, true)
+	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, []Action{{"tools/README.md", "write"}}) {
+		t.Fatalf("second project collection: %+v %v", added, err)
+	}
+	plan, err := Update(root, "0.1.0", nil, false)
+	if err != nil || len(plan.Actions) != 0 || len(plan.Conflicts) != 0 {
+		t.Fatalf("additions did not settle: %+v %v", plan, err)
+	}
+}

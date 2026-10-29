@@ -20,15 +20,16 @@ Use the task procedure that matches the request:
 
 | Task | Skill |
 | --- | --- |
-| Add a project or change Git ownership | [project-onboarding](../../.agents/skills/project-onboarding/SKILL.md) |
-| Configure registry, dependencies or check settings | [registry-checks](../../.agents/skills/registry-checks/SKILL.md) |
-| Generate starters, maintain templates or update a workspace | [template-lifecycle](../../.agents/skills/template-lifecycle/SKILL.md) |
-| Maintain instructions, skills or client discovery | [ai-guidance-maintenance](../../.agents/skills/ai-guidance-maintenance/SKILL.md) |
-| Implement or repair code | [repository-change](../../.agents/skills/repository-change/SKILL.md) |
-| Diagnose a failure | [diagnose-issue](../../.agents/skills/diagnose-issue/SKILL.md) |
-| Review a change | [review-change](../../.agents/skills/review-change/SKILL.md) |
+| Add a project or change Git ownership | [onboard-project](../../.agents/skills/onboard-project/SKILL.md) |
+| Configure registry, dependencies or check settings | [run-checks](../../.agents/skills/run-checks/SKILL.md) |
+| Generate starters, maintain templates or update a workspace | [update-workspace](../../.agents/skills/update-workspace/SKILL.md) |
+| Maintain instructions, skills or client discovery | [maintain-agents-md](../../.agents/skills/maintain-agents-md/SKILL.md) |
 | Plan work | [plan-work](../../.agents/skills/plan-work/SKILL.md) |
-| Run workspace checks | [workspace-check](../../.agents/skills/workspace-check/SKILL.md) |
-| Infer conventions | [infer-conventions](../../.agents/skills/infer-conventions/SKILL.md) |
+| Run workspace checks | [check-workspace](../../.agents/skills/check-workspace/SKILL.md) |
 | Write a work recap | [recap-work](../../.agents/skills/recap-work/SKILL.md) |
-| Draft a commit message | [commit-message](../../.agents/skills/commit-message/SKILL.md) |
+
+Project collections (`apps`, `packages`, `tools`, `infra`, `sandbox`,
+`templates`, `forks`) add code-change skills under `.agents/skills/` when
+selected: `make-change` to implement or repair code, `diagnose-issue` for a
+failure, `review-change` for a review, `infer-conventions` to infer
+conventions, and `write-commit` to draft a commit message.

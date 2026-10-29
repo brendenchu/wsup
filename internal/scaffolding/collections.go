@@ -67,6 +67,12 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 	if err != nil {
 		return result, preparedUpdate{}, err
 	}
+	// Skills already deployed by the base or another selected collection are
+	// shared; only skills new to this workspace are part of the addition.
+	installed, err := catalogue.BundleSelected("workspace", state.Collections)
+	if err != nil {
+		return result, preparedUpdate{}, err
+	}
 	root, err = registry.Resolve(root)
 	if err != nil {
 		return result, preparedUpdate{}, err
@@ -78,7 +84,8 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 	defer handle.Close()
 	paths := []string{}
 	for name := range bundle {
-		if slices.Contains(selected, strings.SplitN(name, "/", 2)[0]) {
+		_, deployed := installed[name]
+		if slices.Contains(selected, strings.SplitN(name, "/", 2)[0]) || (isSkill(name) && !deployed) {
 			paths = append(paths, name)
 		}
 	}
@@ -94,7 +101,8 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 		}
 		prepared.observed[name] = current
 		if _, managed := state.Files[name]; managed {
-			enabled := slices.Contains(state.Collections, strings.SplitN(name, "/", 2)[0])
+			// A managed skill is shared, so it never belongs to an unselected collection.
+			enabled := isSkill(name) || slices.Contains(state.Collections, strings.SplitN(name, "/", 2)[0])
 			formerDefault := slices.Contains([]string{"journal/README.md", "journal/TEMPLATE.md", "learning/README.md", "reference/README.md", "research/README.md"}, name)
 			if (!enabled && !formerDefault) || !current.regular {
 				result.Conflicts = append(result.Conflicts, name)
@@ -116,4 +124,8 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 	}
 	prepared.plan = UpdatePlan{Actions: result.Actions, Conflicts: result.Conflicts}
 	return result, prepared, nil
+}
+
+func isSkill(name string) bool {
+	return strings.HasPrefix(name, ".agents/skills/")
 }

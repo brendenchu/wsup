@@ -7,7 +7,13 @@
     "workspace"
   ],
   "requires": [],
-  "skills": [],
+  "skills": [
+    "diagnose-issue",
+    "infer-conventions",
+    "make-change",
+    "review-change",
+    "write-commit"
+  ],
   "ignore": [],
   "generate": []
 }

@@ -1,13 +1,13 @@
 ---
-name: repository-change
-description: Implement or repair code in a multi-project workspace while preserving repository ownership and unrelated edits. Use for an authorised implementation task.
+name: make-change
+description: Implement or repair code in its owning project while preserving repository ownership and unrelated edits. Use for an authorised implementation task.
 ---
 
-# Repository change
+# Make a change
 
-1. Identify the owning project from workspace.json or the source path. Read its
-   README, AI.md and relevant rule index; inspect staged, unstaged and untracked
-   work before choosing the edit location.
+1. Identify the owning project from the source path (and workspace.json in a
+   workspace). Read its README, AI.md and relevant rule index; inspect staged,
+   unstaged and untracked work before choosing the edit location.
 2. Establish expected behaviour from the task, source and callers. For a defect,
    reproduce it with the narrowest reliable existing test or command.
 3. Make a coherent change in the owner. Keep public interfaces and unrelated

@@ -142,17 +142,17 @@ func TestBundledSharedSkillsAndInvalidEdits(t *testing.T) {
 		put(t, root, name, string(body))
 	}
 	result, err := Inspect(root)
-	if err != nil || len(result.Errors) != 0 || len(result.Skills) != 12 {
+	if err != nil || len(result.Errors) != 0 || len(result.Skills) != 7 {
 		t.Fatalf("bundled starter: %+v %v", result, err)
 	}
-	name := ".agents/skills/workspace-check/SKILL.md"
+	name := ".agents/skills/check-workspace/SKILL.md"
 	body, err := os.ReadFile(filepath.Join(root, name))
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, text := range []string{
 		string(body) + "\n[missing](missing.md)\n",
-		strings.Replace(string(body), "name: workspace-check", "name: wrong-name", 1),
+		strings.Replace(string(body), "name: check-workspace", "name: wrong-name", 1),
 		string(body) + "\n[outside](../../../../workspace.json)\n",
 	} {
 		put(t, root, name, text)

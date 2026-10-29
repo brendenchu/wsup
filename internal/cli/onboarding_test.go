@@ -177,14 +177,15 @@ func TestNativeGeneratedWorkspaceMixedGitOnboarding(t *testing.T) {
 	if !reflect.DeepEqual(paths, []string{".", "apps/owned", "apps/independent"}) {
 		t.Fatalf("editor folders: %v", paths)
 	}
-	for _, name := range []string{".agents/skills", ".wsup/templates", "workspace.json"} {
+	// A project has its own skills but none of the workspace-only ones.
+	for _, name := range []string{".agents/skills/onboard-project", ".wsup/templates", "workspace.json"} {
 		if _, err := os.Lstat(filepath.Join(independent, filepath.FromSlash(name))); !os.IsNotExist(err) {
 			t.Fatalf("project inherited workspace runtime/guidance: %s", name)
 		}
 	}
 	fixtureGit(t, root, "add", "--all")
 	tracked := strings.Split(strings.TrimSpace(fixtureGit(t, root, "ls-files")), "\n")
-	for _, name := range []string{"workspace.json", "apps/owned/README.md", ".wsup/template-state.json", ".agents/skills/project-onboarding/SKILL.md"} {
+	for _, name := range []string{"workspace.json", "apps/owned/README.md", ".wsup/template-state.json", ".agents/skills/onboard-project/SKILL.md"} {
 		if !slices.Contains(tracked, name) {
 			t.Fatalf("workspace-owned file not staged: %s", name)
 		}

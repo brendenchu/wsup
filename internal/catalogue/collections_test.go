@@ -21,6 +21,24 @@ func TestSelectedCollectionBundleInventoryAndExactBytes(t *testing.T) {
 	}
 	source := Open()
 	count := len(plain)
+	// Collection-owned skills not already in the base are installed once each.
+	c, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	owned := map[string]bool{}
+	for _, collection := range all {
+		module, _ := c.Module(collection)
+		for _, skill := range module.Skills {
+			if _, base := plain[".agents/skills/"+skill+"/SKILL.md"]; !base && !owned[skill] {
+				owned[skill] = true
+				count++
+			}
+		}
+	}
+	if len(owned) != 5 {
+		t.Fatalf("collection-owned skills: %v", owned)
+	}
 	for _, collection := range all {
 		for _, filename := range []string{"README.md", "TEMPLATE.md"} {
 			body, err := fs.ReadFile(source, "modules/"+collection+"/files/"+collection+"/"+filename)

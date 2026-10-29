@@ -19,7 +19,8 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 	}
 	templateSource := filepath.Join(source, "templates", "modules", "workspace-base", "files")
 	skillSource := filepath.Join(source, "templates", "skills")
-	workspace := collectionWorkspace(t)
+	workspace := collectionWorkspace(t, "apps", "infra", "packages", "tools")
+	baseOnly := collectionWorkspace(t)
 	project := filepath.Join(t.TempDir(), "project")
 	if _, err := InitialiseProject(project, "0.1.0"); err != nil {
 		t.Fatal(err)
@@ -27,7 +28,7 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 	contract := "Each workspace knows only itself and its descendants."
 	links := regexp.MustCompile(`\]\(([^)]+)\)`)
 	upward := regexp.MustCompile(`(?i)\bparent(?:'s)?\s+workspace\b`)
-	for _, root := range []string{workspace, project} {
+	for _, root := range []string{workspace, baseOnly, project} {
 		inspection, err := guidance.Inspect(root)
 		if err != nil || len(inspection.Errors) != 0 {
 			t.Fatalf("guidance: %+v %v", inspection, err)
@@ -80,15 +81,40 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	inspection, err := guidance.Inspect(workspace)
-	if err != nil || len(skills) != 12 || len(inspection.Skills) != 12 {
-		t.Fatalf("skill inventory: %+v %v", inspection, err)
+	baseSkills := []string{"check-workspace", "maintain-agents-md", "onboard-project", "plan-work", "recap-work", "run-checks", "update-workspace"}
+	projectSkills := []string{"diagnose-issue", "infer-conventions", "make-change", "plan-work", "review-change", "write-commit"}
+	inventory := func(root string) []string {
+		t.Helper()
+		inspection, err := guidance.Inspect(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		names := []string{}
+		for _, skill := range inspection.Skills {
+			names = append(names, skill.Name)
+		}
+		return names
+	}
+	if len(skills) != 12 || len(inventory(workspace)) != 12 ||
+		!slices.Equal(inventory(baseOnly), baseSkills) || !slices.Equal(inventory(project), projectSkills) {
+		t.Fatalf("skill inventory: %v %v %v", inventory(workspace), inventory(baseOnly), inventory(project))
+	}
+	projectIndex, err := os.ReadFile(filepath.Join(project, "guidance/rules/index.md"))
+	if err != nil {
+		t.Fatal(err)
 	}
 	for _, skill := range skills {
 		name := skill.Name()
-		if !slices.ContainsFunc(inspection.Skills, func(s guidance.Skill) bool { return s.Name == name }) ||
-			!bytes.Contains(index, []byte("](../../.agents/skills/"+name+"/SKILL.md)")) {
+		// Base skills are linked; collection skills are named, since a workspace
+		// may not have installed them.
+		route := []byte("](../../.agents/skills/" + name + "/SKILL.md)")
+		if !slices.Contains(inventory(workspace), name) ||
+			slices.Contains(baseSkills, name) != bytes.Contains(index, route) ||
+			(!slices.Contains(baseSkills, name) && !bytes.Contains(index, []byte("`"+name+"`"))) {
 			t.Fatalf("missing canonical skill or route: %s", name)
+		}
+		if slices.Contains(projectSkills, name) != bytes.Contains(projectIndex, route) {
+			t.Fatalf("project route mismatch: %s", name)
 		}
 		want, err := os.ReadFile(filepath.Join(skillSource, name, "SKILL.md"))
 		if err != nil {

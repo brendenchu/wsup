@@ -1,9 +1,9 @@
 ---
-name: ai-guidance-maintenance
+name: maintain-agents-md
 description: Maintain AI.md entry points, rule indexes, portable skills, or optional client adapters. Use when adding domain guidance or troubleshooting instruction discovery.
 ---
 
-# AI guidance maintenance
+# Maintain agent instructions
 
 1. Read the owner's AI.md, rule index, and existing procedures. Identify the
    behavior, task trigger, and local owner. Never write upward workspace

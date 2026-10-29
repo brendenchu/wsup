@@ -119,8 +119,9 @@ automatically.
 
 ## Guidance
 
-Read [AI.md](AI.md) and `guidance/rules/index.md`. All 12 portable skills are
-under `.agents/skills/`; no adapter installation is required by WSUP. Clients
+Read [AI.md](AI.md) and `guidance/rules/index.md`. Portable skills are under
+`.agents/skills/`: seven base skills, plus code-change skills when a project
+collection is selected. No adapter installation is required by WSUP. Clients
 may support that location or need an explicit `SKILL.md` path. Verify actual
 loading separately: `guidance` checks local structure, metadata, and links,
 not client discovery or invocation. Independent projects keep their own kits.

@@ -1,9 +1,9 @@
 ---
-name: commit-message
+name: write-commit
 description: Draft a concrete Git commit subject from actual staged and unstaged changes. Use for commit-message requests; drafting does not execute Git mutations.
 ---
 
-# Commit message
+# Write a commit message
 
 Identify the owning repository and read its local conventions. Inspect Git status,
 staged/unstaged diffs and relevant new files. Treat the existing index as user intent.

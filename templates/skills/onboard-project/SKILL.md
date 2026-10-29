@@ -1,9 +1,9 @@
 ---
-name: project-onboarding
+name: onboard-project
 description: Onboard a new or existing workspace project. Use when adding or registering a project, choosing Git ownership, or converting a project to an independent repository.
 ---
 
-# Project onboarding
+# Onboard a project
 
 1. Read the workspace README, [workspace model](../../../docs/workspace-model.md),
    and target project's local guidance. Inspect registry and Git status in both
@@ -19,7 +19,7 @@ description: Onboard a new or existing workspace project. Use when adding or reg
    requested, and verify the project's Git top-level. Never inject an upward
    workspace relationship or project location into its self-contained guidance.
 4. Add registry metadata and established dependency IDs. Use
-   [registry-checks](../registry-checks/SKILL.md) for checks and dependency changes.
+   [run-checks](../run-checks/SKILL.md) for checks and dependency changes.
 5. Run `wsup validate` and `wsup projects`. Review both owners' Git status.
    Check project guidance if present. Generate an editor file only when requested;
    an existing file requires deliberate manual review.

@@ -292,8 +292,11 @@ binary. No commit, installation, or publication is automatic.
 
 ## Guidance
 
-Read local `AI.md` and `guidance/rules/index.md`. All 12 portable skills are
-included under `.agents/skills/`; no client, provider, credential, MCP server, or
+Read local `AI.md` and `guidance/rules/index.md`. Seven base skills are always
+included under `.agents/skills/`; project collections (`apps`, `packages`,
+`tools`, `infra`, `sandbox`, `templates`, `forks`) add five code-change skills,
+installed once however many are selected. Adding a collection installs any of
+its skills not already present. No client, provider, credential, MCP server, or
 adapter is required. Clients may discover that shared path or need explicit skill
 paths. Verify client loading separately from file presence. `guidance` checks
 metadata, local links, owner containment, and structural findings, not whether

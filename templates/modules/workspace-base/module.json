@@ -8,18 +8,13 @@
   ],
   "requires": [],
   "skills": [
-    "ai-guidance-maintenance",
-    "commit-message",
-    "diagnose-issue",
-    "infer-conventions",
+    "check-workspace",
+    "maintain-agents-md",
+    "onboard-project",
     "plan-work",
-    "project-onboarding",
     "recap-work",
-    "registry-checks",
-    "repository-change",
-    "review-change",
-    "template-lifecycle",
-    "workspace-check"
+    "run-checks",
+    "update-workspace"
   ],
   "ignore": [],
   "generate": []

@@ -28,6 +28,17 @@ See the [release guide](docs/releases.md) for version and tag policy.
   `apps/` and `infra/` get a README instead of an empty placeholder. Workspaces
   that selected `artifacts` or `private` report that they need a migration.
 
+- Skills are renamed verb-first: `check-workspace`, `run-checks`,
+  `update-workspace`, `onboard-project`, `maintain-agents-md`, `make-change`,
+  and `write-commit` (formerly `workspace-check`, `registry-checks`,
+  `template-lifecycle`, `project-onboarding`, `ai-guidance-maintenance`,
+  `repository-change`, and `commit-message`).
+- Workspaces get seven base skills; the five code-change skills come with the
+  project collections, so a workspace without one (such as `--preset none`)
+  has no code-change skills. Adding a collection installs its skills.
+- The project starter includes six skills: the code-change skills and
+  `plan-work`.
+
 ### Removed
 
 - The `private` collection. Its name suggested protection it never provided;
