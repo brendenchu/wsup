@@ -27,6 +27,11 @@ func workspaceBytes(t *testing.T, root string) map[string]string {
 			files[name] = "directory"
 			return nil
 		}
+		if entry.Type()&fs.ModeSymlink != 0 {
+			target, err := os.Readlink(name)
+			files[name] = "link:" + target
+			return err
+		}
 		body, err := os.ReadFile(name)
 		if err != nil {
 			return err

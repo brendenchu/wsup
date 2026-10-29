@@ -127,8 +127,10 @@ folder's rules. wsup writes only between `<!-- wsup:begin NAME -->` and
 `<!-- wsup:end NAME -->` markers; everything else in AGENTS.md is yours.
 
 Portable skills are under `.agents/skills/`: seven base skills, plus
-code-change skills when a project collection is selected. No adapter
-installation is required by WSUP. Clients may support that location or need an
-explicit `SKILL.md` path. Verify actual loading separately: `guidance` checks
+code-change skills when a project collection is selected. Agent adapters
+(`CLAUDE.md`, `GEMINI.md`, and the `.claude/skills` link to `.agents/skills/`)
+point those agents at the same files; see the
+[workspace model](docs/workspace-model.md#agent-adapters-and-the-skills-link).
+Clients may support these locations or need an explicit `SKILL.md` path. Verify actual loading separately: `guidance` checks
 local structure, metadata, markers, and links, not client discovery or
 invocation. Independent projects keep their own instructions.

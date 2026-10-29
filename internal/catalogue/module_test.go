@@ -126,6 +126,10 @@ func TestLoadRejectsInvalidModules(t *testing.T) {
 		"multi-line ignore":    {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"ignore":["a\nb"]`)},
 		"comment ignore":       {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"ignore":["# x"]`)},
 		"ignore without base":  {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"ignore":["notes/*.tmp"]`)},
+		"link elsewhere":       {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"links":{".claude/skills":"../docs"}`)},
+		"absolute link":        {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"links":{".claude/skills":"/tmp/skills"}`)},
+		"link in skills":       {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"links":{".agents/x":"skills"}`)},
+		"link over a file":     {"modules/notes/module.json": collection(`"kind":"collection","skills":[],"requires":[],"links":{"notes/README.md":"../.agents/skills"}`)},
 		"reserved id":          {"modules/none/module.json": manifest(`"id":"none","kind":"collection","version":"1.0.0","description":"x","applies_to":["workspace"],"requires":[],"skills":[],"ignore":[],"generate":[]`)},
 	} {
 		if _, err := load(testTree(change)); err == nil {

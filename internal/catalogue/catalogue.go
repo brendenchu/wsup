@@ -34,6 +34,35 @@ func CollectionNames() []string {
 	return mustLoad().IDs(KindCollection)
 }
 
+// AgentNames returns a fresh ordered list of built-in agent adapters.
+func AgentNames() []string {
+	return mustLoad().IDs(KindAgent)
+}
+
+// ComposeAgents resolves an --agent selection: no names means every adapter,
+// a lone NoPreset ("none") means none, and anything else is validated, sorted,
+// and deduplicated.
+func ComposeAgents(names []string) ([]string, error) {
+	available := AgentNames()
+	if len(names) == 0 {
+		return available, nil
+	}
+	if slices.Contains(names, NoPreset) {
+		if slices.ContainsFunc(names, func(name string) bool { return name != NoPreset }) {
+			return nil, fmt.Errorf("--agent %s cannot be combined with other agents", NoPreset)
+		}
+		return []string{}, nil
+	}
+	selected := slices.Sorted(slices.Values(names))
+	selected = slices.Compact(selected)
+	for _, name := range selected {
+		if !slices.Contains(available, name) {
+			return nil, fmt.Errorf("unknown agent %q; select from %s, or %s", name, strings.Join(available, ", "), NoPreset)
+		}
+	}
+	return selected, nil
+}
+
 // PresetNames returns a fresh ordered list of built-in presets.
 func PresetNames() []string {
 	return mustLoad().IDs(KindPreset)
@@ -74,32 +103,48 @@ func Bundle(kind string) (map[string][]byte, error) {
 
 // BundleSelected includes only explicitly selected collection scaffolds.
 func BundleSelected(kind string, collections []string) (map[string][]byte, error) {
+	files, _, err := Starter(kind, collections, nil)
+	return files, err
+}
+
+// Starter returns the files and links for a starter with the given collections
+// and agent adapters. Agents are already resolved (see ComposeAgents).
+func Starter(kind string, collections, agents []string) (map[string][]byte, map[string]string, error) {
 	if kind != "workspace" && kind != "project" {
-		return nil, fmt.Errorf("template must be workspace or project")
+		return nil, nil, fmt.Errorf("template must be workspace or project")
 	}
 	if kind != "workspace" && len(collections) != 0 {
-		return nil, fmt.Errorf("optional collections require a workspace template")
+		return nil, nil, fmt.Errorf("optional collections require a workspace template")
 	}
 	selected, err := SelectCollections(collections)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+	for _, agent := range agents {
+		if !slices.Contains(AgentNames(), agent) {
+			return nil, nil, fmt.Errorf("unknown agent %q", agent)
+		}
 	}
 	c, err := Load()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	ids, err := c.Resolve(kind, selected)
+	ids, err := c.Resolve(kind, append(slices.Clone(selected), agents...))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	files, err := c.Files(ids)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if len(files) == 0 {
-		return nil, fmt.Errorf("embedded starter catalogue is empty")
+		return nil, nil, fmt.Errorf("embedded starter catalogue is empty")
 	}
-	return files, nil
+	links, err := c.Links(ids)
+	if err != nil {
+		return nil, nil, err
+	}
+	return files, links, nil
 }
 
 // Open returns a read-only filesystem without accessing the checkout or extracting files.

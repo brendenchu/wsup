@@ -174,3 +174,51 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 		t.Fatalf("child inherited collection defaults: %+v %v", childState.State, err)
 	}
 }
+
+func TestInitAgentSelection(t *testing.T) {
+	parent := t.TempDir()
+	run := func(want int, args ...string) {
+		t.Helper()
+		var stdout, stderr bytes.Buffer
+		if code := Run(append([]string{"init"}, args...), &stdout, &stderr); code != want {
+			t.Fatalf("%v: %d %s", args, code, &stderr)
+		}
+	}
+	run(0, filepath.Join(parent, "all"))
+	run(0, filepath.Join(parent, "none"), "--agent", "none")
+	run(0, filepath.Join(parent, "gemini"), "--agent", "gemini", "--agent", "gemini")
+	run(0, filepath.Join(parent, "project"), "--template", "project", "--agent", "claude")
+	for _, args := range [][]string{
+		{filepath.Join(parent, "bad"), "--agent", "unknown"},
+		{filepath.Join(parent, "bad"), "--agent", "none", "--agent", "claude"},
+	} {
+		run(2, args...)
+	}
+	if _, err := os.Lstat(filepath.Join(parent, "bad")); !os.IsNotExist(err) {
+		t.Fatal("invalid agent selection wrote output")
+	}
+	for name, want := range map[string][]string{"all": {"claude", "gemini"}, "none": nil, "gemini": {"gemini"}, "project": {"claude"}} {
+		loaded, err := scaffolding.LoadState(filepath.Join(parent, name))
+		if err != nil || !reflect.DeepEqual(loaded.State.Agents, want) {
+			t.Fatalf("%s agents: %v %v", name, loaded.State.Agents, err)
+		}
+	}
+	var stdout, stderr bytes.Buffer
+	if code := Run([]string{"--root", filepath.Join(parent, "all"), "validate"}, &stdout, &stderr); code != 0 {
+		t.Fatalf("validate: %s", &stderr)
+	}
+	if err := os.Remove(filepath.Join(parent, "all/.claude/skills")); err != nil {
+		t.Fatal(err)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if code := Run([]string{"--root", filepath.Join(parent, "all"), "validate"}, &stdout, &stderr); code != 2 ||
+		!strings.Contains(stderr.String(), "Link .claude/skills is missing") {
+		t.Fatalf("validate missing link: %d %s", code, &stderr)
+	}
+	stdout.Reset()
+	if code := Run([]string{"--root", filepath.Join(parent, "all"), "guidance"}, &stdout, &stderr); code != 1 ||
+		!strings.Contains(stdout.String(), "Link .claude/skills is missing") {
+		t.Fatalf("guidance missing link: %d %s", code, &stdout)
+	}
+}

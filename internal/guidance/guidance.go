@@ -31,6 +31,8 @@ var (
 	linkPattern   = regexp.MustCompile(`\]\(([^)]+)\)`)
 	schemePattern = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.-]*:`)
 	skillName     = regexp.MustCompile(`^[a-z0-9-]{1,63}$`)
+	// importPattern matches a whole-line @path import (CLAUDE.md, GEMINI.md).
+	importPattern = regexp.MustCompile(`(?m)^@([^\s@]+\.md)\s*$`)
 	markerPattern = regexp.MustCompile(`<!-- wsup:(begin|end) ([a-z][a-z0-9-]*) -->`)
 )
 
@@ -80,7 +82,8 @@ func Inspect(root string) (Result, error) {
 	if !regular(filepath.Join(root, "AGENTS.md")) {
 		result.Errors = append(result.Errors, "Missing AGENTS.md")
 	}
-	candidates := []string{filepath.Join(root, "AGENTS.md")}
+	// Agent adapter files point at AGENTS.md; inspect them when present.
+	candidates := []string{filepath.Join(root, "AGENTS.md"), filepath.Join(root, "CLAUDE.md"), filepath.Join(root, "GEMINI.md")}
 	// Folder rules live one level down (collections, docs, workbench). Deeper
 	// AGENTS.md files belong to projects, inspected with --project.
 	entries, err := os.ReadDir(root)
@@ -143,6 +146,15 @@ func Inspect(root string) (Result, error) {
 			}
 			if !registry.Within(root, target) || !regular(target) {
 				result.Errors = append(result.Errors, relative+": unresolved/nonlocal reference")
+			}
+		}
+		for _, match := range importPattern.FindAllStringSubmatch(text, -1) {
+			target, err := registry.Resolve(filepath.Join(filepath.Dir(name), match[1]))
+			if err != nil {
+				return Result{}, err
+			}
+			if !registry.Within(root, target) || !regular(target) {
+				result.Errors = append(result.Errors, relative+": unresolved @ import")
 			}
 		}
 		if filepath.Base(name) == "AGENTS.md" {

@@ -45,7 +45,13 @@ type Manifest struct {
 	Ignore      []string `json:"ignore"`
 	Generate    []string `json:"generate"`
 	Modules     []string `json:"modules,omitempty"`
+	// Links maps a workspace-relative path to a relative symlink target. The
+	// only link wsup creates points at the shared skill library.
+	Links map[string]string `json:"links,omitempty"`
 }
+
+// skillLibrary is the one directory a module link may point to.
+const skillLibrary = ".agents/skills"
 
 // Module is a validated manifest with the files it installs, keyed by
 // workspace-relative path. Templates are rendered against RenderData for the
@@ -219,6 +225,24 @@ func (c *Catalogue) Files(ids []string) (map[string][]byte, error) {
 		}
 	}
 	return files, nil
+}
+
+// Links returns the symlinks the resolved modules install, keyed by path.
+func (c *Catalogue) Links(ids []string) (map[string]string, error) {
+	links := map[string]string{}
+	for _, id := range ids {
+		module, ok := c.modules[id]
+		if !ok {
+			return nil, fmt.Errorf("unknown module %q", id)
+		}
+		for name, target := range module.Links {
+			if previous, exists := links[name]; exists && previous != target {
+				return nil, fmt.Errorf("modules disagree on link %s", name)
+			}
+			links[name] = target
+		}
+	}
+	return links, nil
 }
 
 // renderData describes the resolved selection for templates.
@@ -427,8 +451,17 @@ func (c *Catalogue) validate() error {
 				return fail("file %q must be a portable workspace path outside .agents/skills", name)
 			}
 		}
+		for name, target := range module.Links {
+			resolved := path.Join(path.Dir(name), target)
+			if !portable(name) || strings.HasPrefix(name, ".agents") || path.IsAbs(target) || resolved != skillLibrary {
+				return fail("link %s -> %s must be a relative link to %s", name, target, skillLibrary)
+			}
+			if mergedKeys(module.Files, module.Templates)[name] {
+				return fail("installs %s as both a file and a link", name)
+			}
+		}
 		if module.Kind == KindPreset {
-			if len(module.Modules) == 0 || len(module.Files) != 0 || len(module.Templates) != 0 || len(module.Ignore) != 0 || len(module.Skills) != 0 || len(module.Requires) != 0 {
+			if len(module.Modules) == 0 || len(module.Files) != 0 || len(module.Templates) != 0 || len(module.Ignore) != 0 || len(module.Links) != 0 || len(module.Skills) != 0 || len(module.Requires) != 0 {
 				return fail("a preset only lists modules")
 			}
 			for _, member := range module.Modules {

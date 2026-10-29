@@ -2,6 +2,7 @@ package scaffolding
 
 import (
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -23,15 +24,22 @@ func Initialise(destination, version, kind string) (string, error) {
 
 // InitialiseSelected creates only explicitly selected optional workspace homes.
 func InitialiseSelected(destination, version, kind string, names []string) (string, error) {
+	return InitialiseWith(destination, version, kind, names, nil)
+}
+
+// InitialiseWith creates a starter with explicit collections and resolved agent
+// adapters (see catalogue.ComposeAgents). Adapter links are created after the
+// files and before state, so a failure never commits state for missing links.
+func InitialiseWith(destination, version, kind string, names, agents []string) (string, error) {
 	selected, err := catalogue.SelectCollections(names)
 	if err != nil {
 		return "", err
 	}
-	files, err := catalogue.BundleSelected(kind, selected)
+	files, links, err := catalogue.Starter(kind, selected, agents)
 	if err != nil {
 		return "", err
 	}
-	return initialiseSelected(destination, version, kind, files, selected, writeManaged)
+	return initialiseStarter(destination, version, kind, files, links, selected, agents, writeManaged)
 }
 
 func initialiseProject(destination, version string, files map[string][]byte, write func(*os.Root, string, []byte, bool) error) (string, error) {
@@ -43,10 +51,17 @@ func initialise(destination, version, kind string, files map[string][]byte, writ
 }
 
 func initialiseSelected(destination, version, kind string, files map[string][]byte, selected []string, write func(*os.Root, string, []byte, bool) error) (string, error) {
+	return initialiseStarter(destination, version, kind, files, nil, selected, nil, write)
+}
+
+func initialiseStarter(destination, version, kind string, files map[string][]byte, links map[string]string, selected, agents []string, write func(*os.Root, string, []byte, bool) error) (string, error) {
 	if len(files) == 0 {
 		return "", fmt.Errorf("embedded starter catalogue is empty")
 	}
-	state := State{Version: StateVersion, TemplateVersion: version, Template: kind, Files: make(map[string]string, len(files)), Collections: selected}
+	state := State{Version: StateVersion, TemplateVersion: version, Template: kind, Files: make(map[string]string, len(files)), Collections: selected, Agents: agents}
+	if len(links) != 0 {
+		state.Links = links
+	}
 	names := make([]string, 0, len(files))
 	for name, body := range files {
 		if kind == "project" && name == "workspace.json" {
@@ -86,6 +101,11 @@ func initialiseSelected(destination, version, kind string, files map[string][]by
 	slices.Sort(names)
 	for _, name := range names {
 		if err := write(root, name, files[name], true); err != nil {
+			return fail(err)
+		}
+	}
+	for _, name := range slices.Sorted(maps.Keys(links)) {
+		if err := createLink(root, name, links[name]); err != nil {
 			return fail(err)
 		}
 	}

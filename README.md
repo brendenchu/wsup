@@ -214,8 +214,11 @@ Run `wsup guidance` in a generated workspace to check local structure and
 links. That does not prove a client loaded or invoked a skill. A generated
 workspace's `AGENTS.md` holds its instructions and a generated table of its
 installed skills.
-No client adapter, global installation, credential, or model configuration is
-created. There is no `skills install` command.
+`init` also installs agent adapters: `CLAUDE.md` and a `.claude/skills` link
+to `.agents/skills/` for Claude Code, and `GEMINI.md` for Gemini CLI. Choose
+them with `--agent NAME` (repeatable) or skip them with `--agent none`. No
+global installation, credential, or model configuration is created, and there
+is no `skills install` command.
 
 Use the normal template-update preview/apply flow to refresh bundled content;
 it does not download a new release. To disable skill use, use the client's

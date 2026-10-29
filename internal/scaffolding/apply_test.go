@@ -93,7 +93,7 @@ func prepareFixture(t *testing.T) (string, preparedUpdate) {
 	var prepared preparedUpdate
 	_, err := planUpdate(root, "0.2.0", map[string][]byte{
 		"README.md": []byte("new"), "new/nested.md": []byte("new file"),
-	}, nil, &prepared)
+	}, nil, nil, &prepared)
 	if err != nil {
 		t.Fatal(err)
 	}

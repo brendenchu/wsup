@@ -192,3 +192,15 @@ func TestBundledSharedSkillsAndInvalidEdits(t *testing.T) {
 		}
 	}
 }
+
+func TestAdapterImportsMustResolve(t *testing.T) {
+	root := t.TempDir()
+	put(t, root, "AGENTS.md", "Local\n")
+	put(t, root, "CLAUDE.md", "@AGENTS.md\n")
+	put(t, root, "GEMINI.md", "@missing.md\n")
+	result, err := Inspect(root)
+	if err != nil || strings.Join(result.Errors, ",") != "GEMINI.md: unresolved @ import" ||
+		strings.Join(result.Files, ",") != "AGENTS.md,CLAUDE.md,GEMINI.md" {
+		t.Fatalf("adapter imports: %+v %v", result, err)
+	}
+}

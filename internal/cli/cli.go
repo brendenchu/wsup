@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/brendenchu/wsup/internal/catalogue"
@@ -105,6 +106,14 @@ func newCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			agentNames, err := command.Flags().GetStringArray("agent")
+			if err != nil {
+				return err
+			}
+			agents, err := catalogue.ComposeAgents(agentNames)
+			if err != nil {
+				return err
+			}
 			if kind != "workspace" && kind != "project" {
 				return fmt.Errorf("template must be workspace or project")
 			}
@@ -116,7 +125,7 @@ func newCommand() *cobra.Command {
 			} else if command.Flags().Changed("preset") {
 				return fmt.Errorf("presets require a workspace template")
 			}
-			destination, err := scaffolding.InitialiseSelected(args[0], Version, kind, collections)
+			destination, err := scaffolding.InitialiseWith(args[0], Version, kind, collections, agents)
 			if err != nil {
 				return err
 			}
@@ -127,6 +136,7 @@ func newCommand() *cobra.Command {
 	init.Flags().String("template", "workspace", "Starter kind (workspace or project)")
 	init.Flags().String("preset", catalogue.DefaultPreset, "Workspace preset ("+strings.Join(catalogue.PresetNames(), ", ")+"; "+catalogue.NoPreset+" for the base only)")
 	init.Flags().StringArray("collection", nil, "Workspace collection added to the preset (repeatable)")
+	init.Flags().StringArray("agent", nil, "Agent adapter ("+strings.Join(catalogue.AgentNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
 	root.AddCommand(init)
 	update := &cobra.Command{
 		Use: "update", Short: "Preview native managed-content updates; --apply writes",
@@ -246,6 +256,13 @@ func inspectWorkspace(command *cobra.Command, args []string) error {
 	}
 	switch command.Name() {
 	case "validate":
+		findings, err := scaffolding.CheckLinks(root)
+		if err != nil {
+			return err
+		}
+		if len(findings) != 0 {
+			return fmt.Errorf("%s", strings.Join(findings, "; "))
+		}
 		_, err = fmt.Fprintf(command.OutOrStdout(), "Valid: %s (%d projects)\n", data.Name, len(data.Projects))
 		return err
 	case "projects":
@@ -284,6 +301,11 @@ func inspectGuidance(output io.Writer, root string) error {
 	result, err := guidance.Inspect(root)
 	if err != nil {
 		return err
+	}
+	// Managed adapter links are structural guidance, recorded in starter state.
+	if links, err := scaffolding.CheckLinks(root); err == nil {
+		result.Errors = append(result.Errors, links...)
+		sort.Strings(result.Errors)
 	}
 	if err := writeJSON(output, result); err != nil {
 		return err

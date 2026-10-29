@@ -36,11 +36,20 @@ them rather than the generic workspace kit.
 
 ## Client integration
 
-No agent, model provider, credential, MCP server, or global skill is installed.
-Clients differ in how they discover instructions and skills. Configure a chosen
-client to read the local `AGENTS.md`, or provide a skill's
-`SKILL.md` path when needed. Add a client-specific adapter only when required and
-validate it with that client's current documentation.
+No model provider, credential, MCP server, or global skill is installed.
+Clients differ in how they discover instructions and skills, so `init` adds
+agent adapters for clients that do not read `AGENTS.md` and `.agents/skills/`
+directly. An adapter holds only pointers, never instructions:
+
+| Adapter | Files | Why |
+| --- | --- | --- |
+| `claude` | `CLAUDE.md` (`@AGENTS.md`), `.claude/skills -> ../.agents/skills` | Claude Code reads `CLAUDE.md` and `.claude/skills/` |
+| `gemini` | `GEMINI.md` (`@AGENTS.md`) | Gemini CLI reads `GEMINI.md`; it already finds `.agents/skills/` |
+
+All adapters are installed by default; `--agent NAME` (repeatable) selects
+some and `--agent none` skips them. `.claude/skills` is the only symlink wsup
+creates. Clients that read `AGENTS.md` natively, such as Codex, need no
+adapter. File presence does not prove a client loads them; verify in the client.
 
 ### Skill discovery and compatibility
 
@@ -67,7 +76,7 @@ always uses the invoked binary's catalogue.
 | VS Code Copilot | `.agents/skills/`, `.github/skills/`, `.claude/skills/` | Same-name skills can appear in multiple locations; inspect the Skills view. Do not infer cross-location precedence from workspace-root precedence | Upstream documentation only |
 | Codex CLI / IDE extension | `.agents/skills/` from the current directory up to the repository root | Same-name skills are not merged and can both appear. Changes are detected automatically; restart if needed | Upstream documentation only |
 | Gemini CLI | `.agents/skills/` or `.gemini/skills/` | Workspace overrides user scope; `.agents/skills/` wins over `.gemini/skills/` at the same scope. Use `/skills list` and `/skills reload`; activation requests consent | Upstream documentation only |
-| Claude Code | Project `.claude/skills/`; repository-scoped discovery | Native-location support is documented; shared `.agents/skills/` discovery is not established here. Start a fresh session and inspect available skills when verifying | Explicit-path fallback for WSUP; an optional adapter remains a separate decision |
+| Claude Code | Project `.claude/skills/`; repository-scoped discovery | Native-location support is documented; the `claude` adapter links `.claude/skills` to `.agents/skills` rather than relying on shared-path discovery. Start a fresh session and inspect available skills when verifying | Installed by default with the `claude` adapter; explicit paths remain a fallback |
 | Copilot CLI, cloud agent, app, other assistants | Must be checked for each experience | VS Code settings are not automatically inherited by other clients | No automatic-discovery claim yet |
 
 Sources:
@@ -88,8 +97,8 @@ canonical guidance; provide explicit paths when needed. Codex documents
 [AGENTS.md discovery](https://developers.openai.com/codex/guides/agents-md);
 Gemini documents a separate
 [GEMINI.md context mechanism](https://geminicli.com/docs/cli/gemini-md/).
-Any additional client entry point must be optional and point to the canonical
-guidance instead of copying its policies.
+Each adapter entry point imports the canonical `AGENTS.md` instead of copying
+its policies.
 
 Workspace-local discovery is the default. WSUP will not install skills into
 independent child repositories, user home directories, or machine-wide locations.
@@ -106,14 +115,16 @@ per-client skill installer.
 
 ### Setup and client controls
 
-WSUP uses shared discovery and explicit-path invocation. It does not provide a
-client-specific adapter or installer command.
+WSUP uses shared discovery, the adapters above, and explicit-path invocation.
+It has no installer command.
 
 For setup, open the workspace root and inspect the client's skill list. Provide
 the explicit `SKILL.md` path when discovery is unavailable. Refresh client
 discovery with its documented controls after a template update. To stop using
 skills, use client-level disabling rather than removing files referenced by the
-AGENTS.md skills table. There is no WSUP adapter to uninstall and no global state to remove.
+AGENTS.md skills table. Removing an adapter is not supported yet: its files and
+link are recorded in template state, so `update` reports deleted adapter files
+and re-creates the link. There is no global state to remove.
 
 ## Keep guidance useful
 

@@ -15,6 +15,12 @@ See the [release guide](docs/releases.md) for version and tag policy.
   trimmed trailing whitespace) and `.gitattributes` (`* text=auto eol=lf`).
 - Collections can declare ignore entries, written to a marked block in the
   workspace `.gitignore`. `data` ignores `data/**/*.local.*`.
+- Agent adapters: `claude` (`CLAUDE.md` importing `AGENTS.md`, and a
+  `.claude/skills` link to `.agents/skills`) and `gemini` (`GEMINI.md`).
+  `init` installs both by default; `--agent NAME` selects and `--agent none`
+  skips them. `.claude/skills` is the only symlink wsup creates: `update`
+  re-creates it when missing, and `validate` and `guidance` report a missing
+  or broken link.
 - `wsup init --preset NAME` selects a preset of collections; explicit
   `--collection` choices add to it. `--preset none` creates a base-only
   workspace. Unknown presets fail before anything is written.

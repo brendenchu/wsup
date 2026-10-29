@@ -33,7 +33,7 @@ for product changes. Binary replacement and managed-content updates are separate
 | `guidance` | Prints structural findings as JSON; optional `--project ID` selects a registered owner. |
 | `editor` | Creates a relative-path VS Code workspace file; `--output NAME` must be a new file directly in the root. |
 | `check` | Requires repeatable `--project ID`; optional repeatable `--check NAME`, `--timeout SECONDS`, `--show-output`. |
-| `init DESTINATION` | Creates a new workspace immediately; `--preset NAME` selects a preset (default `development`; `none` for the base only) and repeatable `--collection NAME` adds collections to it. `--template project` creates a project without a registry/runtime; presets and collections are workspace-only. |
+| `init DESTINATION` | Creates a new workspace immediately; repeatable `--agent NAME` selects agent adapters (default all; `none` for none); `--preset NAME` selects a preset (default `development`; `none` for the base only) and repeatable `--collection NAME` adds collections to it. `--template project` creates a project without a registry/runtime; presets and collections are workspace-only. |
 | `update` | Prints a managed-content plan; `--apply` writes when conflict-free, repeatable `--keep PATH` retains eligible same-path customizations. |
 | `collections` | Lists available names; repeatable `--add NAME` previews additions, `--apply` writes when conflict-free. |
 
@@ -310,9 +310,32 @@ file is a conflict. `update` still compares whole files. Seven base skills are a
 included under `.agents/skills/`; project collections (`apps`, `packages`,
 `tools`, `infra`, `sandbox`, `templates`, `forks`) add five code-change skills,
 installed once however many are selected. Adding a collection installs any of
-its skills not already present. No client, provider, credential, MCP server, or
-adapter is required. Clients may discover that shared path or need explicit skill
+its skills not already present. No provider, credential, or MCP server is
+required. Clients may discover that shared path or need explicit skill
 paths. Verify client loading separately from file presence. `guidance` checks
 metadata, local links, marker pairing, owner containment, and structural findings, not whether
 an AI client invoked a skill. Findings are sorted lexically, preserving duplicates.
 Independent projects keep their required guidance themselves.
+
+### Agent adapters and the skills link
+
+An agent adapter only adds pointers for an agent that does not read `AGENTS.md`
+or `.agents/skills/` natively; it never holds instructions. `init` installs every
+adapter unless `--agent NAME` (repeatable) or `--agent none` says otherwise,
+for workspaces and projects alike. The installed adapters are recorded in
+template state; `update` keeps them current but never installs an adapter that
+was not selected, including adapters added in a later wsup version.
+
+| Adapter | Files |
+| --- | --- |
+| `claude` | `CLAUDE.md` (`@AGENTS.md`), `.claude/skills -> ../.agents/skills` |
+| `gemini` | `GEMINI.md` (`@AGENTS.md`) |
+
+`.claude/skills` is the only symlink wsup creates, and a module may declare no
+other link: its target must be the relative path to `.agents/skills`. It is
+recorded in state as a link with its target, not as a file hash. `update`
+re-creates it when missing and reports a conflict, leaving the path alone, when
+it is a real directory or points elsewhere. `validate` and `guidance` report a
+missing, wrong, or broken link. The relative target keeps working when the
+workspace is moved. Every other wsup read still refuses to follow links out of
+the workspace root.

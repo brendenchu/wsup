@@ -43,6 +43,11 @@ type State struct {
 	Files            map[string]string `json:"files"`
 	Collections      []string          `json:"collections,omitempty"`
 	OmittedHomeFiles []string          `json:"omitted_home_files,omitempty"`
+	// Agents are the installed agent adapters. A state without them gets no
+	// adapters on update: new adapters are offered, never installed silently.
+	Agents []string `json:"agents,omitempty"`
+	// Links maps each managed symlink to its relative target.
+	Links map[string]string `json:"links,omitempty"`
 }
 
 // LoadedState carries exact original bytes for a later apply-time change check.
@@ -113,7 +118,7 @@ func ParseState(body []byte) (State, error) {
 		return State{}, fmt.Errorf("unsupported template state fields")
 	}
 	for name := range raw {
-		if !slices.Contains([]string{"version", "template_version", "template", "files", "collections", "omitted_home_files"}, name) {
+		if !slices.Contains([]string{"version", "template_version", "template", "files", "collections", "omitted_home_files", "agents", "links"}, name) {
 			return State{}, fmt.Errorf("unsupported template state field %s", name)
 		}
 	}
@@ -141,6 +146,20 @@ func ParseState(body []byte) (State, error) {
 			}
 		}
 	}
+	for name, target := range state.Links {
+		if _, file := state.Files[name]; file || !portableFile(name) || target == "" || path.IsAbs(target) ||
+			strings.HasPrefix(name, ".wsup/") || !portableFile(path.Join(path.Dir(name), target)) {
+			return State{}, fmt.Errorf("template state contains an invalid managed link")
+		}
+	}
+	agents := catalogue.AgentNames()
+	for _, agent := range state.Agents {
+		if !slices.Contains(agents, agent) {
+			return State{}, fmt.Errorf("invalid agents selection")
+		}
+	}
+	slices.Sort(state.Agents)
+	state.Agents = slices.Compact(state.Agents)
 	for _, field := range []struct {
 		name    string
 		values  *[]string
