@@ -90,6 +90,7 @@ to PATH. The main commands:
 | `validate` | Validate `wsup.json` without running project code |
 | `projects` | List registered projects |
 | `config` | Show effective settings and their sources |
+| `run PROJECT TASK` | Run one project task in the terminal |
 | `guidance` | Check workspace instructions and local links |
 | `guidance --project ID` | Check one project's instructions |
 | `editor` | Create a relative-path VS Code workspace file (the `vscode` adapter generates one at init) |

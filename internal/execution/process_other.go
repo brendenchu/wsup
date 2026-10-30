@@ -16,4 +16,8 @@ func stopProcess(command *exec.Cmd) error {
 	return command.Process.Kill()
 }
 
+func terminateProcess(command *exec.Cmd) error {
+	return command.Process.Kill()
+}
+
 func processExitCode(state *os.ProcessState) int { return state.ExitCode() }

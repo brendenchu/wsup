@@ -36,6 +36,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
   `--collection` choices add to it. `--preset none` creates a base-only
   workspace. Unknown presets fail before anything is written.
 - `wsup check --all` runs the check tasks of every project.
+- `wsup run PROJECT TASK` runs any project task connected to the terminal and
+  exits with its exit code. Only the task's own `timeout_seconds` (or
+  `--timeout`) limits it, it writes no report, and interrupting it stops the
+  task's process group gracefully.
 - `wsup add MODULE...` previews adding collections or agent and editor
   adapters (with any modules they require, listed under `installs`); `--apply`
   installs them, creating the `.claude/skills` link where needed. It works in

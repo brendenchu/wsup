@@ -147,6 +147,65 @@ func runChecks(command *cobra.Command, args []string) error {
 	return nil
 }
 
+// runTask runs one project task with the terminal's streams and exits with
+// its exit code. Only the task's own timeout (or --timeout) applies, so
+// long-running tasks are not stopped by the workspace check default.
+func runTask(command *cobra.Command, args []string) error {
+	name, err := command.Root().Flags().GetString("root")
+	if err != nil {
+		return err
+	}
+	root, err := registry.Resolve(name)
+	if err != nil {
+		return err
+	}
+	data, err := registry.Load(root)
+	if err != nil {
+		return err
+	}
+	project, task, err := data.Task(args[0], args[1])
+	if err != nil {
+		return err
+	}
+	timeout := task.Check.TimeoutSeconds
+	if command.Flags().Changed("timeout") {
+		value, err := command.Flags().GetInt("timeout")
+		if err != nil {
+			return err
+		}
+		if value < 1 || value > 86400 {
+			return fmt.Errorf("--timeout must be 1..86400")
+		}
+		timeout = &value
+	}
+	limit := time.Duration(0)
+	if timeout != nil {
+		limit = time.Duration(*timeout) * time.Second
+	}
+	if err := execution.Supported(); err != nil {
+		return err
+	}
+	cwd := filepath.Join(root, filepath.FromSlash(project.Path), filepath.FromSlash(task.Cwd))
+	result, err := execution.Stream(command.Context(), task.Check.Command, cwd, limit,
+		command.InOrStdin(), command.OutOrStdout(), command.ErrOrStderr())
+	if err != nil {
+		return err
+	}
+	switch {
+	case result.Status == "cancelled":
+		return statusError{code: 130}
+	case result.Status == "timeout":
+		fmt.Fprintf(command.ErrOrStderr(), "%s:%s: timed out\n", project.ID, task.Name)
+		return statusError{code: 124}
+	case result.ExitCode != nil && *result.ExitCode < 0:
+		// A task ended by a signal exits the way a shell reports it.
+		return statusError{code: 128 - *result.ExitCode}
+	case result.ExitCode != nil && *result.ExitCode != 0:
+		return statusError{code: *result.ExitCode}
+	}
+	return nil
+}
+
 func effectiveTimeout(workspace int, check, override *int) int {
 	if override != nil {
 		return *override

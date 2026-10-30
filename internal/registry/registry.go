@@ -117,6 +117,27 @@ func (r Registry) Select(requested, names []string, all bool) ([]Selection, erro
 	return selected, nil
 }
 
+// Task returns one task of one project, check or not.
+func (r Registry) Task(projectID, name string) (Project, Task, error) {
+	index := slices.IndexFunc(r.Projects, func(project Project) bool { return project.ID == projectID })
+	if index < 0 {
+		return Project{}, Task{}, fmt.Errorf("Unknown project: %s", projectID)
+	}
+	project := r.Projects[index]
+	task := slices.IndexFunc(project.Tasks, func(task Task) bool { return task.Name == name })
+	if task < 0 {
+		names := []string{}
+		for _, task := range project.Tasks {
+			names = append(names, task.Name)
+		}
+		if len(names) == 0 {
+			return Project{}, Task{}, fmt.Errorf("%s: unknown task %s; the project has no tasks", projectID, name)
+		}
+		return Project{}, Task{}, fmt.Errorf("%s: unknown task %s; tasks: %s", projectID, name, strings.Join(names, ", "))
+	}
+	return project, project.Tasks[task], nil
+}
+
 // Load reads wsup.json at root with Decode, then checks every project path
 // against the filesystem: it must resolve inside root, be unique, and contain
 // README.md, and task directories must stay inside their project. Repository

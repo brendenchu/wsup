@@ -46,6 +46,7 @@ workspace before staging; registry metadata alone does not configure Git.
 wsup check --project PROJECT_ID
 wsup check --project PROJECT_ID --task test --show-output
 wsup check --all
+wsup run PROJECT_ID build
 wsup config
 ```
 

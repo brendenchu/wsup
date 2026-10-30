@@ -97,6 +97,9 @@ func newCommand(s session) *cobra.Command {
 	check.Flags().Int("timeout", 0, "Override timeout in seconds (1..86400)")
 	check.Flags().Bool("show-output", false, "Print retained stdout/stderr to the terminal")
 	root.AddCommand(check)
+	run := &cobra.Command{Use: "run PROJECT TASK", Short: "Run one project task in the terminal", Args: cobra.ExactArgs(2), RunE: runTask}
+	run.Flags().Int("timeout", 0, "Stop the task after this many seconds (1..86400; default: the task's own, or none)")
+	root.AddCommand(run)
 	init := &cobra.Command{
 		Use: "init DESTINATION", Short: "Create a native workspace or project starter",
 		Args: cobra.ExactArgs(1),

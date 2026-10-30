@@ -33,6 +33,7 @@ for product changes. Binary replacement and managed-content updates are separate
 | `config` | Prints effective settings and their sources as JSON. |
 | `guidance` | Prints structural findings as JSON; optional `--project ID` selects a registered owner. |
 | `editor` | Creates a relative-path VS Code workspace file, identical to the `vscode` adapter's; `--output NAME` must be a new file directly in the root. |
+| `run PROJECT TASK` | Runs any one task with the terminal's input and output and exits with its exit code (124 on timeout, 130 when interrupted); only the task's `timeout_seconds` or `--timeout` limits it; no report. |
 | `check` | Runs check tasks: repeatable `--project ID` or `--all`; optional repeatable `--task NAME`, `--timeout SECONDS`, `--show-output`. |
 | `init DESTINATION` | Creates a new workspace. In a terminal it asks for the preset, agents, and editors that flags leave open; `--yes`, or no terminal, uses the defaults; repeatable `--agent NAME` and `--editor NAME` select agent and editor adapters (default all; `none` for none; editors are workspace-only); `--preset NAME` selects a preset (default `development`; `none` for the base only) and repeatable `--collection NAME` adds collections to it. `--template project` creates a project without a registry/runtime; presets and collections are workspace-only. |
 | `update` | Prints a managed-content plan; `--apply` writes when conflict-free, repeatable `--keep PATH` retains eligible same-path customizations. |
@@ -231,7 +232,12 @@ each requested task must exist and be a check task on every selected project.
 `--all` selects every project with matching check tasks. Selection is fully
 validated before launching tools or creating reports.
 
+`wsup run PROJECT TASK` runs any task, check or not, the same literal way but
+connected to the terminal. Interrupting it asks the task's process group to
+stop and kills it after five seconds.
+
 ```sh
+wsup run app build
 wsup check --project app --project library --task test --show-output
 wsup check --all
 wsup check --project app --timeout 60
