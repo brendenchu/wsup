@@ -111,7 +111,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
   `merge` action), as long as those sections are unchanged.
 - The project starter gains `docs/` and `workbench/`.
 - `wsup guidance` requires `AGENTS.md` instead of `AI.md` and the rule index,
-  inspects top-level folder `AGENTS.md` files, and reports unpaired markers.
+  inspects top-level folder `AGENTS.md` files (skipping a folder with its own
+  `wsup.lock`, which is a nested workspace or project), and reports unpaired
+  markers.
 
 ### Removed
 
@@ -133,7 +135,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
   removed, and `templates/` is the single source for generated content.
   Contributor and agent instructions are in a short `AGENTS.md`.
 - CI and local packaging validate a freshly generated workspace instead of
-  the repository root.
+  the repository root. CI also drives the built binary, with an empty `PATH`,
+  through init, add, update, and migrating the v0.2.0 fixtures.
 - Starter content is organized as modules: each has a validated
   `module.json` manifest and its files under `templates/modules/`, and skills
   live once in a shared `templates/skills/` library. Generated output is

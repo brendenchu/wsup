@@ -379,7 +379,9 @@ required. Clients may discover that shared path or need explicit skill
 paths. Verify client loading separately from file presence. `guidance` checks
 metadata, local links, marker pairing, owner containment, and structural findings, not whether
 an AI client invoked a skill. Findings are sorted lexically, preserving duplicates.
-Independent projects keep their required guidance themselves.
+Independent projects keep their required guidance themselves: `guidance`
+reads `AGENTS.md` one folder deep only, and skips a folder that has its own
+`wsup.lock` (a nested workspace or project).
 
 ### Agent adapters and the skills link
 
