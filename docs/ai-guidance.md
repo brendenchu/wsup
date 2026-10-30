@@ -65,7 +65,8 @@ must still be verified separately.
 
 Development runs `go run ./cmd/wsup`; generated workspaces use a compatible
 external native `wsup` binary. Product sources live in `cmd/`, `internal/`, and
-`templates/`; `.wsup/` holds managed state/reports in native workspaces.
+`templates/`; native workspaces hold `wsup.json`, `wsup.lock`, and reports
+under `workbench/.local/wsup/reports/`.
 User-edited workspace skills are not implicit starter overrides: initialization
 always uses the invoked binary's catalogue.
 

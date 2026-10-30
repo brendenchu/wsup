@@ -14,7 +14,7 @@ func TestReportFailureNeverPrintsSuccessfulReportPath(t *testing.T) {
 	root := checkFixture(t, map[string]any{"break": checkTool(t, "break-report", "unused")})
 	code, stdout, stderr := invokeCheck(root, "--project", "app")
 	if code != 2 || !strings.Contains(stdout, "app:break: passed") ||
-		strings.Contains(stdout, "Report: ") || !strings.Contains(stderr, "report input workspace.json must be a regular file") {
+		strings.Contains(stdout, "Report: ") || !strings.Contains(stderr, "report input wsup.json must be a regular file") {
 		t.Fatalf("report failure hidden: %d %q %q", code, stdout, stderr)
 	}
 }
@@ -55,7 +55,7 @@ func TestCheckTimeoutBeatsWorkspaceDefault(t *testing.T) {
 
 func TestOutputHiddenByDefaultAndDependenciesNotSelectedImplicitly(t *testing.T) {
 	root := checkFixture(t, map[string]any{"record": checkTool(t, "record", "SYNTHETIC-SECRET-CANARY")})
-	filename := filepath.Join(root, "workspace.json")
+	filename := filepath.Join(root, "wsup.json")
 	body, err := os.ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
@@ -68,7 +68,7 @@ func TestOutputHiddenByDefaultAndDependenciesNotSelectedImplicitly(t *testing.T)
 	projects[0].(map[string]any)["dependencies"] = []string{"dependency"}
 	projects = append(projects, map[string]any{
 		"id": "dependency", "path": ".", "kind": "tool", "repository": "workspace",
-		"purpose": "Fixture", "owner": "Test", "checks": map[string]any{"write": checkTool(t, "marker", "unexpected")},
+		"purpose": "Fixture", "owner": "Test", "tasks": checkTasks(map[string]any{"write": checkTool(t, "marker", "unexpected")}),
 	})
 	document["projects"] = projects
 	if err := os.WriteFile(filepath.Join(root, "README.md"), []byte("Synthetic\n"), 0600); err != nil {
@@ -81,7 +81,7 @@ func TestOutputHiddenByDefaultAndDependenciesNotSelectedImplicitly(t *testing.T)
 	if err := os.WriteFile(filename, body, 0600); err != nil {
 		t.Fatal(err)
 	}
-	code, stdout, stderr := invokeCheck(root, "--pro", "app", "--ch", "record")
+	code, stdout, stderr := invokeCheck(root, "--pro", "app", "--ta", "record")
 	if code != 0 || stderr != "" || strings.Contains(stdout, "SYNTHETIC-SECRET-CANARY") ||
 		strings.Contains(stdout, "dependency") {
 		t.Fatalf("unexpected output/dependency selection: %d %q %q", code, stdout, stderr)

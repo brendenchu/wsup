@@ -25,24 +25,24 @@ func collectionWorkspace(t *testing.T, selected ...string) string {
 func TestCollectionsInitSelectionAndAllOptionalHomes(t *testing.T) {
 	for _, selected := range [][]string{{"research", "archive", "archive"}, catalogue.CollectionNames()} {
 		root := collectionWorkspace(t, selected...)
-		state, err := LoadState(root)
+		state, err := LoadLock(root)
 		want, _ := catalogue.SelectCollections(selected)
-		if err != nil || !reflect.DeepEqual(state.State.Collections, want) {
-			t.Fatalf("init selections: %+v %v", state.State, err)
+		if err != nil || !reflect.DeepEqual(mustSelection(t, state.Lock).Collections, want) {
+			t.Fatalf("init selections: %+v %v", state.Lock, err)
 		}
 		files, err := catalogue.BundleSelected("workspace", selected)
-		if err != nil || len(files) != len(state.State.Files) {
+		if err != nil || len(files) != len(state.Lock.Files) {
 			t.Fatal("selected file inventory mismatch")
 		}
 		for name, body := range files {
 			current, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(name)))
-			if err != nil || !bytes.Equal(current, body) || state.State.Files[name] != contentDigest(body) {
+			if err != nil || !bytes.Equal(current, body) || state.Lock.Files[name] != lockDigest(body) {
 				t.Fatalf("selected asset/hash mismatch: %s %v", name, err)
 			}
 		}
 		for _, name := range catalogue.CollectionNames() {
 			exists := false
-			for file := range state.State.Files {
+			for file := range state.Lock.Files {
 				exists = exists || strings.HasPrefix(file, name+"/")
 			}
 			found := false
@@ -85,7 +85,7 @@ func TestCollectionListingPreviewApplyAndIdempotence(t *testing.T) {
 	before := snapshot(t, root)
 	preview, err := AddCollections(root, []string{"journal", "archive", "journal"}, false)
 	want := []Action{{"AGENTS.md", "write"}, {"archive/AGENTS.md", "write"}, {"archive/README.md", "write"},
-		{"journal/AGENTS.md", "write"}, {"journal/README.md", "write"}, {"journal/TEMPLATE.md", "write"}}
+		{"journal/AGENTS.md", "write"}, {"journal/README.md", "write"}, {"journal/TEMPLATE.md", "write"}, {"wsup.json", "write"}}
 	if err != nil || !reflect.DeepEqual(preview.Actions, want) || !reflect.DeepEqual(*preview.Selected, []string{"archive", "journal"}) || preview.Applied {
 		t.Fatalf("preview: %+v %v", preview, err)
 	}
@@ -102,7 +102,7 @@ func TestCollectionListingPreviewApplyAndIdempotence(t *testing.T) {
 		t.Fatalf("not idempotent: %+v %v", again, err)
 	}
 	writeFixture(t, root, "archive/README.md", []byte("Owner customization"))
-	stateBefore, err := LoadState(root)
+	stateBefore, err := LoadLock(root)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,7 +111,7 @@ func TestCollectionListingPreviewApplyAndIdempotence(t *testing.T) {
 	if err != nil || len(again.Actions) != 0 || !reflect.DeepEqual(before, snapshot(t, root)) {
 		t.Fatal("selected customized scaffold rewritten")
 	}
-	stateAfter, err := LoadState(root)
+	stateAfter, err := LoadLock(root)
 	if err != nil || !bytes.Equal(stateBefore.Original, stateAfter.Original) {
 		t.Fatal("selected customization adopted")
 	}
@@ -147,7 +147,7 @@ func TestCollectionConflictsBlockAllAdditionsEvenIdenticalUnmanagedBytes(t *test
 }
 
 func TestCollectionStaleStateDestinationAndPartialIOFailure(t *testing.T) {
-	for _, change := range []string{StatePath, "archive/README.md"} {
+	for _, change := range []string{LockPath, "archive/README.md"} {
 		root := collectionWorkspace(t)
 		_, prepared, err := planCollections(root, []string{"archive"})
 		if err != nil {
@@ -166,7 +166,7 @@ func TestCollectionStaleStateDestinationAndPartialIOFailure(t *testing.T) {
 	}
 	injected := errors.New("synthetic state write failure")
 	_, err = prepared.applyWith(func(handle *os.Root, name string, body []byte, exclusive bool) error {
-		if name == StatePath {
+		if name == LockPath {
 			return injected
 		}
 		return writeManaged(handle, name, body, exclusive)
@@ -174,8 +174,8 @@ func TestCollectionStaleStateDestinationAndPartialIOFailure(t *testing.T) {
 	if !errors.Is(err, injected) || !strings.Contains(err.Error(), "incomplete") {
 		t.Fatalf("partial failure not surfaced: %v", err)
 	}
-	current, err := LoadState(root)
-	if err != nil || !bytes.Equal(current.Original, prepared.stateBefore) {
+	current, err := LoadLock(root)
+	if err != nil || !bytes.Equal(current.Original, prepared.lockBefore) {
 		t.Fatal("partial collection update committed state")
 	}
 	if _, err := os.Stat(filepath.Join(root, "journal/TEMPLATE.md")); err != nil {
@@ -221,13 +221,13 @@ func TestCollectionAdditionInstallsOwnedSkillsOnce(t *testing.T) {
 	for _, skill := range skills {
 		want = append(want, Action{".agents/skills/" + skill + "/SKILL.md", "write"})
 	}
-	want = append(want, Action{"AGENTS.md", "write"}, Action{"apps/AGENTS.md", "write"}, Action{"apps/README.md", "write"})
+	want = append(want, Action{"AGENTS.md", "write"}, Action{"apps/AGENTS.md", "write"}, Action{"apps/README.md", "write"}, Action{"wsup.json", "write"})
 	added, err := AddCollections(root, []string{"apps"}, true)
 	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, want) {
 		t.Fatalf("first project collection: %+v %v", added, err)
 	}
 	added, err = AddCollections(root, []string{"tools"}, true)
-	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, []Action{{"AGENTS.md", "write"}, {"tools/AGENTS.md", "write"}, {"tools/README.md", "write"}}) {
+	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, []Action{{"AGENTS.md", "write"}, {"tools/AGENTS.md", "write"}, {"tools/README.md", "write"}, {"wsup.json", "write"}}) {
 		t.Fatalf("second project collection: %+v %v", added, err)
 	}
 	plan, err := Update(root, "0.1.0", nil, false)
@@ -257,7 +257,7 @@ func TestDataIgnoreEntryRendersIntoTheGitignoreBlock(t *testing.T) {
 	// Adding data later rewrites an unedited .gitignore with the entry.
 	root = collectionWorkspace(t)
 	added, err := AddCollections(root, []string{"data"}, true)
-	want := []Action{{".gitignore", "write"}, {"AGENTS.md", "write"}, {"data/AGENTS.md", "write"}, {"data/README.md", "write"}}
+	want := []Action{{".gitignore", "write"}, {"AGENTS.md", "write"}, {"data/AGENTS.md", "write"}, {"data/README.md", "write"}, {"wsup.json", "write"}}
 	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, want) {
 		t.Fatalf("data addition: %+v %v", added, err)
 	}

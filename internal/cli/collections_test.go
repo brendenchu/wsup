@@ -47,9 +47,9 @@ func TestCollectionCLIListPreviewApplyAndErrors(t *testing.T) {
 	if code := Run([]string{"init", root, "--collection", "research", "--collection", "archive", "--collection", "research"}, &stdout, &stderr); code != 0 {
 		t.Fatalf("selected init: %d %s", code, &stderr)
 	}
-	loaded, err := scaffolding.LoadState(root)
+	loaded, err := scaffolding.LoadLock(root)
 	// The default preset combines with explicit collections.
-	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"apps", "archive", "infra", "packages", "research", "tools"}) {
+	if err != nil || !reflect.DeepEqual(lockSelection(t, loaded.Lock).Collections, []string{"apps", "archive", "infra", "packages", "research", "tools"}) {
 		t.Fatalf("selected init state: %+v %v", loaded, err)
 	}
 	before := workspaceBytes(t, root)
@@ -74,8 +74,8 @@ func TestCollectionCLIListPreviewApplyAndErrors(t *testing.T) {
 	if string(applied["applied"]) != "true" {
 		t.Fatal("apply not reported")
 	}
-	loaded, err = scaffolding.LoadState(root)
-	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"apps", "archive", "infra", "journal", "packages", "research", "tools"}) {
+	loaded, err = scaffolding.LoadLock(root)
+	if err != nil || !reflect.DeepEqual(lockSelection(t, loaded.Lock).Collections, []string{"apps", "archive", "infra", "journal", "packages", "research", "tools"}) {
 		t.Fatalf("addition lost selections: %+v %v", loaded, err)
 	}
 	if err := os.MkdirAll(filepath.Join(root, "releases"), 0755); err != nil {

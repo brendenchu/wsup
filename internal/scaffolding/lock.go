@@ -6,12 +6,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
+	"os"
 	"path"
+	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/brendenchu/wsup/internal/catalogue"
+	"github.com/brendenchu/wsup/internal/registry"
 )
 
 const (
@@ -87,8 +92,13 @@ func ParseLock(body []byte) (Lock, error) {
 		return Lock{}, fmt.Errorf("wsup.lock: files is required")
 	}
 	for name, digest := range lock.Files {
-		if !portableFile(name) || name == LockPath || !lockDigestPattern.MatchString(digest) {
+		if !portableFile(name) || name == LockPath || name == registry.DocumentPath || !lockDigestPattern.MatchString(digest) {
 			return Lock{}, fmt.Errorf("wsup.lock: invalid file entry %q", name)
+		}
+		for parent := path.Dir(name); parent != "."; parent = path.Dir(parent) {
+			if _, exists := lock.Files[parent]; exists {
+				return Lock{}, fmt.Errorf("wsup.lock: %s is both a file and the parent of %s", parent, name)
+			}
 		}
 	}
 	for key, digest := range lock.Blocks {
@@ -98,7 +108,7 @@ func ParseLock(body []byte) (Lock, error) {
 		}
 	}
 	for name, target := range lock.Links {
-		if !portableFile(name) || target == "" || path.IsAbs(target) || strings.ContainsAny(target, "\\:\x00") {
+		if _, file := lock.Files[name]; file || !portableFile(name) || target == "" || path.IsAbs(target) || strings.ContainsAny(target, "\\:\x00") {
 			return Lock{}, fmt.Errorf("wsup.lock: invalid link entry %q", name)
 		}
 	}
@@ -131,4 +141,111 @@ func EncodeLock(lock Lock) ([]byte, error) {
 		return nil, fmt.Errorf("encode wsup.lock: %w", err)
 	}
 	return encoded.Bytes(), nil
+}
+
+// LoadedLock carries the lock's exact bytes for the apply-time change check.
+type LoadedLock struct {
+	Lock     Lock
+	Original []byte
+}
+
+// LoadLock reads and validates wsup.lock at root. A symlinked or missing lock
+// fails: a starter without one is not managed by this wsup.
+func LoadLock(root string) (LoadedLock, error) {
+	root, err := registry.Resolve(root)
+	if err != nil {
+		return LoadedLock{}, err
+	}
+	filename := filepath.Join(root, LockPath)
+	info, err := os.Lstat(filename)
+	if os.IsNotExist(err) {
+		if _, stateErr := os.Lstat(filepath.Join(root, filepath.FromSlash(StatePath))); stateErr == nil {
+			return LoadedLock{}, fmt.Errorf("this workspace was created by wsup 0.2.0 (%s, no %s); wsup migrate converts it", StatePath, LockPath)
+		}
+	}
+	if err != nil {
+		return LoadedLock{}, fmt.Errorf("inspect wsup.lock: %w", err)
+	}
+	if !info.Mode().IsRegular() {
+		return LoadedLock{}, fmt.Errorf("wsup.lock must be a regular file")
+	}
+	body, err := os.ReadFile(filename)
+	if err != nil {
+		return LoadedLock{}, err
+	}
+	lock, err := ParseLock(body)
+	if err != nil {
+		return LoadedLock{}, err
+	}
+	return LoadedLock{Lock: lock, Original: body}, nil
+}
+
+// Selection returns the lock's installed modules as a catalogue selection.
+// Every module must be a built-in module that fits the lock's starter.
+func (l Lock) Selection() (catalogue.Selection, error) {
+	selection := catalogue.Selection{Collections: []string{}, Agents: []string{}, Editors: []string{}}
+	for _, id := range slices.Sorted(maps.Keys(l.Modules)) {
+		kind, ok := catalogue.KindOf(id)
+		switch {
+		case !ok:
+			return catalogue.Selection{}, fmt.Errorf("wsup.lock lists module %q, which this wsup does not provide", id)
+		case kind == catalogue.KindCollection:
+			selection.Collections = append(selection.Collections, id)
+		case kind == catalogue.KindAgent:
+			selection.Agents = append(selection.Agents, id)
+		case kind == catalogue.KindEditor:
+			selection.Editors = append(selection.Editors, id)
+		case kind == catalogue.KindBase && id == l.Starter+"-base":
+		default:
+			return catalogue.Selection{}, fmt.Errorf("wsup.lock lists module %q, which a %s cannot install", id, l.Starter)
+		}
+	}
+	return selection, nil
+}
+
+// newLock records the given modules and the baselines of files, their marked
+// blocks, and links.
+func newLock(version, starter string, modules map[string]string, files map[string][]byte, links map[string]string) Lock {
+	lock := Lock{
+		Version: LockVersion, WsupVersion: version, Starter: starter, Modules: maps.Clone(modules),
+		Files: make(map[string]string, len(files)), Blocks: map[string]string{}, Links: maps.Clone(links),
+	}
+	for name, body := range files {
+		lock.Files[name] = lockDigest(body)
+		maps.Copy(lock.Blocks, blockDigests(name, body))
+	}
+	return lock
+}
+
+// blockDigests returns the digest of each marked block in a file, keyed
+// "path#name". A file with unpaired markers has none.
+func blockDigests(name string, body []byte) map[string]string {
+	digests := map[string]string{}
+	blocks, ok := findBlocks(body)
+	if !ok {
+		return digests
+	}
+	for _, b := range blocks {
+		digests[name+"#"+b.name] = lockDigest(body[b.start:b.end])
+	}
+	return digests
+}
+
+// readDocument returns wsup.json's bytes for generators, or nil when it is
+// absent. It never follows a symlink at that path.
+func readDocument(root string) ([]byte, error) {
+	root, err := registry.Resolve(root)
+	if err != nil {
+		return nil, err
+	}
+	handle, err := os.OpenRoot(root)
+	if err != nil {
+		return nil, err
+	}
+	defer handle.Close()
+	current, err := observeFile(handle, registry.DocumentPath)
+	if err != nil || !current.regular {
+		return nil, err
+	}
+	return handle.ReadFile(registry.DocumentPath)
 }

@@ -30,46 +30,38 @@ type UpdatePlan struct {
 	Applied     bool     `json:"applied"`
 }
 
-// PlanUpdate compares native state with an already selected template bundle.
-// The caller supplies the matching template/collections; omissions are applied
-// here. No registry, reports, unknown files, or orphan files are overwritten.
+// PlanUpdate compares the lock with an already selected template bundle and
+// the installed modules. No wsup.json, reports, unknown files, or orphan files
+// are overwritten.
 func PlanUpdate(root, version string, files map[string][]byte, keep []string) (UpdatePlan, error) {
-	return planUpdate(root, version, files, nil, keep, nil)
+	return planUpdate(root, version, files, nil, nil, keep, nil)
 }
 
-// planUpdate also plans the starter's links; nil links keeps the state's own.
-func planUpdate(root, version string, files map[string][]byte, links map[string]string, keep []string, prepared *preparedUpdate) (UpdatePlan, error) {
+// planUpdate plans an update to files and links. A nil links or modules keeps
+// the lock's. prepared, when given, receives what apply needs.
+func planUpdate(root, version string, files map[string][]byte, links, modules map[string]string, keep []string, prepared *preparedUpdate) (UpdatePlan, error) {
 	if files == nil {
 		return UpdatePlan{}, fmt.Errorf("native template bundle is unavailable")
 	}
-	loaded, err := LoadState(root)
+	loaded, err := LoadLock(root)
 	if err != nil {
 		return UpdatePlan{}, err
 	}
-	state := loaded.State
-	proposed := State{
-		Version: StateVersion, TemplateVersion: version, Template: state.Template,
-		Files:       make(map[string]string, len(files)),
-		Collections: state.SelectedCollections(), OmittedHomeFiles: state.OmittedHomeFiles,
-		Agents: state.Agents, Editors: state.Editors, Links: links,
-	}
+	lock := loaded.Lock
 	if links == nil {
-		proposed.Links = state.Links
+		links = lock.Links
 	}
-	if len(proposed.Links) == 0 {
-		proposed.Links = nil
+	if modules == nil {
+		modules = lock.Modules
 	}
-	for name, body := range files {
+	for name := range files {
 		if !portableFile(name) {
 			return UpdatePlan{}, fmt.Errorf("invalid template bundle path")
 		}
-		proposed.Files[name] = contentDigest(body)
 	}
-	if _, err := EncodeNativeState(proposed); err != nil {
+	proposed := newLock(version, lock.Starter, modules, files, links)
+	if _, err := EncodeLock(proposed); err != nil {
 		return UpdatePlan{}, fmt.Errorf("invalid native template bundle: %w", err)
-	}
-	for _, name := range state.OmittedHomeFiles {
-		delete(proposed.Files, name)
 	}
 	resolved, err := registry.Resolve(root)
 	if err != nil {
@@ -84,22 +76,16 @@ func planUpdate(root, version string, files map[string][]byte, links map[string]
 
 	kept := make(map[string]bool, len(keep))
 	for _, name := range keep {
-		if _, exists := state.Files[name]; !exists || !portableFile(name) {
+		if _, exists := lock.Files[name]; !exists || !portableFile(name) {
 			return UpdatePlan{}, fmt.Errorf("--keep requires an existing same-path managed file: %s", name)
 		}
 		kept[name] = true
 	}
-	names := make([]string, 0, len(state.Files)+len(proposed.Files))
-	for name := range state.Files {
-		names = append(names, name)
-	}
-	for name := range proposed.Files {
-		names = append(names, name)
-	}
+	names := slices.Concat(slices.Collect(maps.Keys(lock.Files)), slices.Collect(maps.Keys(proposed.Files)))
 	slices.Sort(names)
 	names = slices.Compact(names)
 	result := UpdatePlan{
-		FromVersion: state.TemplateVersion, ToVersion: version,
+		FromVersion: lock.WsupVersion, ToVersion: version,
 		Actions: []Action{}, Conflicts: []string{},
 	}
 	observed := make(map[string]observation, len(names))
@@ -116,13 +102,8 @@ func planUpdate(root, version string, files map[string][]byte, links map[string]
 			result.Conflicts = append(result.Conflicts, name)
 			continue
 		}
-		if name == "workspace.json" {
-			// The registry belongs to the workspace even if its original starter
-			// hash is present. Missing registries are not silently recreated.
-			continue
-		}
 		action := ""
-		baseline, managed := state.Files[name]
+		baseline, managed := lock.Files[name]
 		target, supplied := proposed.Files[name]
 		switch {
 		case kept[name]:
@@ -169,17 +150,24 @@ func planUpdate(root, version string, files map[string][]byte, links map[string]
 		}
 	}
 	if prepared != nil {
-		// Registry ownership and kept baseline hashes survive state replacement.
-		delete(proposed.Files, "workspace.json")
-		if digest, exists := state.Files["workspace.json"]; exists {
-			proposed.Files["workspace.json"] = digest
-		}
+		// A kept file keeps its baseline and its blocks' baselines.
 		for name := range kept {
-			if _, exists := proposed.Files[name]; exists {
-				proposed.Files[name] = state.Files[name]
+			if _, exists := proposed.Files[name]; !exists {
+				continue
+			}
+			proposed.Files[name] = lock.Files[name]
+			for key := range proposed.Blocks {
+				if strings.HasPrefix(key, name+"#") {
+					delete(proposed.Blocks, key)
+				}
+			}
+			for key, digest := range lock.Blocks {
+				if strings.HasPrefix(key, name+"#") {
+					proposed.Blocks[key] = digest
+				}
 			}
 		}
-		body, err := EncodeNativeState(proposed)
+		body, err := EncodeLock(proposed)
 		if err != nil {
 			return UpdatePlan{}, err
 		}
@@ -191,7 +179,7 @@ func planUpdate(root, version string, files map[string][]byte, links map[string]
 		}
 		*prepared = preparedUpdate{
 			root: root, plan: result, observed: observed,
-			stateBefore: loaded.Original, stateAfter: body, files: bodies, links: proposed.Links,
+			lockBefore: loaded.Original, lockAfter: body, files: bodies, links: proposed.Links,
 		}
 	}
 	return result, nil
@@ -236,9 +224,5 @@ func observeFile(root *os.Root, name string) (observation, error) {
 	if _, err := io.Copy(hash, file); err != nil {
 		return observation{}, fmt.Errorf("hash template file %s: %w", name, err)
 	}
-	return observation{exists: true, regular: true, digest: fmt.Sprintf("%x", hash.Sum(nil))}, nil
-}
-
-func contentDigest(body []byte) string {
-	return fmt.Sprintf("%x", sha256.Sum256(body))
+	return observation{exists: true, regular: true, digest: fmt.Sprintf("sha256:%x", hash.Sum(nil))}, nil
 }

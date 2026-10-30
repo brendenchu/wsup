@@ -43,8 +43,8 @@ func TestHelpVersionAndErrors(t *testing.T) {
 
 func TestEditorExclusiveCreationAndReadOnlyErrors(t *testing.T) {
 	root := t.TempDir()
-	document := `{"version":1,"name":"Synthetic","projects":[{"id":"app","path":".","kind":"tool","repository":"workspace","purpose":"Fixture","owner":"Test"}]}`
-	for name, body := range map[string]string{"README.md": "Local\n", "workspace.json": document} {
+	document := `{"version":3,"name":"Synthetic","projects":[{"id":"app","path":".","kind":"tool","repository":"workspace","purpose":"Fixture","owner":"Test"}]}`
+	for name, body := range map[string]string{"README.md": "Local\n", "wsup.json": document} {
 		if err := os.WriteFile(filepath.Join(root, name), []byte(body), 0600); err != nil {
 			t.Fatal(err)
 		}
@@ -103,12 +103,12 @@ func TestRootFlagMustPrecedeCommand(t *testing.T) {
 func TestMalformedRegistryNeverProducesSuccessOrEditorOutput(t *testing.T) {
 	for _, body := range []string{
 		`{"version":`, `{} {}`, `null`, `[]`, `{"version":true}`,
-		`{"version":1,"name":"Synthetic","projects":null}`,
+		`{"version":3,"name":"Synthetic","projects":null}`,
 		"{\"version\":1,\"name\":\"\xff\",\"projects\":[]}",
 	} {
 		t.Run(body, func(t *testing.T) {
 			root := t.TempDir()
-			if err := os.WriteFile(filepath.Join(root, "workspace.json"), []byte(body), 0600); err != nil {
+			if err := os.WriteFile(filepath.Join(root, "wsup.json"), []byte(body), 0600); err != nil {
 				t.Fatal(err)
 			}
 
@@ -132,8 +132,8 @@ func TestEditorIsRelativeAndPreservesExistingOutput(t *testing.T) {
 		t.Fatal(err)
 	}
 	for name, body := range map[string]string{
-		"app/README.md":  "Synthetic\n",
-		"workspace.json": `{"version":1,"name":"Synthetic","projects":[{"id":"app","path":"app","kind":"app","repository":"independent","purpose":"Fixture","owner":"Test"}]}`,
+		"app/README.md": "Synthetic\n",
+		"wsup.json":     `{"version":3,"name":"Synthetic","projects":[{"id":"app","path":"app","kind":"app","repository":"independent","purpose":"Fixture","owner":"Test"}]}`,
 	} {
 		if err := os.WriteFile(filepath.Join(root, name), []byte(body), 0600); err != nil {
 			t.Fatal(err)

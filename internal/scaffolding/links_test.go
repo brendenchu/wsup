@@ -32,12 +32,12 @@ func TestAgentAdaptersAndTheSkillsLink(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(root, ".claude/skills/check-workspace/SKILL.md")); err != nil {
 		t.Fatalf("link does not resolve to the skills: %v", err)
 	}
-	loaded, err := LoadState(root)
-	if err != nil || !reflect.DeepEqual(loaded.State.Agents, []string{"claude", "gemini"}) ||
-		!reflect.DeepEqual(loaded.State.Links, map[string]string{".claude/skills": "../.agents/skills"}) {
-		t.Fatalf("state: %+v %v", loaded.State, err)
+	loaded, err := LoadLock(root)
+	if err != nil || !reflect.DeepEqual(mustSelection(t, loaded.Lock).Agents, []string{"claude", "gemini"}) ||
+		!reflect.DeepEqual(loaded.Lock.Links, map[string]string{".claude/skills": "../.agents/skills"}) {
+		t.Fatalf("state: %+v %v", loaded.Lock, err)
 	}
-	if _, managed := loaded.State.Files[".claude/skills"]; managed {
+	if _, managed := loaded.Lock.Files[".claude/skills"]; managed {
 		t.Fatal("link recorded as a file")
 	}
 	if findings, err := CheckLinks(root); err != nil || len(findings) != 0 {
@@ -110,9 +110,9 @@ func TestAgentsAreNeverAddedSilently(t *testing.T) {
 			t.Fatalf("no-agent workspace has %s", name)
 		}
 	}
-	loaded, err := LoadState(root)
-	if err != nil || len(loaded.State.Agents) != 0 || loaded.State.Links != nil {
-		t.Fatalf("no-agent state: %+v %v", loaded.State, err)
+	loaded, err := LoadLock(root)
+	if err != nil || len(mustSelection(t, loaded.Lock).Agents) != 0 || loaded.Lock.Links != nil {
+		t.Fatalf("no-agent state: %+v %v", loaded.Lock, err)
 	}
 	// A state without agents (including every earlier workspace) stays that way.
 	if plan, err := Update(root, "0.1.0", nil, false); err != nil || len(plan.Actions) != 0 {

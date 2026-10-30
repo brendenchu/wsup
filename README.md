@@ -35,7 +35,7 @@ There is no binary installer, automatic updater, or automatic PATH change.
 
 To build from source instead, use Go 1.27.3, pinned in `mise.toml`; see
 [Go development](CONTRIBUTING.md#go-development). Development tests also require
-Git for ownership and reporting assertions. Only schema-2 workspace state is
+Git for ownership and reporting assertions. Only version 1 of `wsup.lock` is
 supported; unsupported formats fail without writes.
 
 ## Try it
@@ -64,8 +64,8 @@ Inspect the new workspace without installing anything or changing PATH:
 `init` never overwrites an existing destination. A compiled executable embeds
 all templates and works without this checkout. Build outside the tracked tree
 with `go build -o /path/to/wsup ./cmd/wsup`, then invoke `/path/to/wsup` (or
-`wsup` if separately made available on PATH). Workspaces contain state/reports
-under `.wsup/`, not an executable, runtime, or copied catalogue. Relocation
+`wsup` if separately made available on PATH). Workspaces contain `wsup.json`,
+`wsup.lock`, and ignored reports, not an executable, runtime, or copied catalogue. Relocation
 requires a compatible external binary. Agent instructions live in `AGENTS.md`
 (plus one per collection folder) and portable skills in `.agents/skills/`.
 Generated workspaces include the `development` preset's homes by default, with
@@ -87,7 +87,7 @@ to PATH. The main commands:
 
 | Command | Purpose |
 | --- | --- |
-| `validate` | Validate `workspace.json` without running project code |
+| `validate` | Validate `wsup.json` without running project code |
 | `projects` | List registered projects |
 | `config` | Show effective settings and their sources |
 | `guidance` | Check workspace instructions and local links |
@@ -113,27 +113,27 @@ wsup check --help
 See the [command reference](templates/modules/workspace-base/files/docs/workspace-model.md#command-reference) for
 flags, output formats, exit codes, and root/destination behavior.
 
-Use `--project ID` repeatedly to select more projects and `--check NAME`
+Checks are the project tasks marked `"check": true` in `wsup.json`. Use
+`--project ID` repeatedly to select more projects, or `--all`, and `--task NAME`
 repeatedly to choose checks. Review each configured command before running it:
 commands execute locally with your permissions. The CLI does not install
 dependencies on its own, invoke a shell, or automatically check dependent
 projects. Kept customizations retain their existing baselines and remain visible
 for review in later update previews.
 
-Check reports are written under the ignored `.wsup/reports/` directory. They
+Check reports are written under the ignored `workbench/.local/wsup/reports/` directory. They
 contain results and hashes rather than command output or arguments. Use
 `--show-output` to display output in the terminal.
 
-Only schema-2 managed workspaces can update. There is no in-place conversion of
-unsupported state. Never edit schema numbers to bypass validation; create a new
-destination and explicitly transfer reviewed owner content instead. Before
-applying updates, preserve a matched backup of files and state.
+Only workspaces with a version 1 `wsup.lock` can update. Never edit version
+numbers to bypass validation. Before
+applying updates, preserve a matched backup of files and `wsup.lock`.
 See [updates and recovery](templates/modules/workspace-base/files/docs/workspace-model.md#generated-files-and-updates).
 
 ## Workspace layout
 
 Every generated workspace includes `docs/` and `workbench/`, alongside the
-workspace-owned `AGENTS.md`, `.agents/skills/`, and `.wsup/` foundation. The
+workspace-owned `AGENTS.md`, `.agents/skills/`, `wsup.json`, and `wsup.lock`. The
 default `development` preset adds the `apps/`, `packages/`, `tools/`, and
 `infra/` collections; `--preset none` creates the base only. Every other
 collection is a CLI-selectable addition:
@@ -150,7 +150,7 @@ controls, backup, or retention guarantees. See the
 [workspace model](templates/modules/workspace-base/files/docs/workspace-model.md#default-layout-and-optional-collections)
 for guidance. The template catalogue is embedded in the external binary, never
 read from workspace-local overrides. Register projects in
-`workspace.json`; projects own their code, tests, dependencies, setup and
+`wsup.json`; projects own their code, tests, dependencies, setup and
 required instructions.
 
 Select optional collections during initialization, or add them later:

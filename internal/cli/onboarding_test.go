@@ -29,13 +29,13 @@ func fixtureGit(t *testing.T, root string, args ...string) string {
 func TestNativeStartersGitIgnoreBaselinesAndIndependentProjectLocalFiles(t *testing.T) {
 	ignored := []string{
 		"workbench/.local/note", "apps/example/workbench/.local/note",
-		".work/note", "apps/example/.work/note", ".wsup/reports/check.json",
+		"workbench/.local/wsup/reports/check.json",
 		"wsup.local.json", ".env", ".env.local", "apps/example/.env",
-		".DS_Store", "apps/example/.DS_Store", "nested/.work/log",
+		".DS_Store", "apps/example/.DS_Store",
 	}
 	trackable := []string{
-		".env.example", "apps/example/.env.example", ".wsup/template-state.json",
-		"workspace.json", "workbench/draft.md", "apps/example/README.md",
+		".env.example", "apps/example/.env.example", "wsup.lock",
+		"wsup.json", "workbench/draft.md", "apps/example/README.md",
 		"decisions/README.md", "WSUP-LICENSE", "README.md",
 		"wsup", "wsup.exe", "wsup_0.2.0_darwin_arm64.tar.gz",
 		"wsup_0.2.0_windows_amd64.zip", "SHA256SUMS",
@@ -110,8 +110,8 @@ func TestNativeGeneratedWorkspaceMixedGitOnboarding(t *testing.T) {
 		run("init", project, "--template", "project")
 		projects = append(projects, map[string]any{
 			"id": name, "path": "apps/" + name, "kind": "app", "repository": ownership,
-			"purpose": "Onboarding fixture", "owner": "Test",
-			"checks": map[string][]string{"test": {binary, "-test.run=^TestOnboardingTool$", "--", project}},
+			"purpose": "Onboarding fixture", "owner": "Test", "dependencies": []any{},
+			"tasks": checkTasks(map[string]any{"test": []string{binary, "-test.run=^TestOnboardingTool$", "--", project}}),
 		})
 	}
 	ignore, err := os.OpenFile(filepath.Join(root, ".gitignore"), os.O_APPEND|os.O_WRONLY, 0600)
@@ -133,11 +133,11 @@ func TestNativeGeneratedWorkspaceMixedGitOnboarding(t *testing.T) {
 	if !strings.Contains(fixtureGit(t, root, "check-ignore", "-v", "apps/independent/"), "/apps/independent/") {
 		t.Fatal("independent exact ownership ignore missing")
 	}
-	body, err := json.Marshal(map[string]any{"version": 1, "name": "Mixed fixture", "projects": projects})
+	body, err := json.Marshal(map[string]any{"version": 3, "name": "Mixed fixture", "projects": projects})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "workspace.json"), body, 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "wsup.json"), body, 0600); err != nil {
 		t.Fatal(err)
 	}
 	run("validate")
@@ -176,20 +176,20 @@ func TestNativeGeneratedWorkspaceMixedGitOnboarding(t *testing.T) {
 		t.Fatalf("editor folders: %v", paths)
 	}
 	// A project has its own skills but none of the workspace-only ones.
-	for _, name := range []string{".agents/skills/onboard-project", ".wsup/templates", "workspace.json"} {
+	for _, name := range []string{".agents/skills/onboard-project", ".wsup/templates", "wsup.json"} {
 		if _, err := os.Lstat(filepath.Join(independent, filepath.FromSlash(name))); !os.IsNotExist(err) {
 			t.Fatalf("project inherited workspace runtime/guidance: %s", name)
 		}
 	}
 	fixtureGit(t, root, "add", "--all")
 	tracked := strings.Split(strings.TrimSpace(fixtureGit(t, root, "ls-files")), "\n")
-	for _, name := range []string{"workspace.json", "apps/owned/README.md", ".wsup/template-state.json", ".agents/skills/onboard-project/SKILL.md"} {
+	for _, name := range []string{"wsup.json", "wsup.lock", "apps/owned/README.md", ".agents/skills/onboard-project/SKILL.md"} {
 		if !slices.Contains(tracked, name) {
 			t.Fatalf("workspace-owned file not staged: %s", name)
 		}
 	}
 	for _, name := range tracked {
-		if strings.HasPrefix(name, "apps/independent") || strings.HasPrefix(name, ".wsup/reports/") {
+		if strings.HasPrefix(name, "apps/independent") || strings.HasPrefix(name, "workbench/.local/wsup/reports/") {
 			t.Fatalf("nonowned or ignored report staged: %s", name)
 		}
 	}

@@ -8,8 +8,9 @@ configuration inheritance, or relationship to the generating workspace exists.
 Descendant projects/workspaces retain self-contained instructions.
 
 Use a separately installed native `wsup` executable with embedded templates.
-The workspace contains managed files and `.wsup/template-state.json`, not a CLI
-runtime, binary, or copied catalogue. Reports are under `.wsup/reports/`.
+The workspace contains managed files, `wsup.json`, and `wsup.lock`, not a CLI
+runtime, binary, or copied catalogue. Reports are under the ignored
+`workbench/.local/wsup/reports/`.
 The Go toolchain is not a runtime requirement for initialization
 or inspection. Checks require their configured executables. macOS ARM64 is the
 verified runtime; cross-compilation is not certification. Unix checks have
@@ -27,12 +28,12 @@ for product changes. Binary replacement and managed-content updates are separate
 
 | Command | Options and result |
 | --- | --- |
-| `validate` | Validates registry/settings without executing checks; prints a summary. |
+| `validate` | Validates `wsup.json`, settings, and adapter links without executing tasks; prints a summary. |
 | `projects` | Prints project entries as JSON. |
 | `config` | Prints effective settings and their sources as JSON. |
 | `guidance` | Prints structural findings as JSON; optional `--project ID` selects a registered owner. |
 | `editor` | Creates a relative-path VS Code workspace file, identical to the `vscode` adapter's; `--output NAME` must be a new file directly in the root. |
-| `check` | Requires repeatable `--project ID`; optional repeatable `--check NAME`, `--timeout SECONDS`, `--show-output`. |
+| `check` | Runs check tasks: repeatable `--project ID` or `--all`; optional repeatable `--task NAME`, `--timeout SECONDS`, `--show-output`. |
 | `init DESTINATION` | Creates a new workspace. In a terminal it asks for the preset, agents, and editors that flags leave open; `--yes`, or no terminal, uses the defaults; repeatable `--agent NAME` and `--editor NAME` select agent and editor adapters (default all; `none` for none; editors are workspace-only); `--preset NAME` selects a preset (default `development`; `none` for the base only) and repeatable `--collection NAME` adds collections to it. `--template project` creates a project without a registry/runtime; presets and collections are workspace-only. |
 | `update` | Prints a managed-content plan; `--apply` writes when conflict-free, repeatable `--keep PATH` retains eligible same-path customizations. |
 | `collections` | Lists available names; repeatable `--add NAME` previews additions, `--apply` writes when conflict-free. |
@@ -43,8 +44,8 @@ option prefixes are supported. Normal operational errors print handled stderr.
 
 Initialization requires a new destination, including when an existing directory
 is empty. Relative destinations use the current process directory, not `--root`.
-No registry is required to run `init`. All files are exclusively created, state
-is written last, and existing destinations are never replaced. A write failure
+No registry is required to run `init`. All files are exclusively created,
+`wsup.lock` is written last, and existing destinations are never replaced. A write failure
 may leave partial output; it is reported and retained for inspection, not
 recursively removed. No transactional rollback or power-loss durability is promised.
 
@@ -64,7 +65,8 @@ CLI exit codes.
 | `docs/` | Maintained workspace documentation |
 | `workbench/` | Shareable drafts and temporary analysis |
 | `AGENTS.md`, `.agents/skills/` | Agent instructions and portable procedures |
-| `.wsup/` | Template state and ignored check reports |
+| `wsup.json` | Workspace name, selected modules, settings, and projects (owner-edited) |
+| `wsup.lock` | Installed modules and managed-file hashes (written by wsup) |
 
 \* Collections selected by the default `development` preset. `--preset none`
 omits them; they can be added later like any other collection.
@@ -72,8 +74,8 @@ omits them; they can be added later like any other collection.
 Homes organize responsibility, not repository topology or required population.
 Project `kind` is independent of directory name.
 Local session plans/notes live in ignored `workbench/.local/`, created on demand;
-legacy `.work/` exclusions remain for compatibility. Historical reports stay
-under `.wsup/reports/`, not workbench. Review and sanitize drafts before staging.
+check reports go to `workbench/.local/wsup/reports/`. Review and sanitize drafts
+before staging.
 Promote accepted knowledge to its maintained owner rather than keeping competing
 canonical copies. A journal is optional.
 
@@ -102,24 +104,19 @@ Preset and collection names are validated, sorted, and deduplicated before
 anything is written. The binary carries every collection source; only selected
 ones are installed and managed. A child workspace starts from its own preset
 and selections; it never inherits the parent's collections.
-Listing needs no managed state; additions require a native managed workspace.
+Listing needs no managed workspace; additions require `wsup.lock` and `wsup.json`.
 Unknown names, project selections, and symlink destinations fail explicitly.
 
 Unmanaged existing scaffold files are conflicts even when identical; they are
 never adopted or overwritten. Missing selected managed files are conflicts.
 Already-selected regular managed files, including customizations, are left
 unchanged with their original hashes; use update to review those customizations.
-Former default-managed journal/learning/reference/research files can be explicitly
-selected without accepting customized bytes as baselines. Workspaces created when
-`apps/`, `packages/`, and `tools/` were part of the base keep them: a managed file
-there selects its collection, while an omitted one leaves it unselected. A former
-`infrastructure/` home is retained but no longer managed; renamed (`artifacts`)
-or removed (`private`) selections fail until migrated. Other unselected
-managed collection files conflict rather than being implicitly adopted.
-All conflicts block additions. State and observed paths are rechecked before
-exclusive writes; state is replaced last, preserving unrelated hashes, template
-version, omitted homes, and previous selections. I/O failures can leave new files
-with old state and are explicit; inspect partial results before retrying.
+Unselected managed collection files conflict rather than being implicitly adopted.
+All conflicts block additions. An addition also adds the collections to
+`wsup.json`, which is rewritten in its canonical form. `wsup.lock` and observed
+paths are rechecked before exclusive writes; the lock is replaced last,
+preserving unrelated hashes and previous modules. I/O failures can leave new
+files with the old lock and are explicit; inspect partial results before retrying.
 These commands configure no permissions, ACLs, sync, backups, or retention.
 Selected collections' ignore entries are written to the `.gitignore` block
 between `# wsup:begin ignore` and `# wsup:end ignore` (today only `data`, which
@@ -129,27 +126,31 @@ an edited copy is a conflict.
 
 ## Register projects
 
-`workspace.json` is UTF-8 JSON with `version: 1`, nonempty `name`, and a `projects`
-array. Projects have:
+`wsup.json` is UTF-8 JSON with `version: 3`, a nonempty `name`, and a `projects`
+array. `init` writes it with `$schema`, the selected `collections`, `agents`, and
+`editors`, and no projects. Optional `settings` hold shared settings (see below).
+Optional `vscode` holds `settings`, `extensions`, `tasks`, and `launch` for VS
+Code. Projects have:
 
 | Field | Contract |
 | --- | --- |
 | `id` | Unique ID beginning with a letter/digit, followed by letters/digits, `.`, `_`, or `-` |
 | `path` | Unique relative forward-slash path to an existing directory with README |
-| `kind` | `app`, `package`, `tool`, `infrastructure`, `research`, or `template` |
+| `kind` | `app`, `package`, `tool`, `infra`, `sandbox`, `template`, `fork`, or `research` |
 | `repository` | `workspace` or `independent` (intent, not proof of Git setup) |
+| `git` | Optional clone URL |
 | `purpose`, `owner` | Nonempty descriptions |
 | `dependencies` | Optional IDs of other projects, resolving without cycles |
-| `checks` | Optional named check definitions |
+| `tasks` | Optional named commands (see below) |
 
 Paths must stay within the workspace, including through symlinks. Unknown
-registry/project fields are rejected. The registry does not clone, initialize
-Git, install dependencies, or create a shared release. Create a project first,
-then edit its registry entry:
+fields are rejected. The registry does not clone, initialize Git, install
+dependencies, or create a shared release. Create a project first, then edit its
+entry:
 
 ```json
 {
-  "version": 1,
+  "version": 3,
   "name": "Example",
   "projects": [
     {
@@ -158,17 +159,22 @@ then edit its registry entry:
       "kind": "app",
       "repository": "workspace",
       "purpose": "Example application",
-      "owner": "Application maintainers"
+      "owner": "Application maintainers",
+      "tasks": {
+        "test": {"command": ["go", "test", "./..."], "check": true}
+      }
     }
   ]
 }
 ```
 
 Run `validate` and `projects` after editing. There is no project-add command.
+`wsup.json` belongs to the workspace: `update` reads it but never rewrites it,
+and a collection addition only adds to its `collections` list.
 
 ## Git ownership
 
-Keep registry, configuration, grouping READMEs, state, guidance, and workspace-owned
+Keep `wsup.json`, `wsup.lock`, grouping READMEs, guidance, and workspace-owned
 projects in the workspace repository. Independent projects have their own
 repositories; register them without implying shared builds or releases.
 
@@ -187,42 +193,46 @@ and history, get approval, and deliberately remove paths from the workspace inde
 when converting ownership. Never force-add independent projects or create
 submodules implicitly.
 
-The starter ignores `.wsup/reports/`, `wsup.local.json`, `.env`/`.env.*` except
-`.env.example`, `.DS_Store`, `workbench/.local/`, and `.work/`, plus the selected
+The starter ignores `wsup.local.json`, `.env`/`.env.*` except `.env.example`,
+`.DS_Store`, and `workbench/.local/` (which holds reports), plus the selected
 collections' entries in its marked block. `.editorconfig` (UTF-8, LF, final
 newline, trimmed trailing whitespace) and `.gitattributes` (`* text=auto eol=lf`)
 are owner-editable starter files.
 Every repository owns its ignore rules; these are staging hygiene, not security.
-Do not ignore template state or all of `.wsup/`.
+Do not ignore `wsup.lock`.
 
-## Configure checks
+## Tasks and checks
 
-Checks are literal argv arrays or objects with `command` and optional `mode`,
-`enabled`, `reason`, `timeout_seconds`, and `finding_exit_codes`:
+A task is a literal argv array or an object with `command` and optional
+`check`, `cwd`, `mode`, `enabled`, `reason`, `timeout_seconds`, and
+`finding_exit_codes`. A task with `"check": true` runs under `wsup check`:
 
 ```json
-"checks": {
-  "test": ["go", "test", "./..."],
-  "audit": {"command": ["my-audit-tool"], "mode": "report"}
+"tasks": {
+  "test": {"command": ["go", "test", "./..."], "check": true},
+  "audit": {"command": ["my-audit-tool"], "check": true, "mode": "report"},
+  "build": ["go", "build", "./..."]
 }
 ```
 
 Names follow the project-ID format. Executables must be installed and supplied
 by explicit path or found on PATH; there is no tool fallback or installation.
-Arguments are never substituted or shell-expanded, stdin is
-closed, and cwd is the registered project directory. Inspect commands first:
-they execute with your permissions and are not sandboxed.
+Arguments are never substituted or shell-expanded, stdin is closed, and cwd is
+the registered project directory, or `cwd` relative to it. Inspect commands
+first: they execute with your permissions and are not sandboxed.
 
 Required mode fails on nonzero exit; report mode treats configured finding
 exit codes (default `[1]`) as findings, not CLI failure. Empty finding codes mean
 no advisory exits. Genuine failures, missing tools, timeout, and required skips
 still fail. Disabled checks need a nonempty reason. Dependencies are descriptive;
-only explicitly selected projects/checks run. With no `--check`, all configured
-checks run; each requested check name must exist on every selected project.
-Selection is fully validated before launching tools or creating reports.
+only explicitly selected projects run. With no `--task`, every check task runs;
+each requested task must exist and be a check task on every selected project.
+`--all` selects every project with matching check tasks. Selection is fully
+validated before launching tools or creating reports.
 
 ```sh
-wsup check --project app --project library --check test --show-output
+wsup check --project app --project library --task test --show-output
+wsup check --all
 wsup check --project app --timeout 60
 ```
 
@@ -235,20 +245,20 @@ after each check, not live output, and can reveal secrets in the terminal.
 
 ## Settings and reports
 
-Configuration precedence is defaults, shared `wsup.json`, ignored
-`wsup.local.json`, environment, then explicit CLI overrides. Configuration files
-use `{"version": 1, "settings": {...}}`; unknown fields/invalid values fail.
+Configuration precedence is defaults, `settings` in `wsup.json`, ignored
+`wsup.local.json`, environment, then explicit CLI overrides. `wsup.local.json`
+uses `{"version": 1, "settings": {...}}`; unknown fields/invalid values fail.
 
 | Setting | Default and bounds | Environment |
 | --- | --- | --- |
 | `timeout_seconds` | 300; 1..86400 | `WSUP_TIMEOUT_SECONDS` |
 | `output_limit_bytes` | 65536 per stream; 1..10485760 | `WSUP_OUTPUT_LIMIT_BYTES` |
-| `report_dir` | `.wsup/reports`; must remain inside it | `WSUP_REPORT_DIR` |
+| `report_dir` | `workbench/.local/wsup/reports`; must remain inside it | `WSUP_REPORT_DIR` |
 
 Check timeout overrides workspace timeout; CLI `--timeout` overrides both.
 `config` reports values and source labels. Settings are local to this workspace,
-never inherited. Symlinked `.wsup/` or reports roots are refused; contained nested
-report paths may be used. Do not use runtime/catalogue paths as reports.
+never inherited. A symlink anywhere in `workbench/.local/wsup/reports` is
+refused; contained nested report paths may be used.
 
 Checks write JSON/Markdown schema-v2 reports with Go/OS/architecture metadata,
 selection and original-command SHA-256 hashes, current input-byte hashes,
@@ -264,39 +274,39 @@ No existing report is rewritten to change provenance.
 
 ## Generated files and updates
 
-Native schema-2 template state stores baseline SHA-256 hashes and product/template
-version. It owns managed starter files, never runtime/report content under
-`.wsup/`. Keep state with the files so future updates can identify customizations.
+`wsup.lock` (version 1) records the wsup version, the starter (`workspace` or
+`project`), each installed module and its version, and baseline SHA-256 hashes
+of managed files, of each generated section, and of the skills link. It never
+lists `wsup.json` or reports. Commit it with the files so future updates can
+identify customizations.
 Local instructions and skills are workspace customizations, not implicit defaults for child
 generation. A new workspace always uses the binary's embedded baseline.
 
-`wsup update` compares managed files with the invoked binary's embedded template
-and recorded collection selections. Preview is read-only. `wsup update --apply`
-blocks on all conflicts, rechecks observed state/files, creates new files
-exclusively, replaces existing files without in-place truncation, and writes
-next state last. Edited or missing managed files require manual resolution;
+`wsup update` compares managed files with the invoked binary's embedded
+templates for the modules in `wsup.lock`; generators read the current
+`wsup.json`. Preview is read-only. `wsup update --apply` blocks on all
+conflicts, rechecks the lock and observed files, creates new files exclusively,
+replaces existing files without in-place truncation, and writes the next lock last. Edited or missing managed files require manual resolution;
 `--keep PATH` can retain an existing same-path customization without accepting
 its current hash as a new baseline. Repeat it on later updates if still needed.
-The registry remains workspace-owned and is never regenerated by update.
-Omitted default homes remain omitted; orphan bytes are retained but cease to be
-managed, except a generated file replaced under a new name, which is removed
-while unedited. Unknown files, project contents, reports, and local settings survive.
-There are no runtime files to update or retire in native schema 2.
+`wsup.json` remains workspace-owned and is never regenerated by update.
+Orphan bytes are retained but cease to be managed, except a generated file
+replaced under a new name, which is removed while unedited. Unknown files,
+project contents, reports, and local settings survive.
 
-Only schema-2 state is supported. Other versions fail without writes; no
-in-place conversion or obsolete installation cleanup is provided. Do not change
-schema numbers or fabricate baselines to force compatibility. For an unsupported
-workspace, initialize a new destination and explicitly transfer owner content
-after review; preserve the original workspace and its reports.
+Only lock version 1 is supported. Other versions fail without writes. A
+workspace created by wsup 0.2.0 (`.wsup/template-state.json`) is reported as
+such. Do not change version numbers or fabricate baselines to force
+compatibility.
 No remote downloader or automatic binary upgrade is provided.
 
-Before any later update, preserve a reviewed backup of files and state,
+Before any later update, preserve a reviewed backup of files and `wsup.lock`,
 inspect Git status and the complete preview, and resolve conflicts deliberately.
 Native updates are not a multi-file transaction; I/O failure
-can leave partial content with old state. Concurrent mutation after rechecks is
+can leave partial content with the old lock. Concurrent mutation after rechecks is
 not isolated, and no fsync/power-loss durability guarantee is made. Inspect
 partial destinations rather than deleting owner content blindly. Recovery means
-restoring matched files and state from the same backup and using a compatible
+restoring matched files and `wsup.lock` from the same backup and using a compatible
 binary. No commit, installation, or publication is automatic.
 
 ## Guidance
@@ -324,7 +334,7 @@ An agent adapter only adds pointers for an agent that does not read `AGENTS.md`
 or `.agents/skills/` natively; it never holds instructions. `init` installs every
 adapter unless `--agent NAME` (repeatable) or `--agent none` says otherwise,
 for workspaces and projects alike. The installed adapters are recorded in
-template state; `update` keeps them current but never installs an adapter that
+`wsup.json` and `wsup.lock`; `update` keeps them current but never installs an adapter that
 was not selected, including adapters added in a later wsup version.
 
 | Adapter | Files |
@@ -334,7 +344,7 @@ was not selected, including adapters added in a later wsup version.
 
 `.claude/skills` is the only symlink wsup creates, and a module may declare no
 other link: its target must be the relative path to `.agents/skills`. It is
-recorded in state as a link with its target, not as a file hash. `update`
+recorded in `wsup.lock` as a link with its target, not as a file hash. `update`
 re-creates it when missing and reports a conflict, leaving the path alone, when
 it is a real directory or points elsewhere. `validate` and `guidance` report a
 missing, wrong, or broken link. The relative target keeps working when the
@@ -345,11 +355,11 @@ the workspace root.
 
 `vscode` (installed by default for workspaces; `--editor none` skips it)
 generates `<name>.code-workspace`, named from the slugified `name` in
-`workspace.json` (for example `my-workspace.code-workspace`). It covers VS Code,
+`wsup.json` (for example `my-workspace.code-workspace`). It covers VS Code,
 Cursor, Windsurf, and VSCodium. The file lists the workspace root and one folder
 per registered project. It is a managed starter file: `update` regenerates it
-from the current registry and writes it while it is unedited, reports a
-hand-edited copy as a conflict, and stops if the registry cannot be read.
+from the current `wsup.json` and writes it while it is unedited, reports a
+hand-edited copy as a conflict, and stops if `wsup.json` cannot be read.
 Renaming the workspace writes the new file and removes the old one while it is
 unedited; an edited old file is a conflict. There is
 no adapter for JetBrains, Zed, or terminal editors; every editor benefits from

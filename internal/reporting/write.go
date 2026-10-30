@@ -109,7 +109,7 @@ func write(root, version string, config configuration.Result, selected []registr
 		return "", err
 	}
 	data.Inputs = map[string]string{}
-	for _, name := range []string{"workspace.json", "wsup.json", "wsup.local.json"} {
+	for _, name := range []string{registry.DocumentPath, "wsup.local.json"} {
 		path := filepath.Join(root, name)
 		info, err := os.Stat(path)
 		if os.IsNotExist(err) {

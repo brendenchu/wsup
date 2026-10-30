@@ -22,10 +22,14 @@ func runChecks(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if len(projects) == 0 {
-		return fmt.Errorf("check requires at least one --project")
+	all, err := command.Flags().GetBool("all")
+	if err != nil {
+		return err
 	}
-	names, err := command.Flags().GetStringArray("check")
+	if all == (len(projects) != 0) {
+		return fmt.Errorf("check requires --project (repeatable) or --all, but not both")
+	}
+	names, err := command.Flags().GetStringArray("task")
 	if err != nil {
 		return err
 	}
@@ -57,7 +61,7 @@ func runChecks(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	selected, err := data.Select(projects, names)
+	selected, err := data.Select(projects, names, all)
 	if err != nil {
 		return err
 	}
@@ -85,7 +89,7 @@ func runChecks(command *cobra.Command, args []string) error {
 			}
 			timeout := effectiveTimeout(config.Settings.TimeoutSeconds, item.Check.TimeoutSeconds, override)
 			run, runErr := execution.Run(command.Context(), item.Check.Command,
-				filepath.Join(root, filepath.FromSlash(item.Project.Path)), time.Duration(timeout)*time.Second,
+				filepath.Join(root, filepath.FromSlash(item.Project.Path), filepath.FromSlash(item.Cwd)), time.Duration(timeout)*time.Second,
 				config.Settings.OutputLimitBytes)
 			if runErr != nil {
 				if run.Status != "error" || run.Error == "" {

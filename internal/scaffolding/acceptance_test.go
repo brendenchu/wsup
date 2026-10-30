@@ -2,6 +2,7 @@ package scaffolding
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -19,8 +20,9 @@ func TestCollectionAdditionPreservesUnrelatedDirectoryContents(t *testing.T) {
 	}
 	after := snapshot(t, root)
 	for name, body := range before {
-		// AGENTS.md lists the selected collections in its generated layout.
-		if name != filepath.FromSlash(StatePath) && name != "AGENTS.md" && after[name] != body {
+		// AGENTS.md lists the selected collections in its generated layout, and
+		// wsup.json records them.
+		if name != filepath.FromSlash(LockPath) && name != "AGENTS.md" && name != "wsup.json" && after[name] != body {
 			t.Fatalf("unrelated content changed: %s", name)
 		}
 	}
@@ -49,9 +51,9 @@ func TestSelectedCollectionScaffoldUpdatesWithNewBundle(t *testing.T) {
 	if err != nil || !bytes.Equal(body, files["archive/README.md"]) {
 		t.Fatal("updated scaffold not installed")
 	}
-	loaded, err := LoadState(root)
-	if err != nil || !reflect.DeepEqual(loaded.State.Collections, []string{"archive"}) ||
-		loaded.State.Files["archive/README.md"] != contentDigest(body) {
+	loaded, err := LoadLock(root)
+	if err != nil || loaded.Lock.Modules["archive"] == "" ||
+		loaded.Lock.Files["archive/README.md"] != lockDigest(body) {
 		t.Fatal("scaffold selection or next baseline lost")
 	}
 	settled, err := PlanUpdate(root, "0.2.0", files, nil)
@@ -60,10 +62,10 @@ func TestSelectedCollectionScaffoldUpdatesWithNewBundle(t *testing.T) {
 	}
 }
 
-func TestUpdateAddsUnmanagedDefaultMarkersAndKeepsOmissionsLocal(t *testing.T) {
+func TestUpdateRestoresMissingUnmanagedFiles(t *testing.T) {
 	development := []string{"apps", "infra", "packages", "tools"}
 	root := collectionWorkspace(t, development...)
-	loaded, err := LoadState(root)
+	loaded, err := LoadLock(root)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,10 +75,10 @@ func TestUpdateAddsUnmanagedDefaultMarkersAndKeepsOmissionsLocal(t *testing.T) {
 		if err := os.Remove(filepath.Join(root, filepath.FromSlash(name))); err != nil {
 			t.Fatal(err)
 		}
-		delete(loaded.State.Files, name)
+		delete(loaded.Lock.Files, name)
 		want = append(want, Action{name, "write"})
 	}
-	saveState(t, root, loaded.State)
+	saveLock(t, root, loaded.Lock)
 	before := snapshot(t, root)
 	preview, err := Update(root, "0.1.0", nil, false)
 	if err != nil || len(preview.Conflicts) != 0 || !reflect.DeepEqual(preview.Actions, want) ||
@@ -86,65 +88,46 @@ func TestUpdateAddsUnmanagedDefaultMarkersAndKeepsOmissionsLocal(t *testing.T) {
 	if _, err := Update(root, "0.1.0", nil, true); err != nil {
 		t.Fatal(err)
 	}
-	loaded, err = LoadState(root)
-	if err != nil {
-		t.Fatal(err)
-	}
-	loaded.State.OmittedHomeFiles = []string{"packages/README.md", "tools/README.md"}
-	saveState(t, root, loaded.State)
+	// A managed file the owner deletes is a conflict, never silently restored.
 	if err := os.Remove(filepath.Join(root, "tools/README.md")); err != nil {
 		t.Fatal(err)
 	}
-	writeFixture(t, root, "packages/README.md", []byte("Owner home policy"))
-	if _, err := Update(root, "0.1.0", nil, true); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := os.Lstat(filepath.Join(root, "tools/README.md")); !os.IsNotExist(err) {
-		t.Fatal("omitted home recreated")
-	}
-	body, err := os.ReadFile(filepath.Join(root, "packages/README.md"))
-	if err != nil || string(body) != "Owner home policy" {
-		t.Fatal("omitted home overwritten")
-	}
-	loaded, err = LoadState(root)
-	if err != nil || !reflect.DeepEqual(loaded.State.OmittedHomeFiles, []string{"packages/README.md", "tools/README.md"}) {
-		t.Fatal("omissions lost")
-	}
-	child := collectionWorkspace(t, development...)
-	for _, name := range markers {
-		if _, err := os.Stat(filepath.Join(child, filepath.FromSlash(name))); err != nil {
-			t.Fatalf("child inherited omission: %s", name)
-		}
-	}
-	settled, err := Update(root, "0.1.0", nil, false)
-	if err != nil || len(settled.Actions) != 0 || len(settled.Conflicts) != 0 {
-		t.Fatalf("omitted update did not settle: %+v %v", settled, err)
+	if plan, err := Update(root, "0.1.0", nil, false); err != nil || !reflect.DeepEqual(plan.Conflicts, []string{"tools/README.md"}) {
+		t.Fatalf("deleted managed file: %+v %v", plan, err)
 	}
 }
 
-func TestInvalidPersistedSelectionsAndPathsBlockEveryOperation(t *testing.T) {
-	for field, values := range map[string][]any{
-		"collections":        {nil, "archive", []any{"unknown"}, []any{1}},
-		"omitted_home_files": {nil, "apps/.gitkeep", []any{"../escape"}, []any{".wsup/runtime"}, []any{1}},
-		"files":              {map[string]string{"../escape": contentDigest(nil)}},
+func TestInvalidPersistedLocksBlockEveryOperation(t *testing.T) {
+	digest := lockDigest(nil)
+	for name, edit := range map[string]func(*Lock){
+		"unknown module":      func(l *Lock) { l.Modules["unknown"] = "1.0.0" },
+		"preset module":       func(l *Lock) { l.Modules["development"] = "1.0.0" },
+		"project base":        func(l *Lock) { l.Modules["project-base"] = "1.0.0" },
+		"missing base":        func(l *Lock) { delete(l.Modules, "workspace-base") },
+		"escaping file":       func(l *Lock) { l.Files["../escape"] = digest },
+		"managed wsup.json":   func(l *Lock) { l.Files["wsup.json"] = digest },
+		"unsupported version": func(l *Lock) { l.Version = 2 },
 	} {
-		for _, value := range values {
-			for _, version := range []int{1, StateVersion} {
-				root := collectionWorkspace(t)
-				document := stateDocument(version)
-				document[field] = value
-				writeFixture(t, root, StatePath, encoded(t, document))
-				before := snapshot(t, root)
-				if _, err := Update(root, "0.2.0", nil, true); err == nil {
-					t.Fatalf("update accepted invalid %s: %v", field, value)
-				}
-				if _, err := AddCollections(root, []string{"archive"}, true); err == nil {
-					t.Fatalf("collections accepted invalid %s: %v", field, value)
-				}
-				if !reflect.DeepEqual(before, snapshot(t, root)) {
-					t.Fatalf("invalid %s caused writes", field)
-				}
-			}
+		root := collectionWorkspace(t)
+		loaded, err := LoadLock(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		edit(&loaded.Lock)
+		body, err := json.MarshalIndent(loaded.Lock, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		writeFixture(t, root, LockPath, body)
+		before := snapshot(t, root)
+		if _, err := Update(root, "0.2.0", nil, true); err == nil {
+			t.Fatalf("update accepted %s", name)
+		}
+		if _, err := AddCollections(root, []string{"archive"}, true); err == nil {
+			t.Fatalf("collections accepted %s", name)
+		}
+		if !reflect.DeepEqual(before, snapshot(t, root)) {
+			t.Fatalf("%s caused writes", name)
 		}
 	}
 }
@@ -165,7 +148,7 @@ func TestCollectionFileSymlinkAndNonDirectoryParentsBlockAllWrites(t *testing.T)
 			case "file-parent":
 				writeFixture(t, root, "archive", []byte("Owner file"))
 			case "unmanaged-root":
-				if err := os.Remove(filepath.Join(root, filepath.FromSlash(StatePath))); err != nil {
+				if err := os.Remove(filepath.Join(root, filepath.FromSlash(LockPath))); err != nil {
 					t.Fatal(err)
 				}
 			}

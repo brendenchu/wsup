@@ -5,7 +5,7 @@ description: Run explicitly selected project checks and summarise failures. Use 
 
 # Check the workspace
 
-Read AGENTS.md and the registry. Inspect selected check argv; commands run
+Read AGENTS.md and `wsup.json`. Inspect the selected tasks' argv; commands run
 with your access and are not sandboxed. Use a compatible separately installed
 native `wsup` from the workspace root:
 
@@ -14,8 +14,9 @@ wsup validate
 wsup check --project PROJECT_ID
 ```
 
-Replace PROJECT_ID with a registered ID. Use `--check NAME` to select check names
-and repeat `--project` for multiple owners. All selections validate before
+Replace PROJECT_ID with a registered ID. Checks are the tasks marked
+`"check": true`. Use `--task NAME` to select some of them, repeat `--project`
+for multiple owners, or use `--all` for every project. All selections validate before
 execution. Dependencies are not automatic selections; tools are never installed.
 Arguments are passed literally without substitution. Unix check execution is
 verified on macOS ARM64; non-Unix execution refuses launch.

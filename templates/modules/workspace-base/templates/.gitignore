@@ -1,8 +1,5 @@
 workbench/.local/
 **/workbench/.local/
-.work/
-**/.work/
-.wsup/reports/
 wsup.local.json
 .env
 .env.*

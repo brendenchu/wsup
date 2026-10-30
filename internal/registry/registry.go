@@ -10,20 +10,23 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"unicode/utf8"
 )
 
 var identifier = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]*$`)
 
-// Project retains validated fields and the original JSON shape for project listings.
+// Project is a loaded wsup.json project whose paths were checked against the
+// filesystem.
 type Project struct {
 	ID           string
 	Path         string
 	Dependencies []string
-	Checks       map[string]Check
-	CheckNames   []string // Source order, independent of Go map iteration.
-	Raw          map[string]any
+	// Tasks keep source order; check tasks run in this order.
+	Tasks []Task
+	// Entry is the project as declared, for listings.
+	Entry ProjectEntry
 }
 
 // Check is a validated literal argument array plus execution policy.
@@ -43,17 +46,34 @@ type Registry struct {
 	Projects []Project
 }
 
-// Selection pairs one explicitly selected project/check with its validated policy.
+// Selection pairs one selected project check task with its validated policy.
 type Selection struct {
 	Project Project
 	Name    string
 	Check   Check
+	// Cwd is the task's directory relative to the project; empty is its root.
+	Cwd string
 }
 
-// Select deduplicates selections in request order and validates the entire selection.
-// Empty names selects all configured checks; errors return no partial selection.
-// Dependencies are never selected implicitly.
-func (r Registry) Select(requested, names []string) ([]Selection, error) {
+// Select returns check tasks (tasks with "check": true) in request order,
+// deduplicated, validating the entire selection first. all selects every
+// project that has check tasks instead of requested; empty names selects every
+// check task. Errors return no partial selection, and dependencies are never
+// selected implicitly.
+func (r Registry) Select(requested, names []string, all bool) ([]Selection, error) {
+	if all {
+		requested = []string{}
+		for _, project := range r.Projects {
+			if slices.ContainsFunc(project.Tasks, func(task Task) bool {
+				return task.IsCheck && (len(names) == 0 || slices.Contains(names, task.Name))
+			}) {
+				requested = append(requested, project.ID)
+			}
+		}
+		if len(requested) == 0 {
+			return nil, fmt.Errorf("no project has the selected check tasks")
+		}
+	}
 	selected := []Selection{}
 	seenProjects := map[string]bool{}
 	for _, id := range requested {
@@ -61,37 +81,99 @@ func (r Registry) Select(requested, names []string) ([]Selection, error) {
 			continue
 		}
 		seenProjects[id] = true
-		var project *Project
-		for i := range r.Projects {
-			if r.Projects[i].ID == id {
-				project = &r.Projects[i]
-				break
-			}
-		}
-		if project == nil {
+		index := slices.IndexFunc(r.Projects, func(project Project) bool { return project.ID == id })
+		if index < 0 {
 			return nil, fmt.Errorf("Unknown project: %s", id)
 		}
+		project := r.Projects[index]
 		chosen := names
-		if len(chosen) == 0 {
-			chosen = project.CheckNames
+		if len(chosen) == 0 || all {
+			chosen = []string{}
+			for _, task := range project.Tasks {
+				if task.IsCheck && (len(names) == 0 || slices.Contains(names, task.Name)) {
+					chosen = append(chosen, task.Name)
+				}
+			}
 		}
 		if len(chosen) == 0 {
-			return nil, fmt.Errorf("%s: no checks configured", id)
+			return nil, fmt.Errorf("%s: no check tasks configured", id)
 		}
-		seenChecks := map[string]bool{}
+		seenTasks := map[string]bool{}
 		for _, name := range chosen {
-			if seenChecks[name] {
+			if seenTasks[name] {
 				continue
 			}
-			seenChecks[name] = true
-			check, exists := project.Checks[name]
-			if !exists {
-				return nil, fmt.Errorf("%s: unknown check %s", id, name)
+			seenTasks[name] = true
+			task := slices.IndexFunc(project.Tasks, func(task Task) bool { return task.Name == name })
+			if task < 0 {
+				return nil, fmt.Errorf("%s: unknown task %s", id, name)
 			}
-			selected = append(selected, Selection{Project: *project, Name: name, Check: check})
+			if !project.Tasks[task].IsCheck {
+				return nil, fmt.Errorf("%s: task %s is not a check task", id, name)
+			}
+			selected = append(selected, Selection{Project: project, Name: name, Check: project.Tasks[task].Check, Cwd: project.Tasks[task].Cwd})
 		}
 	}
 	return selected, nil
+}
+
+// Load reads wsup.json at root with Decode, then checks every project path
+// against the filesystem: it must resolve inside root, be unique, and contain
+// README.md, and task directories must stay inside their project. Repository
+// ownership remains declarative: no Git repositories are created or inspected.
+func Load(root string) (Registry, error) {
+	_, registry, err := LoadDocument(root)
+	return registry, err
+}
+
+// LoadDocument is Load that also returns the decoded document.
+func LoadDocument(root string) (Document, Registry, error) {
+	filename := filepath.Join(root, DocumentPath)
+	info, err := os.Lstat(filename)
+	if err != nil {
+		return Document{}, Registry{}, err
+	}
+	if !info.Mode().IsRegular() {
+		return Document{}, Registry{}, fmt.Errorf("wsup.json must be a regular file")
+	}
+	body, err := os.ReadFile(filename)
+	if err != nil {
+		return Document{}, Registry{}, err
+	}
+	document, err := Decode(body)
+	if err != nil {
+		return Document{}, Registry{}, err
+	}
+	result := Registry{Name: document.Name, Projects: make([]Project, 0, len(document.Projects))}
+	resolvedPaths := map[string]bool{}
+	for _, entry := range document.Projects {
+		target, err := RelativeTarget(root, entry.Path)
+		if err != nil {
+			return Document{}, Registry{}, fmt.Errorf("wsup.json: project %s: %w", entry.ID, err)
+		}
+		resolved, err := Resolve(target)
+		if err != nil {
+			return Document{}, Registry{}, err
+		}
+		info, statErr := os.Stat(target)
+		readme, readmeErr := os.Stat(filepath.Join(target, "README.md"))
+		if statErr != nil || !info.IsDir() || resolvedPaths[resolved] || readmeErr != nil || !readme.Mode().IsRegular() {
+			return Document{}, Registry{}, fmt.Errorf("%s: path must be unique/existing and contain README.md", entry.ID)
+		}
+		resolvedPaths[resolved] = true
+		for _, task := range entry.Tasks {
+			if task.Cwd == "" {
+				continue
+			}
+			if _, err := RelativeTarget(target, task.Cwd); err != nil {
+				return Document{}, Registry{}, fmt.Errorf("wsup.json: project %s: task %s: %w", entry.ID, task.Name, err)
+			}
+		}
+		result.Projects = append(result.Projects, Project{
+			ID: entry.ID, Path: entry.Path, Dependencies: entry.Dependencies, Tasks: entry.Tasks, Entry: entry,
+		})
+	}
+	return document, result, nil
 }
 
 // ReadObject requires a single JSON object and retains numbers as json.Number
@@ -330,107 +412,6 @@ func ParseCheck(raw any) (Check, error) {
 		check.TimeoutSeconds = &timeout
 	}
 	return check, nil
-}
-
-// Load validates version 1 fields, project paths/README files, check policies,
-// and dependency references/cycles. Repository ownership remains declarative:
-// no Git repositories are created or inspected.
-func Load(root string) (Registry, error) {
-	filename := filepath.Join(root, "workspace.json")
-	body, err := os.ReadFile(filename)
-	if err != nil {
-		return Registry{}, err
-	}
-	document, err := readObject(filename, body)
-	if err != nil {
-		return Registry{}, err
-	}
-	version, valid := Integer(document["version"])
-	if !Fields(document, "version", "name", "projects") || !valid || version != 1 {
-		return Registry{}, fmt.Errorf("workspace.json requires supported version 1 fields")
-	}
-	name, validName := document["name"].(string)
-	entries, validEntries := document["projects"].([]any)
-	if !validName || strings.TrimSpace(name) == "" || !validEntries {
-		return Registry{}, fmt.Errorf("Registry needs a name and projects list")
-	}
-	result := Registry{Name: name, Projects: make([]Project, 0, len(entries))}
-	ids, paths := map[string]bool{}, map[string]bool{}
-	for _, entry := range entries {
-		raw, ok := entry.(map[string]any)
-		if !ok || !Fields(raw, "id", "purpose", "owner", "path", "kind", "repository", "dependencies", "checks") {
-			return Registry{}, fmt.Errorf("Invalid project fields")
-		}
-		id, ok := raw["id"].(string)
-		if !ok || !identifier.MatchString(id) || ids[id] {
-			return Registry{}, fmt.Errorf("Project IDs must be unique letters/digits/dots/underscores/hyphens")
-		}
-		for _, field := range []string{"purpose", "owner", "path"} {
-			text, ok := raw[field].(string)
-			if !ok || strings.TrimSpace(text) == "" {
-				return Registry{}, fmt.Errorf("%s: missing %s", id, field)
-			}
-		}
-		kind, _ := raw["kind"].(string)
-		repository, _ := raw["repository"].(string)
-		if !map[string]bool{"app": true, "package": true, "tool": true, "infrastructure": true, "research": true, "template": true}[kind] ||
-			(repository != "workspace" && repository != "independent") {
-			return Registry{}, fmt.Errorf("%s: invalid kind/repository", id)
-		}
-		target, err := RelativeTarget(root, raw["path"])
-		if err != nil {
-			return Registry{}, err
-		}
-		resolved, err := Resolve(target)
-		if err != nil {
-			return Registry{}, err
-		}
-		info, statErr := os.Stat(target)
-		readme, readmeErr := os.Stat(filepath.Join(target, "README.md"))
-		if statErr != nil || !info.IsDir() || paths[resolved] || readmeErr != nil || !readme.Mode().IsRegular() {
-			return Registry{}, fmt.Errorf("%s: path must be unique/existing and contain README.md", id)
-		}
-		project := Project{ID: id, Path: raw["path"].(string), Raw: raw, Checks: map[string]Check{}}
-		if deps, exists := raw["dependencies"]; exists {
-			project.Dependencies, ok = stringsValue(deps)
-			if !ok {
-				return Registry{}, fmt.Errorf("%s: dependencies must be project IDs", id)
-			}
-		}
-		if checks, exists := raw["checks"]; exists {
-			values, ok := checks.(map[string]any)
-			if !ok {
-				return Registry{}, fmt.Errorf("%s: checks must be named definitions", id)
-			}
-			// Decode order separately to preserve configured check order.
-			project.CheckNames, err = checkOrder(body, len(result.Projects))
-			if err != nil {
-				return Registry{}, err
-			}
-			for _, name := range project.CheckNames {
-				if !identifier.MatchString(name) {
-					return Registry{}, fmt.Errorf("%s: invalid check name", id)
-				}
-				check, err := ParseCheck(values[name])
-				if err != nil {
-					return Registry{}, err
-				}
-				project.Checks[name] = check
-			}
-		}
-		ids[id], paths[resolved] = true, true
-		result.Projects = append(result.Projects, project)
-	}
-	dependencies := make(map[string][]string, len(result.Projects))
-	order := make([]string, 0, len(result.Projects))
-	for _, project := range result.Projects {
-		dependencies[project.ID] = project.Dependencies
-		order = append(order, project.ID)
-	}
-	if err := checkDependencies(order, dependencies); err != nil {
-		return Registry{}, err
-	}
-	return result, nil
 }
 
 // checkDependencies requires every dependency to name a project and the graph

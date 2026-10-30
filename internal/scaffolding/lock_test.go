@@ -4,7 +4,19 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/brendenchu/wsup/internal/catalogue"
 )
+
+// mustSelection returns a lock's installed modules as a selection.
+func mustSelection(t *testing.T, lock Lock) catalogue.Selection {
+	t.Helper()
+	selection, err := lock.Selection()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return selection
+}
 
 // contractLock is the wsup.lock example from the v0.3.0 contract with its
 // elided digests filled in.

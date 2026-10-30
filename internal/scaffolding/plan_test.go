@@ -22,25 +22,26 @@ func writeFixture(t *testing.T, root, name string, body []byte) {
 	}
 }
 
-func nativeFixture(t *testing.T, files map[string][]byte) (string, State) {
+func nativeFixture(t *testing.T, files map[string][]byte) (string, Lock) {
 	t.Helper()
 	root := t.TempDir()
-	state := State{Version: StateVersion, TemplateVersion: "0.1.0", Template: "workspace", Files: map[string]string{}}
+	lock := Lock{Version: LockVersion, WsupVersion: "0.1.0", Starter: "workspace",
+		Modules: map[string]string{"workspace-base": "1.0.0"}, Files: map[string]string{}}
 	for name, body := range files {
-		state.Files[name] = contentDigest(body)
+		lock.Files[name] = lockDigest(body)
 		writeFixture(t, root, name, body)
 	}
-	saveState(t, root, state)
-	return root, state
+	saveLock(t, root, lock)
+	return root, lock
 }
 
-func saveState(t *testing.T, root string, state State) {
+func saveLock(t *testing.T, root string, lock Lock) {
 	t.Helper()
-	body, err := EncodeNativeState(state)
+	body, err := EncodeLock(lock)
 	if err != nil {
 		t.Fatal(err)
 	}
-	writeFixture(t, root, StatePath, body)
+	writeFixture(t, root, LockPath, body)
 }
 
 // Snapshot includes directories and symlink destinations as well as file bytes.
@@ -81,18 +82,17 @@ func snapshot(t *testing.T, root string) map[string]string {
 
 func TestPlanNativeUpdateClassificationsAndReadOnlyRepeatability(t *testing.T) {
 	root, _ := nativeFixture(t, map[string][]byte{
-		"README.md":      []byte("old"),
-		"same.md":        []byte("same"),
-		"custom.md":      []byte("old custom"),
-		"missing.md":     []byte("missing"),
-		"orphan.md":      []byte("retired starter"),
-		"workspace.json": []byte("starter registry"),
+		"README.md":  []byte("old"),
+		"same.md":    []byte("same"),
+		"custom.md":  []byte("old custom"),
+		"missing.md": []byte("missing"),
+		"orphan.md":  []byte("retired starter"),
 	})
 	writeFixture(t, root, "custom.md", []byte("owner changes"))
-	writeFixture(t, root, "workspace.json", []byte("owner registry"))
+	writeFixture(t, root, "wsup.json", []byte("owner registry"))
 	writeFixture(t, root, "collision.md", []byte("owner collision"))
 	writeFixture(t, root, "already.md", []byte("already new"))
-	writeFixture(t, root, ".wsup/reports/evidence.json", []byte("historical evidence"))
+	writeFixture(t, root, "workbench/.local/wsup/reports/evidence.json", []byte("historical evidence"))
 	writeFixture(t, root, "tools/project/source.go", []byte("independent project"))
 	writeFixture(t, root, "wsup.local.json", []byte("owner settings"))
 	if err := os.Remove(filepath.Join(root, "missing.md")); err != nil {
@@ -101,8 +101,8 @@ func TestPlanNativeUpdateClassificationsAndReadOnlyRepeatability(t *testing.T) {
 	bundle := map[string][]byte{
 		"README.md": []byte("new"), "same.md": []byte("same"),
 		"custom.md": []byte("new custom"), "missing.md": []byte("missing"),
-		"new/nested.md": []byte("new file"), "workspace.json": []byte("new registry"),
-		"collision.md": []byte("starter collision"), "already.md": []byte("already new"),
+		"new/nested.md": []byte("new file"),
+		"collision.md":  []byte("starter collision"), "already.md": []byte("already new"),
 	}
 	before := snapshot(t, root)
 	plan, err := PlanUpdate(root, "0.2.0", bundle, nil)
@@ -126,37 +126,25 @@ func TestPlanNativeUpdateClassificationsAndReadOnlyRepeatability(t *testing.T) {
 	}
 }
 
-func TestPlanKeepAndOmissionsPreserveOriginalBaselines(t *testing.T) {
-	root, state := nativeFixture(t, map[string][]byte{
-		"README.md": []byte("starter"), "apps/.gitkeep": {}, "packages/README.md": []byte("starter home"),
-	})
-	state.OmittedHomeFiles = []string{"apps/.gitkeep", "packages/README.md"}
-	state.Collections = []string{"archive"}
-	saveState(t, root, state)
+func TestPlanKeepPreservesOriginalBaselines(t *testing.T) {
+	root, state := nativeFixture(t, map[string][]byte{"README.md": []byte("starter")})
 	writeFixture(t, root, "README.md", []byte("owner readme"))
-	writeFixture(t, root, "packages/README.md", []byte("owner home"))
-	if err := os.Remove(filepath.Join(root, "apps/.gitkeep")); err != nil {
-		t.Fatal(err)
-	}
-	bundle := map[string][]byte{
-		"README.md": []byte("new starter"), "apps/.gitkeep": {}, "packages/README.md": []byte("new home"),
-	}
+	bundle := map[string][]byte{"README.md": []byte("new starter")}
 	before := snapshot(t, root)
 	plan, err := PlanUpdate(root, "0.2.0", bundle, []string{"README.md", "README.md"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []Action{{"README.md", "keep-customization"}, {"apps/.gitkeep", "retain-orphan"}, {"packages/README.md", "retain-orphan"}}
-	if !reflect.DeepEqual(plan.Actions, want) || len(plan.Conflicts) != 0 {
-		t.Fatalf("unexpected keep/omission plan: %+v", plan)
+	if !reflect.DeepEqual(plan.Actions, []Action{{"README.md", "keep-customization"}}) || len(plan.Conflicts) != 0 {
+		t.Fatalf("unexpected keep plan: %+v", plan)
 	}
 	unkept, err := PlanUpdate(root, "0.2.0", bundle, nil)
 	if err != nil || !reflect.DeepEqual(unkept.Conflicts, []string{"README.md"}) {
 		t.Fatalf("keep permanently accepted owner hashes: %+v %v", unkept, err)
 	}
-	loaded, err := LoadState(root)
-	if err != nil || !reflect.DeepEqual(loaded.State, state) || !reflect.DeepEqual(before, snapshot(t, root)) {
-		t.Fatal("planning changed baselines, selections, omissions, or files")
+	loaded, err := LoadLock(root)
+	if err != nil || !reflect.DeepEqual(loaded.Lock, state) || !reflect.DeepEqual(before, snapshot(t, root)) {
+		t.Fatal("planning changed baselines, modules, or files")
 	}
 }
 
@@ -167,12 +155,12 @@ func TestPlanInvalidKeepBundleAndUnsupportedStateRefuseWithoutWrites(t *testing.
 	if _, err := PlanUpdate(root, "0.2.0", nil, nil); err == nil {
 		t.Fatal("unavailable catalogue treated as an empty template")
 	}
-	for _, name := range []string{"unknown.md", "../outside", StatePath} {
+	for _, name := range []string{"unknown.md", "../outside", LockPath} {
 		if _, err := PlanUpdate(root, "0.2.0", valid, []string{name}); err == nil {
 			t.Fatalf("invalid keep accepted: %s", name)
 		}
 	}
-	for _, name := range []string{"../outside", ".wsup/runtime", StatePath, ".wsup", "bad\xffname"} {
+	for _, name := range []string{"../outside", "wsup.json", LockPath, "bad\xffname"} {
 		if _, err := PlanUpdate(root, "0.2.0", map[string][]byte{name: []byte("bad")}, nil); err == nil {
 			t.Fatalf("unsafe bundle accepted: %q", name)
 		}
@@ -186,14 +174,14 @@ func TestPlanInvalidKeepBundleAndUnsupportedStateRefuseWithoutWrites(t *testing.
 	if !reflect.DeepEqual(before, snapshot(t, root)) {
 		t.Fatal("invalid planning changed files")
 	}
-	state.Version = 1
+	state.Version = 2
 	body, err := json.Marshal(state)
 	if err != nil {
 		t.Fatal(err)
 	}
-	writeFixture(t, root, StatePath, body)
+	writeFixture(t, root, LockPath, body)
 	before = snapshot(t, root)
-	if _, err := PlanUpdate(root, "0.2.0", valid, nil); err == nil || !strings.Contains(err.Error(), "unsupported template state version 1") {
+	if _, err := PlanUpdate(root, "0.2.0", valid, nil); err == nil || !strings.Contains(err.Error(), "unsupported wsup.lock version 2") {
 		t.Fatalf("unsupported state not explicitly gated: %v", err)
 	}
 	if !reflect.DeepEqual(before, snapshot(t, root)) {
@@ -202,11 +190,12 @@ func TestPlanInvalidKeepBundleAndUnsupportedStateRefuseWithoutWrites(t *testing.
 }
 
 func TestPlanDirectoriesMissingKeepsAndRegistryOwnership(t *testing.T) {
-	root, _ := nativeFixture(t, map[string][]byte{"README.md": []byte("old"), "workspace.json": []byte("registry")})
+	root, _ := nativeFixture(t, map[string][]byte{"README.md": []byte("old")})
+	writeFixture(t, root, "wsup.json", []byte("registry"))
 	if err := os.Remove(filepath.Join(root, "README.md")); err != nil {
 		t.Fatal(err)
 	}
-	bundle := map[string][]byte{"README.md": []byte("new"), "workspace.json": []byte("new registry")}
+	bundle := map[string][]byte{"README.md": []byte("new")}
 	if _, err := PlanUpdate(root, "0.2.0", bundle, []string{"README.md"}); err == nil {
 		t.Fatal("missing managed file accepted by keep")
 	}
@@ -217,7 +206,7 @@ func TestPlanDirectoriesMissingKeepsAndRegistryOwnership(t *testing.T) {
 	if err != nil || !reflect.DeepEqual(plan.Conflicts, []string{"README.md"}) {
 		t.Fatalf("directory collision not reported: %+v %v", plan, err)
 	}
-	if err := os.Remove(filepath.Join(root, "workspace.json")); err != nil {
+	if err := os.Remove(filepath.Join(root, "wsup.json")); err != nil {
 		t.Fatal(err)
 	}
 	plan, err = PlanUpdate(root, "0.2.0", bundle, nil)
@@ -263,12 +252,12 @@ func TestPlanRefusesSymlinkComponentsAndNonDirectoryParents(t *testing.T) {
 
 func TestPlanUsesSHA256AndSupportsProjectState(t *testing.T) {
 	root, state := nativeFixture(t, map[string][]byte{"README.md": []byte("abc")})
-	const abcSHA256 = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+	const abcSHA256 = "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
 	if state.Files["README.md"] != abcSHA256 {
 		t.Fatalf("incorrect SHA-256 baseline: %s", state.Files["README.md"])
 	}
-	state.Template = "project"
-	saveState(t, root, state)
+	state.Starter, state.Modules = "project", map[string]string{"project-base": "1.0.0"}
+	saveLock(t, root, state)
 	before := snapshot(t, root)
 	plan, err := PlanUpdate(root, "0.2.0", map[string][]byte{"README.md": []byte("updated")}, nil)
 	if err != nil || !reflect.DeepEqual(plan.Actions, []Action{{"README.md", "write"}}) || len(plan.Conflicts) != 0 {

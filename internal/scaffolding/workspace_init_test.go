@@ -24,14 +24,14 @@ func TestNativeWorkspaceInventoryStateAndGuidance(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	loaded, err := LoadState(destination)
-	if err != nil || loaded.State.Version != StateVersion || loaded.State.Template != "workspace" ||
-		len(loaded.State.Files) != len(files) || len(loaded.State.Collections) != 0 {
-		t.Fatalf("workspace state: %+v %v", loaded.State, err)
+	loaded, err := LoadLock(destination)
+	if err != nil || loaded.Lock.Version != LockVersion || loaded.Lock.Starter != "workspace" ||
+		len(loaded.Lock.Files) != len(files) || len(mustSelection(t, loaded.Lock).Collections) != 0 {
+		t.Fatalf("workspace state: %+v %v", loaded.Lock, err)
 	}
 	for name, body := range files {
 		current, err := os.ReadFile(filepath.Join(destination, filepath.FromSlash(name)))
-		if err != nil || !bytes.Equal(current, body) || loaded.State.Files[name] != contentDigest(body) {
+		if err != nil || !bytes.Equal(current, body) || loaded.Lock.Files[name] != lockDigest(body) {
 			t.Fatalf("workspace asset or baseline mismatch: %s %v", name, err)
 		}
 	}
@@ -43,9 +43,8 @@ func TestNativeWorkspaceInventoryStateAndGuidance(t *testing.T) {
 			t.Fatalf("unselected collection created: %s", name)
 		}
 	}
-	entries, err := os.ReadDir(filepath.Join(destination, ".wsup"))
-	if err != nil || len(entries) != 1 || entries[0].Name() != "template-state.json" {
-		t.Fatalf("unexpected runtime/catalogue/report files: %v %v", entries, err)
+	if _, err := os.Lstat(filepath.Join(destination, ".wsup")); !os.IsNotExist(err) {
+		t.Fatalf("workspace has a .wsup folder: %v", err)
 	}
 	data, err := registry.Load(destination)
 	if err != nil || len(data.Projects) != 0 || data.Name != "My workspace" {
@@ -84,9 +83,9 @@ func TestWorkspaceInitRefusesInvalidKindsBeforeDestinationWrites(t *testing.T) {
 func TestWorkspaceInitFailurePreservesPartialOutputWithoutState(t *testing.T) {
 	destination := filepath.Join(t.TempDir(), "partial")
 	_, err := initialise(destination, "0.1.0", "workspace", map[string][]byte{
-		"README.md": []byte("new"), "workspace.json": []byte("{}"),
+		"README.md": []byte("new"), "docs/README.md": []byte("{}"),
 	}, func(root *os.Root, name string, body []byte, exclusive bool) error {
-		if name == StatePath {
+		if name == LockPath {
 			return os.ErrPermission
 		}
 		return writeManaged(root, name, body, exclusive)
@@ -97,7 +96,7 @@ func TestWorkspaceInitFailurePreservesPartialOutputWithoutState(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(destination, "README.md")); err != nil {
 		t.Fatal("partial content removed")
 	}
-	if _, err := os.Lstat(filepath.Join(destination, StatePath)); !os.IsNotExist(err) {
+	if _, err := os.Lstat(filepath.Join(destination, LockPath)); !os.IsNotExist(err) {
 		t.Fatal("failed workspace initialization committed state")
 	}
 }

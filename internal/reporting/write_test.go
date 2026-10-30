@@ -26,11 +26,11 @@ var fixedTime = time.Date(2026, 10, 25, 17, 0, 0, 0, time.UTC)
 func reportFixture(t *testing.T) (string, configuration.Result, []registry.Selection, []Result) {
 	t.Helper()
 	root := t.TempDir()
-	if err := os.WriteFile(filepath.Join(root, "workspace.json"), []byte(`{"synthetic":"input"}`), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "wsup.json"), []byte(`{"synthetic":"input"}`), 0600); err != nil {
 		t.Fatal(err)
 	}
 	config := configuration.Result{
-		Settings: configuration.Config{ReportDir: ".wsup/reports"},
+		Settings: configuration.Config{ReportDir: "workbench/.local/wsup/reports"},
 		Sources:  map[string]string{"timeout_seconds": "default", "output_limit_bytes": "default", "report_dir": "default"},
 	}
 	code := 0
@@ -76,7 +76,7 @@ func TestPrivateSanitizedReportsAndExactEvidence(t *testing.T) {
 	}
 	if data.Version != 2 || data.WsupVersion != "0.1.0" || data.Runtime != CurrentRuntime() ||
 		data.RecordedAt != "2026-10-25T17:00:00Z" || data.Git.Available ||
-		data.Inputs["workspace.json"] != hex.EncodeToString(input[:]) ||
+		data.Inputs["wsup.json"] != hex.EncodeToString(input[:]) ||
 		len(data.Inputs) != 1 || len(data.Selection) != 2 || data.Selection[0].CommandSHA256 != command ||
 		len(data.Results) != 2 || data.Results[0].Evidence == nil ||
 		!reflect.DeepEqual(*data.Results[0].Evidence, *results[0].Evidence) ||
@@ -114,7 +114,7 @@ func TestReportCollisionsNeverOverwriteAndPartialPairsAreExplicit(t *testing.T) 
 	for _, extension := range []string{".json", ".md"} {
 		t.Run(extension, func(t *testing.T) {
 			root, config, selected, results := reportFixture(t)
-			directory := filepath.Join(root, ".wsup/reports")
+			directory := filepath.Join(root, "workbench/.local/wsup/reports")
 			if err := os.MkdirAll(directory, 0755); err != nil {
 				t.Fatal(err)
 			}
@@ -155,7 +155,7 @@ func TestInvalidEvidenceAndInputFailuresDoNotCreateReports(t *testing.T) {
 		if path, err := deterministicWrite(root, config, selected, []Result{result}); path != "" || err == nil {
 			t.Fatalf("invalid evidence accepted: %+v %q %v", result, path, err)
 		}
-		if _, err := os.Stat(filepath.Join(root, ".wsup")); !os.IsNotExist(err) {
+		if _, err := os.Stat(filepath.Join(root, "workbench")); !os.IsNotExist(err) {
 			t.Fatalf("invalid evidence created output: %v", err)
 		}
 	}
@@ -169,7 +169,7 @@ func TestInvalidEvidenceAndInputFailuresDoNotCreateReports(t *testing.T) {
 	if _, err := deterministicWrite(root, config, selected, results); err == nil {
 		t.Fatal("non-file input accepted")
 	}
-	if _, err := os.Stat(filepath.Join(root, ".wsup")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(root, "workbench")); !os.IsNotExist(err) {
 		t.Fatalf("bad input created output: %v", err)
 	}
 }
@@ -181,10 +181,10 @@ func TestReportDirectoryRecheckedAtWriteAndEntropyFailure(t *testing.T) {
 	if !errors.Is(err, io.EOF) {
 		t.Fatalf("entropy failure hidden: %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(root, ".wsup")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(root, "workbench")); !os.IsNotExist(err) {
 		t.Fatalf("entropy failure created output: %v", err)
 	}
-	for _, link := range []string{".wsup", ".wsup/reports"} {
+	for _, link := range []string{"workbench", "workbench/.local", "workbench/.local/wsup", "workbench/.local/wsup/reports"} {
 		t.Run(link, func(t *testing.T) {
 			root, config, selected, results := reportFixture(t)
 			outside := t.TempDir()
@@ -215,7 +215,7 @@ func TestExclusiveReportRefusesSymlinkAndNonDirectoryParent(t *testing.T) {
 	if err := os.WriteFile(outside, []byte("Keep\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	directory := filepath.Join(root, ".wsup/reports")
+	directory := filepath.Join(root, "workbench/.local/wsup/reports")
 	if err := os.MkdirAll(directory, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -230,7 +230,7 @@ func TestExclusiveReportRefusesSymlinkAndNonDirectoryParent(t *testing.T) {
 		t.Fatalf("symlink destination changed: %q %v", body, err)
 	}
 	other, otherConfig, otherSelected, otherResults := reportFixture(t)
-	if err := os.WriteFile(filepath.Join(other, ".wsup"), []byte("file"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(other, "workbench"), []byte("file"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := deterministicWrite(other, otherConfig, otherSelected, otherResults); err == nil {
@@ -326,19 +326,19 @@ func TestAllStatusesAndGitUnknownStateRemainExplicit(t *testing.T) {
 
 func TestNestedReportSymlinkWithinReportsRemainsValid(t *testing.T) {
 	root, config, selected, results := reportFixture(t)
-	target := filepath.Join(root, ".wsup/reports/actual")
+	target := filepath.Join(root, "workbench/.local/wsup/reports/actual")
 	if err := os.MkdirAll(target, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Symlink(target, filepath.Join(root, ".wsup/reports/link")); err != nil {
+	if err := os.Symlink(target, filepath.Join(root, "workbench/.local/wsup/reports/link")); err != nil {
 		t.Skipf("symlink creation unavailable: %v", err)
 	}
-	config.Settings.ReportDir = ".wsup/reports/link"
+	config.Settings.ReportDir = "workbench/.local/wsup/reports/link"
 	filename, err := deterministicWrite(root, config, selected, results)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(filename, filepath.Join(".wsup", "reports", "link")) {
+	if !strings.Contains(filename, filepath.Join("workbench", ".local", "wsup", "reports", "link")) {
 		t.Fatalf("report path did not preserve configured spelling: %s", filename)
 	}
 	if _, err := os.Stat(filepath.Join(target, filepath.Base(filename))); err != nil {
@@ -349,8 +349,7 @@ func TestNestedReportSymlinkWithinReportsRemainsValid(t *testing.T) {
 func TestPublicWriterCreatesUniqueReportsAndHashesAllInputBytes(t *testing.T) {
 	root, config, selected, results := reportFixture(t)
 	inputs := map[string][]byte{
-		"workspace.json":  []byte("{\"synthetic\":\"registry\"}\n"),
-		"wsup.json":       []byte("{\"version\":1}\n"),
+		"wsup.json":       []byte("{\"synthetic\":\"registry\"}\n"),
 		"wsup.local.json": []byte("{\"version\":1,\"settings\":{}}\n"),
 	}
 	for name, body := range inputs {

@@ -12,23 +12,23 @@ import (
 )
 
 type preparedUpdate struct {
-	root        string
-	plan        UpdatePlan
-	observed    map[string]observation
-	stateBefore []byte
-	stateAfter  []byte
-	files       map[string][]byte
+	root       string
+	plan       UpdatePlan
+	observed   map[string]observation
+	lockBefore []byte
+	lockAfter  []byte
+	files      map[string][]byte
 	// links holds the targets of planned "link" actions.
 	links map[string]string
 }
 
 // ApplyUpdate plans and applies native same-path content changes. Conflicts and
 // observed changes block all writes. Later I/O failures may leave partial content
-// updates, reported explicitly; state is replaced last. This is not a transaction
+// updates, reported explicitly; wsup.lock is replaced last. This is not a transaction
 // or protection against concurrent writers after the final per-file recheck.
 func ApplyUpdate(root, version string, files map[string][]byte, keep []string) (UpdatePlan, error) {
 	var prepared preparedUpdate
-	plan, err := planUpdate(root, version, files, nil, keep, &prepared)
+	plan, err := planUpdate(root, version, files, nil, nil, keep, &prepared)
 	if err != nil {
 		return plan, err
 	}
@@ -49,17 +49,17 @@ func (p preparedUpdate) applyWith(write func(*os.Root, string, []byte, bool) err
 		return result, err
 	}
 	defer root.Close()
-	checkState := func() error {
-		current, err := observeFile(root, StatePath)
+	checkLock := func() error {
+		current, err := observeFile(root, LockPath)
 		if err != nil {
 			return err
 		}
-		if !current.regular || current.digest != contentDigest(p.stateBefore) {
-			return fmt.Errorf("template state changed during update planning")
+		if !current.regular || current.digest != lockDigest(p.lockBefore) {
+			return fmt.Errorf("wsup.lock changed during update planning")
 		}
 		return nil
 	}
-	if err := checkState(); err != nil {
+	if err := checkLock(); err != nil {
 		return result, err
 	}
 	names := make([]string, 0, len(p.observed))
@@ -74,7 +74,7 @@ func (p preparedUpdate) applyWith(write func(*os.Root, string, []byte, bool) err
 	}
 	// Once any write is attempted, errors must disclose possible partial output.
 	fail := func(err error) (UpdatePlan, error) {
-		return result, fmt.Errorf("native update incomplete; content or directories may already be written; template state was not committed: %w", err)
+		return result, fmt.Errorf("native update incomplete; content or directories may already be written; wsup.lock was not updated: %w", err)
 	}
 	for _, action := range result.Actions {
 		if action.Action == "link" {
@@ -109,11 +109,11 @@ func (p preparedUpdate) applyWith(write func(*os.Root, string, []byte, bool) err
 			return fail(fmt.Errorf("remove replaced file %s: %w", action.Path, err))
 		}
 	}
-	if err := checkState(); err != nil {
+	if err := checkLock(); err != nil {
 		return fail(err)
 	}
-	if !bytes.Equal(p.stateBefore, p.stateAfter) {
-		if err := write(root, StatePath, p.stateAfter, false); err != nil {
+	if !bytes.Equal(p.lockBefore, p.lockAfter) {
+		if err := write(root, LockPath, p.lockAfter, false); err != nil {
 			return fail(err)
 		}
 	}

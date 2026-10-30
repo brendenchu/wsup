@@ -22,7 +22,7 @@ See the [release guide](docs/releases.md) for version and tag policy.
   re-creates it when missing, and `validate` and `guidance` report a missing
   or broken link.
 - Editor adapter `vscode`: `init` generates `<name>.code-workspace` from
-  `workspace.json` (root plus one folder per project) and `update` refreshes
+  `wsup.json` (root plus one folder per project) and `update` refreshes
   it, reporting hand edits as conflicts. Renaming the workspace replaces the
   file: `update` removes the old one while it is unedited. `--editor NAME` selects and
   `--editor none` skips it; editor adapters are workspace-only. `wsup editor`
@@ -33,12 +33,28 @@ See the [release guide](docs/releases.md) for version and tag policy.
 - `wsup init --preset NAME` selects a preset of collections; explicit
   `--collection` choices add to it. `--preset none` creates a base-only
   workspace. Unknown presets fail before anything is written.
+- `wsup check --all` runs the check tasks of every project.
 - One-command local macOS ARM64 candidate verification and packaging with the
   pinned Go toolchain, full notices, checksums, repeated binary builds, and
   extracted-binary smoke checks. Tagging and publication remain explicit.
 
 ### Changed
 
+- `wsup.json` (version 3) is the workspace file, replacing `workspace.json` and
+  the settings-only `wsup.json`. It records the workspace name, the selected
+  collections, agents, and editors, shared `settings`, and projects. Projects
+  declare `tasks` instead of `checks`; a task with `"check": true` runs under
+  `wsup check`, and `--task` replaces `--check`. Tasks keep every check option
+  and add `cwd`. Projects may record a `git` URL.
+- Project kinds are `app`, `package`, `tool`, `infra`, `sandbox`, `template`,
+  `fork`, and `research` (`infrastructure` is now `infra`).
+- `wsup.lock` (committed) replaces `.wsup/template-state.json`. It records each
+  installed module and version, and baseline hashes for managed files, their
+  generated sections, and links. Workspaces created by wsup 0.2.0 report that
+  they need converting.
+- Check reports default to `workbench/.local/wsup/reports/`, and `report_dir`
+  must stay inside it.
+- Adding a collection also adds it to `wsup.json`, rewritten in canonical form.
 - `apps/`, `packages/`, `tools/`, and `infra/` are collections instead of
   part of the workspace base, and the default `development` preset selects
   all four. Existing workspaces keep managing `apps/`, `packages/`, and
@@ -69,6 +85,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
   inspects top-level folder `AGENTS.md` files, and reports unpaired markers.
 
 ### Removed
+
+- The `.wsup/` folder, and the `.work/` entries in generated `.gitignore` files.
 
 - `AI.md`, `guidance/rules/`, and `WSUP-LICENSE` from generated workspaces and
   projects. Generated output carries no license file.

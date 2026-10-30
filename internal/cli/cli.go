@@ -89,9 +89,10 @@ func newCommand(s session) *cobra.Command {
 	editor := &cobra.Command{Use: "editor", Short: "Create an optional VS Code multi-root file", Args: cobra.NoArgs, RunE: inspectWorkspace}
 	editor.Flags().String("output", "workspace.code-workspace", "New filename in the workspace root")
 	root.AddCommand(editor)
-	check := &cobra.Command{Use: "check", Short: "Run explicitly selected project checks", Args: cobra.NoArgs, RunE: runChecks}
-	check.Flags().StringArray("project", nil, "Project ID (required; repeat to select more)")
-	check.Flags().StringArray("check", nil, "Check name (repeat; defaults to all configured checks)")
+	check := &cobra.Command{Use: "check", Short: "Run the check tasks of selected projects", Args: cobra.NoArgs, RunE: runChecks}
+	check.Flags().StringArray("project", nil, "Project ID (repeat to select more; or use --all)")
+	check.Flags().Bool("all", false, "Select every project with check tasks")
+	check.Flags().StringArray("task", nil, "Check task name (repeat; defaults to every check task)")
 	check.Flags().Int("timeout", 0, "Override timeout in seconds (1..86400)")
 	check.Flags().Bool("show-output", false, "Print retained stdout/stderr to the terminal")
 	root.AddCommand(check)
@@ -319,9 +320,9 @@ func inspectWorkspace(command *cobra.Command, args []string) error {
 		_, err = fmt.Fprintf(command.OutOrStdout(), "Valid: %s (%d projects)\n", data.Name, len(data.Projects))
 		return err
 	case "projects":
-		projects := make([]map[string]any, 0, len(data.Projects))
+		projects := make([]registry.ProjectEntry, 0, len(data.Projects))
 		for _, project := range data.Projects {
-			projects = append(projects, project.Raw)
+			projects = append(projects, project.Entry)
 		}
 		return writeJSON(command.OutOrStdout(), projects)
 	case "guidance":

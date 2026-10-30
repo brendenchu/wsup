@@ -9,18 +9,17 @@ import (
 	"github.com/brendenchu/wsup/internal/catalogue"
 )
 
-func TestEmbeddedUpdatePreservesSelectedCollectionsAndOmissions(t *testing.T) {
-	files, err := catalogue.BundleSelected("workspace", []string{"archive", "journal", "packages"})
+func TestEmbeddedUpdatePreservesInstalledModulesAndBaselines(t *testing.T) {
+	selected := []string{"archive", "journal", "packages"}
+	files, err := catalogue.BundleSelected("workspace", selected)
 	if err != nil {
 		t.Fatal(err)
 	}
 	root, state := nativeFixture(t, files)
-	state.Collections = []string{"archive", "journal", "packages"}
-	state.OmittedHomeFiles = []string{"packages/README.md"}
-	saveState(t, root, state)
-	if err := os.Remove(filepath.Join(root, "packages/README.md")); err != nil {
+	if state.Modules, err = catalogue.Installed("workspace", catalogue.Selection{Collections: selected}); err != nil {
 		t.Fatal(err)
 	}
+	saveLock(t, root, state)
 	writeFixture(t, root, "archive/README.md", []byte("Owner archive policy"))
 	before := snapshot(t, root)
 	plan, err := Update(root, "0.2.0", nil, false)
@@ -34,16 +33,13 @@ func TestEmbeddedUpdatePreservesSelectedCollectionsAndOmissions(t *testing.T) {
 	if err != nil || !result.Applied {
 		t.Fatalf("selected update: %+v %v", result, err)
 	}
-	loaded, err := LoadState(root)
-	if err != nil || !reflect.DeepEqual(loaded.State.Collections, state.Collections) ||
-		!reflect.DeepEqual(loaded.State.OmittedHomeFiles, state.OmittedHomeFiles) ||
-		loaded.State.Files["archive/README.md"] != state.Files["archive/README.md"] {
-		t.Fatalf("selection or baseline changed: %+v %v", loaded.State, err)
+	loaded, err := LoadLock(root)
+	if err != nil || !reflect.DeepEqual(mustSelection(t, loaded.Lock).Collections, selected) ||
+		!reflect.DeepEqual(loaded.Lock.Modules, state.Modules) ||
+		loaded.Lock.Files["archive/README.md"] != state.Files["archive/README.md"] {
+		t.Fatalf("modules or baseline changed: %+v %v", loaded.Lock, err)
 	}
-	if _, err := os.Stat(filepath.Join(root, "packages/README.md")); !os.IsNotExist(err) {
-		t.Fatal("omitted home recreated")
-	}
-	if _, exists := loaded.State.Files["journal/TEMPLATE.md"]; !exists {
+	if _, exists := loaded.Lock.Files["journal/TEMPLATE.md"]; !exists {
 		t.Fatal("selected journal template dropped")
 	}
 	for _, name := range []string{"learning", "research", "sandbox"} {

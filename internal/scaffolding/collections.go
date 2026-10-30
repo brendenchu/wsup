@@ -3,6 +3,7 @@ package scaffolding
 import (
 	"bytes"
 	"fmt"
+	"maps"
 	"os"
 	"slices"
 	"strings"
@@ -55,25 +56,42 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 		return result, preparedUpdate{}, nil
 	}
 	result.Selected = &selected
-	loaded, err := LoadState(root)
+	loaded, err := LoadLock(root)
 	if err != nil {
 		return result, preparedUpdate{}, err
 	}
-	state := loaded.State
-	state.Collections = state.SelectedCollections()
-	if state.Version != StateVersion || state.Template != "workspace" {
+	lock := loaded.Lock
+	if lock.Starter != "workspace" {
 		return result, preparedUpdate{}, fmt.Errorf("adding collections requires a managed workspace")
 	}
+	have, err := lock.Selection()
+	if err != nil {
+		return result, preparedUpdate{}, err
+	}
+	documentBody, err := readDocument(root)
+	if err != nil {
+		return result, preparedUpdate{}, err
+	}
+	if documentBody == nil {
+		return result, preparedUpdate{}, fmt.Errorf("adding collections requires wsup.json")
+	}
+	document, err := registry.Decode(documentBody)
+	if err != nil {
+		return result, preparedUpdate{}, err
+	}
 	// Render for the whole resulting selection: base templates depend on it.
-	registryBody, err := readRegistry(root)
+	have.Registry = documentBody
+	want := have
+	want.Collections = append(slices.Clone(have.Collections), selected...)
+	bundle, _, err := catalogue.Starter("workspace", want)
 	if err != nil {
 		return result, preparedUpdate{}, err
 	}
-	bundle, _, err := catalogue.Starter("workspace", state.selection(append(slices.Clone(state.Collections), selected...), registryBody))
+	installed, _, err := catalogue.Starter("workspace", have)
 	if err != nil {
 		return result, preparedUpdate{}, err
 	}
-	installed, _, err := catalogue.Starter("workspace", state.selection(state.Collections, registryBody))
+	modules, err := catalogue.Installed("workspace", want)
 	if err != nil {
 		return result, preparedUpdate{}, err
 	}
@@ -99,8 +117,27 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 	}
 	slices.Sort(paths)
 	prepared := preparedUpdate{
-		root: root, stateBefore: loaded.Original,
+		root: root, lockBefore: loaded.Original,
 		observed: map[string]observation{}, files: map[string][]byte{},
+	}
+	next := lock
+	next.Modules = modules
+	next.Files = maps.Clone(lock.Files)
+	next.Blocks = maps.Clone(lock.Blocks)
+	if next.Blocks == nil {
+		next.Blocks = map[string]string{}
+	}
+	// adopt records new content as this path's baseline, blocks included.
+	adopt := func(name string, body []byte, baseline bool) {
+		if baseline {
+			next.Files[name] = lockDigest(body)
+		}
+		for key := range next.Blocks {
+			if strings.HasPrefix(key, name+"#") {
+				delete(next.Blocks, key)
+			}
+		}
+		maps.Copy(next.Blocks, blockDigests(name, body))
 	}
 	for _, name := range paths {
 		current, err := observeFile(handle, name)
@@ -108,7 +145,7 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 			return result, preparedUpdate{}, err
 		}
 		prepared.observed[name] = current
-		baseline, managed := state.Files[name]
+		baseline, managed := lock.Files[name]
 		prior, deployed := installed[name]
 		if managed && deployed && !bytes.Equal(prior, bundle[name]) {
 			// A rendered file changes with the selection. An unedited copy is
@@ -121,27 +158,27 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 			case current.digest == baseline:
 				result.Actions = append(result.Actions, Action{Path: name, Action: "write"})
 				prepared.files[name] = bundle[name]
-				state.Files[name] = contentDigest(bundle[name])
+				adopt(name, bundle[name], true)
 			default:
 				body, err := handle.ReadFile(name)
 				if err != nil {
 					return result, preparedUpdate{}, err
 				}
 				spliced, ok := spliceBlocks(body, prior, bundle[name])
-				if !ok || contentDigest(body) != current.digest {
+				if !ok || lockDigest(body) != current.digest {
 					result.Conflicts = append(result.Conflicts, name)
 					break
 				}
 				result.Actions = append(result.Actions, Action{Path: name, Action: "write"})
 				prepared.files[name] = spliced
+				adopt(name, bundle[name], false)
 			}
 			continue
 		}
 		if managed {
 			// A managed skill is shared, so it never belongs to an unselected collection.
-			enabled := isSkill(name) || slices.Contains(state.Collections, strings.SplitN(name, "/", 2)[0])
-			formerDefault := slices.Contains([]string{"journal/README.md", "journal/TEMPLATE.md", "learning/README.md", "reference/README.md", "research/README.md"}, name)
-			if (!enabled && !formerDefault) || !current.regular {
+			enabled := isSkill(name) || slices.Contains(have.Collections, strings.SplitN(name, "/", 2)[0])
+			if !enabled || !current.regular {
 				result.Conflicts = append(result.Conflicts, name)
 			}
 		} else if current.exists {
@@ -149,13 +186,27 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 		} else {
 			result.Actions = append(result.Actions, Action{Path: name, Action: "write"})
 			prepared.files[name] = bundle[name]
-			state.Files[name] = contentDigest(bundle[name])
+			adopt(name, bundle[name], true)
 		}
 	}
-	state.Collections = append(state.Collections, selected...)
-	slices.Sort(state.Collections)
-	state.Collections = slices.Compact(state.Collections)
-	prepared.stateAfter, err = EncodeNativeState(state)
+	// wsup.json records the selection; it is rewritten in canonical form.
+	document.Collections = slices.Sorted(slices.Values(append(document.Collections, selected...)))
+	document.Collections = slices.Compact(document.Collections)
+	encoded, err := registry.Encode(document)
+	if err != nil {
+		return result, preparedUpdate{}, err
+	}
+	if !bytes.Equal(encoded, documentBody) {
+		observed, err := observeFile(handle, registry.DocumentPath)
+		if err != nil {
+			return result, preparedUpdate{}, err
+		}
+		prepared.observed[registry.DocumentPath] = observed
+		prepared.files[registry.DocumentPath] = encoded
+		result.Actions = append(result.Actions, Action{Path: registry.DocumentPath, Action: "write"})
+		slices.SortFunc(result.Actions, func(a, b Action) int { return strings.Compare(a.Path, b.Path) })
+	}
+	prepared.lockAfter, err = EncodeLock(next)
 	if err != nil {
 		return result, preparedUpdate{}, err
 	}

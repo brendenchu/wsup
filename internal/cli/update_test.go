@@ -52,7 +52,7 @@ func TestNativeUpdateCLIReadsEmbeddedCatalogueAndPreservesOwnerFiles(t *testing.
 			if _, err := scaffolding.Initialise(root, Version, kind); err != nil {
 				t.Fatal(err)
 			}
-			loaded, err := scaffolding.LoadState(root)
+			loaded, err := scaffolding.LoadLock(root)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -60,20 +60,20 @@ func TestNativeUpdateCLIReadsEmbeddedCatalogueAndPreservesOwnerFiles(t *testing.
 			if err := os.WriteFile(filepath.Join(root, "README.md"), old, 0600); err != nil {
 				t.Fatal(err)
 			}
-			loaded.State.Files["README.md"] = fmt.Sprintf("%x", sha256.Sum256(old))
-			loaded.State.TemplateVersion = "0.0.0"
-			state, err := scaffolding.EncodeNativeState(loaded.State)
+			loaded.Lock.Files["README.md"] = fmt.Sprintf("sha256:%x", sha256.Sum256(old))
+			loaded.Lock.WsupVersion = "0.0.0"
+			state, err := scaffolding.EncodeLock(loaded.Lock)
 			if err != nil {
 				t.Fatal(err)
 			}
-			statePath := filepath.Join(root, filepath.FromSlash(scaffolding.StatePath))
+			statePath := filepath.Join(root, filepath.FromSlash(scaffolding.LockPath))
 			if err := os.WriteFile(statePath, state, 0600); err != nil {
 				t.Fatal(err)
 			}
 			for name, body := range map[string]string{
 				"AGENTS.md": "Owner guidance customization", "wsup.local.json": "Owner local bytes",
-				"workspace.json":         "Owner registry bytes, deliberately not parsed by update",
-				".wsup/reports/old.json": "Old evidence", "tools/independent/source": "Independent project",
+				"wsup.json":                              "Owner registry bytes, deliberately not parsed by update",
+				"workbench/.local/wsup/reports/old.json": "Old evidence", "tools/independent/source": "Independent project",
 			} {
 				filename := filepath.Join(root, filepath.FromSlash(name))
 				if err := os.MkdirAll(filepath.Dir(filename), 0755); err != nil {
@@ -144,23 +144,29 @@ func TestNativeUpdateCLIReadsEmbeddedCatalogueAndPreservesOwnerFiles(t *testing.
 }
 
 func TestNativeUpdateCLIRejectsUnsupportedStateWithoutWrites(t *testing.T) {
-	root := t.TempDir()
-	if err := os.Mkdir(filepath.Join(root, ".wsup"), 0755); err != nil {
-		t.Fatal(err)
-	}
-	body := `{"version":1,"template_version":"0.1.0","template":"workspace","files":{}}`
-	if err := os.WriteFile(filepath.Join(root, ".wsup/template-state.json"), []byte(body), 0600); err != nil {
-		t.Fatal(err)
-	}
-	before := workspaceBytes(t, root)
-	for _, args := range [][]string{{}, {"--apply"}} {
-		var stdout, stderr bytes.Buffer
-		code := Run(append([]string{"--root", root, "update"}, args...), &stdout, &stderr)
-		if code != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "unsupported template state version 1") {
-			t.Fatalf("unsupported state accepted: %d %s %s", code, &stdout, &stderr)
+	for file, tc := range map[string]struct{ body, error string }{
+		"wsup.lock": {`{"version":2,"wsup_version":"0.1.0","starter":"workspace","modules":{"workspace-base":"1.0.0"},"files":{}}`,
+			"unsupported wsup.lock version 2"},
+		".wsup/template-state.json": {`{"version":2,"template_version":"0.2.0","template":"workspace","files":{}}`,
+			"created by wsup 0.2.0"},
+	} {
+		root := t.TempDir()
+		if err := os.MkdirAll(filepath.Dir(filepath.Join(root, file)), 0755); err != nil {
+			t.Fatal(err)
 		}
-	}
-	if !reflect.DeepEqual(before, workspaceBytes(t, root)) {
-		t.Fatal("unsupported update changed files")
+		if err := os.WriteFile(filepath.Join(root, file), []byte(tc.body), 0600); err != nil {
+			t.Fatal(err)
+		}
+		before := workspaceBytes(t, root)
+		for _, args := range [][]string{{}, {"--apply"}} {
+			var stdout, stderr bytes.Buffer
+			code := Run(append([]string{"--root", root, "update"}, args...), &stdout, &stderr)
+			if code != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), tc.error) {
+				t.Fatalf("unsupported %s accepted: %d %s %s", file, code, &stdout, &stderr)
+			}
+		}
+		if !reflect.DeepEqual(before, workspaceBytes(t, root)) {
+			t.Fatal("unsupported update changed files")
+		}
 	}
 }

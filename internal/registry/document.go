@@ -11,8 +11,14 @@ import (
 	"github.com/brendenchu/wsup/internal/catalogue"
 )
 
-// DocumentVersion is the wsup.json schema version that Decode accepts.
-const DocumentVersion = 3
+const (
+	// DocumentPath is the workspace file, relative to the workspace root.
+	DocumentPath = "wsup.json"
+	// DocumentVersion is the wsup.json schema version that Decode accepts.
+	DocumentVersion = 3
+	// SchemaURL is written as $schema so editors validate wsup.json.
+	SchemaURL = "https://raw.githubusercontent.com/brendenchu/wsup/main/schema/wsup-3.json"
+)
 
 // projectKinds is the closed set of project kinds (contract amendment 1).
 var projectKinds = []string{"app", "package", "tool", "infra", "sandbox", "template", "fork", "research"}
@@ -305,17 +311,6 @@ func portablePath(name string) bool {
 // two-space indentation, and a trailing newline. Only non-default task policy
 // fields are written, so Decode(Encode(d)) returns d.
 func Encode(document Document) ([]byte, error) {
-	type project struct {
-		ID           string   `json:"id"`
-		Path         string   `json:"path"`
-		Kind         string   `json:"kind"`
-		Repository   string   `json:"repository"`
-		Git          string   `json:"git,omitempty"`
-		Purpose      string   `json:"purpose"`
-		Owner        string   `json:"owner"`
-		Dependencies []string `json:"dependencies"`
-		Tasks        taskList `json:"tasks,omitempty"`
-	}
 	type vscode struct {
 		Settings   map[string]any   `json:"settings"`
 		Extensions []string         `json:"extensions"`
@@ -330,19 +325,14 @@ func Encode(document Document) ([]byte, error) {
 		Agents      []string       `json:"agents"`
 		Editors     []string       `json:"editors"`
 		Settings    map[string]any `json:"settings,omitempty"`
-		Projects    []project      `json:"projects"`
+		Projects    []ProjectEntry `json:"projects"`
 		VSCode      *vscode        `json:"vscode,omitempty"`
 	}{
 		Schema: document.Schema, Version: DocumentVersion, Name: document.Name,
 		Collections: nonNil(document.Collections), Agents: nonNil(document.Agents), Editors: nonNil(document.Editors),
-		Settings: document.Settings, Projects: []project{},
+		Settings: document.Settings, Projects: []ProjectEntry{},
 	}
-	for _, entry := range document.Projects {
-		output.Projects = append(output.Projects, project{
-			ID: entry.ID, Path: entry.Path, Kind: entry.Kind, Repository: entry.Repository, Git: entry.Git,
-			Purpose: entry.Purpose, Owner: entry.Owner, Dependencies: nonNil(entry.Dependencies), Tasks: entry.Tasks,
-		})
-	}
+	output.Projects = append(output.Projects, document.Projects...)
 	if document.VSCode != nil {
 		output.VSCode = &vscode{
 			Settings: document.VSCode.Settings, Extensions: nonNil(document.VSCode.Extensions),
@@ -370,6 +360,24 @@ func Encode(document Document) ([]byte, error) {
 		return nil, fmt.Errorf("encode wsup.json: %w", err)
 	}
 	return encoded.Bytes(), nil
+}
+
+// MarshalJSON writes the project as it appears in wsup.json.
+func (entry ProjectEntry) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		ID           string   `json:"id"`
+		Path         string   `json:"path"`
+		Kind         string   `json:"kind"`
+		Repository   string   `json:"repository"`
+		Git          string   `json:"git,omitempty"`
+		Purpose      string   `json:"purpose"`
+		Owner        string   `json:"owner"`
+		Dependencies []string `json:"dependencies"`
+		Tasks        taskList `json:"tasks,omitempty"`
+	}{
+		ID: entry.ID, Path: entry.Path, Kind: entry.Kind, Repository: entry.Repository, Git: entry.Git,
+		Purpose: entry.Purpose, Owner: entry.Owner, Dependencies: nonNil(entry.Dependencies), Tasks: entry.Tasks,
+	})
 }
 
 // taskList encodes tasks as one object in their order.
