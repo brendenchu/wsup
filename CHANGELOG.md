@@ -13,8 +13,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
   include a template.
 - Workspaces and projects include `.editorconfig` (UTF-8, LF, final newline,
   trimmed trailing whitespace) and `.gitattributes` (`* text=auto eol=lf`).
-- Collections can declare ignore entries, written to a marked block in the
-  workspace `.gitignore`. `data` ignores `data/**/*.local.*`.
+- Modules can declare ignore entries, written to a marked block in the
+  workspace or project `.gitignore`. `data` ignores `data/**/*.local.*`, and
+  the `claude` adapter ignores Claude Code's per-user
+  `.claude/settings.local.json`.
 - Agent adapters: `claude` (`CLAUDE.md` importing `AGENTS.md`, and a
   `.claude/skills` link to `.agents/skills`) and `gemini` (`GEMINI.md`).
   `init` installs both by default; `--agent NAME` selects and `--agent none`

@@ -9,7 +9,7 @@ wsup.local.json
 # Add one root-relative entry per independent project; see docs/workspace-model.md.
 # /apps/my-app/
 
-# Entries from selected collections. wsup manages this block.
+# Entries from selected modules. wsup manages this block.
 # wsup:begin ignore
 {{range .Ignore}}{{.}}
 {{end}}# wsup:end ignore

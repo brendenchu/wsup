@@ -1,0 +1,12 @@
+workbench/.local/
+**/workbench/.local/
+wsup.local.json
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Entries from selected modules. wsup manages this block.
+# wsup:begin ignore
+{{range .Ignore}}{{.}}
+{{end}}# wsup:end ignore

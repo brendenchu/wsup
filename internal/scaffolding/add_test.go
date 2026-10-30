@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
@@ -295,4 +296,31 @@ func must[T any](value T, err error) T {
 		panic(err)
 	}
 	return value
+}
+
+func TestClaudeAdapterIgnoresLocalSettingsInWorkspacesAndProjects(t *testing.T) {
+	entry := "# wsup:begin ignore\n.claude/settings.local.json\n# wsup:end ignore\n"
+	for _, kind := range []string{"workspace", "project"} {
+		root := filepath.Join(t.TempDir(), kind)
+		if _, err := InitialiseWith(root, "0.1.0", kind, catalogue.Selection{Agents: []string{"claude"}}); err != nil {
+			t.Fatal(err)
+		}
+		if body := must(os.ReadFile(filepath.Join(root, ".gitignore"))); !strings.HasSuffix(string(body), entry) {
+			t.Fatalf("%s .gitignore: %q", kind, body)
+		}
+		// Adding the adapter later merges the entry into an edited .gitignore.
+		bare := filepath.Join(t.TempDir(), kind+"-bare")
+		if _, err := InitialiseWith(bare, "0.1.0", kind, catalogue.Selection{Agents: []string{}}); err != nil {
+			t.Fatal(err)
+		}
+		writeFixture(t, bare, ".gitignore", append([]byte("/owner/\n"), must(os.ReadFile(filepath.Join(bare, ".gitignore")))...))
+		plan, err := AddModules(bare, []string{"claude"}, true)
+		if err != nil || !plan.Applied || !slices.Contains(plan.Actions, Action{".gitignore", "merge"}) {
+			t.Fatalf("%s add claude: %+v %v", kind, plan, err)
+		}
+		body := string(must(os.ReadFile(filepath.Join(bare, ".gitignore"))))
+		if !strings.HasPrefix(body, "/owner/\n") || !strings.HasSuffix(body, entry) {
+			t.Fatalf("%s merged .gitignore: %q", kind, body)
+		}
+	}
 }

@@ -122,11 +122,13 @@ paths are rechecked before exclusive writes; the lock is replaced last,
 preserving unrelated hashes and previous modules. I/O failures can leave new
 files with the old lock and are explicit; inspect partial results before retrying.
 These commands configure no permissions, ACLs, sync, backups, or retention.
-Selected collections' ignore entries are written to the `.gitignore` block
-between `# wsup:begin ignore` and `# wsup:end ignore` (today only `data`, which
-ignores `data/**/*.local.*`). Files rendered from the selection, such as that
-`.gitignore`, are rewritten by an addition only while they match their baseline;
-an edited copy is a conflict.
+Selected modules' ignore entries are written to the `.gitignore` block
+between `# wsup:begin ignore` and `# wsup:end ignore`: `data` ignores
+`data/**/*.local.*`, and the `claude` adapter ignores Claude Code's per-user
+`.claude/settings.local.json` (in projects too). Files rendered from the
+selection, such as that `.gitignore`, are rewritten while they match their
+baseline; an edited copy gets only its generated block replaced (`merge`) when
+that block is unchanged, and is otherwise a conflict.
 
 ## Register projects
 

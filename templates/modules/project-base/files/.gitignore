@@ -1,7 +1,0 @@
-workbench/.local/
-**/workbench/.local/
-wsup.local.json
-.env
-.env.*
-!.env.example
-.DS_Store
