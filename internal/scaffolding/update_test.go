@@ -1,9 +1,11 @@
 package scaffolding
 
 import (
+	"maps"
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/brendenchu/wsup/internal/catalogue"
@@ -46,5 +48,53 @@ func TestEmbeddedUpdatePreservesInstalledModulesAndBaselines(t *testing.T) {
 		if _, err := os.Stat(filepath.Join(root, name)); !os.IsNotExist(err) {
 			t.Fatalf("unselected collection created: %s", name)
 		}
+	}
+}
+
+func TestUpdateMergesGeneratedSectionsAroundOwnerEdits(t *testing.T) {
+	root := collectionWorkspace(t)
+	current, err := os.ReadFile(filepath.Join(root, "AGENTS.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Pretend an older wsup generated a different Layout section.
+	old := []byte(strings.Replace(string(current), "- `docs/`:", "- `docs/`: (old)", 1))
+	loaded, err := LoadLock(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	loaded.Lock.Files["AGENTS.md"] = lockDigest(old)
+	maps.Copy(loaded.Lock.Blocks, blockDigests("AGENTS.md", old))
+	saveLock(t, root, loaded.Lock)
+	owner := append([]byte("Owner preface.\n\n"), old...)
+	writeFixture(t, root, "AGENTS.md", owner)
+
+	plan, err := Update(root, "0.1.0", nil, false)
+	if err != nil || !reflect.DeepEqual(plan.Actions, []Action{{"AGENTS.md", "merge"}}) || len(plan.Conflicts) != 0 {
+		t.Fatalf("merge preview: %+v %v", plan, err)
+	}
+	if applied, err := Update(root, "0.1.0", nil, true); err != nil || !applied.Applied {
+		t.Fatalf("merge apply: %+v %v", applied, err)
+	}
+	merged, err := os.ReadFile(filepath.Join(root, "AGENTS.md"))
+	if err != nil || string(merged) != "Owner preface.\n\n"+string(current) {
+		t.Fatalf("merged AGENTS.md: %q %v", merged, err)
+	}
+	after, err := LoadLock(root)
+	if err != nil || after.Lock.Files["AGENTS.md"] != lockDigest(old) ||
+		after.Lock.Blocks["AGENTS.md#layout"] != blockDigests("AGENTS.md", current)["AGENTS.md#layout"] {
+		t.Fatalf("merge must keep the file baseline and adopt the new sections: %+v %v", after.Lock, err)
+	}
+	if settled, err := Update(root, "0.1.0", nil, false); err != nil || len(settled.Actions) != 0 || len(settled.Conflicts) != 0 {
+		t.Fatalf("merged file did not settle: %+v %v", settled, err)
+	}
+
+	// An edit inside a generated section is a conflict, never merged.
+	inside := strings.Replace(string(merged), "- `docs/`:", "- `docs/`: owner note,", 1)
+	writeFixture(t, root, "AGENTS.md", []byte(inside))
+	before := snapshot(t, root)
+	if plan, err := Update(root, "0.1.0", nil, true); err == nil || !reflect.DeepEqual(plan.Conflicts, []string{"AGENTS.md"}) ||
+		!reflect.DeepEqual(before, snapshot(t, root)) {
+		t.Fatalf("section edit: %+v %v", plan, err)
 	}
 }

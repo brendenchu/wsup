@@ -77,9 +77,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
   generated between `<!-- wsup:begin NAME -->` / `<!-- wsup:end NAME -->`
   markers. Procedural rule text moved into the skills that use it.
 - Every collection folder has its own `AGENTS.md` with that folder's rules.
-- Adding a collection to a workspace whose `AGENTS.md` or `.gitignore` was
-  edited keeps the owner's text and replaces only the generated sections, as
-  long as those sections are unchanged.
+- When adding a collection or updating, an edited `AGENTS.md` or `.gitignore`
+  keeps the owner's text and only its generated sections are replaced (a
+  `merge` action), as long as those sections are unchanged.
 - The project starter gains `docs/` and `workbench/`.
 - `wsup guidance` requires `AGENTS.md` instead of `AI.md` and the rule index,
   inspects top-level folder `AGENTS.md` files, and reports unpaired markers.

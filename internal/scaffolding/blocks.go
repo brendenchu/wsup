@@ -53,24 +53,29 @@ func findBlocks(body []byte) ([]block, bool) {
 // same sections and the owner left every section's text unchanged; otherwise
 // the edit belongs to the owner and must be resolved by hand.
 func spliceBlocks(current, prior, next []byte) ([]byte, bool) {
-	have, okHave := findBlocks(current)
-	was, okWas := findBlocks(prior)
-	want, okWant := findBlocks(next)
-	names := func(blocks []block) []string {
-		result := []string{}
-		for _, b := range blocks {
-			result = append(result, b.name)
-		}
-		return result
+	was, ok := findBlocks(prior)
+	if !ok {
+		return nil, false
 	}
-	if !okHave || !okWas || !okWant || len(have) == 0 ||
-		!slices.Equal(names(have), names(was)) || !slices.Equal(names(have), names(want)) {
+	recorded := make(map[string]string, len(was))
+	for _, b := range was {
+		recorded[b.name] = lockDigest(prior[b.start:b.end])
+	}
+	return spliceRecorded(current, next, recorded)
+}
+
+// spliceRecorded is spliceBlocks against the digests wsup.lock recorded for
+// each generated section, keyed by section name.
+func spliceRecorded(current, next []byte, recorded map[string]string) ([]byte, bool) {
+	have, okHave := findBlocks(current)
+	want, okWant := findBlocks(next)
+	if !okHave || !okWant || len(have) == 0 || len(have) != len(recorded) || !slices.Equal(blockNames(have), blockNames(want)) {
 		return nil, false
 	}
 	var spliced bytes.Buffer
 	last := 0
 	for i, b := range have {
-		if !bytes.Equal(current[b.start:b.end], prior[was[i].start:was[i].end]) {
+		if digest, ok := recorded[b.name]; !ok || digest != lockDigest(current[b.start:b.end]) {
 			return nil, false
 		}
 		spliced.Write(current[last:b.start])
@@ -79,4 +84,12 @@ func spliceBlocks(current, prior, next []byte) ([]byte, bool) {
 	}
 	spliced.Write(current[last:])
 	return spliced.Bytes(), true
+}
+
+func blockNames(blocks []block) []string {
+	names := make([]string, 0, len(blocks))
+	for _, b := range blocks {
+		names = append(names, b.name)
+	}
+	return names
 }

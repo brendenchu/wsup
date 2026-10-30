@@ -87,7 +87,7 @@ func (p preparedUpdate) applyWith(write func(*os.Root, string, []byte, bool) err
 			}
 			continue
 		}
-		if action.Action != "write" {
+		if action.Action != "write" && action.Action != "merge" {
 			continue
 		}
 		if err := p.recheck(root, action.Path); err != nil {

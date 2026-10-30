@@ -89,6 +89,7 @@ func planUpdate(root, version string, files map[string][]byte, links, modules ma
 		Actions: []Action{}, Conflicts: []string{},
 	}
 	observed := make(map[string]observation, len(names))
+	merged := map[string][]byte{}
 	for _, name := range names {
 		current, err := observeFile(handle, name)
 		if err != nil {
@@ -128,6 +129,23 @@ func planUpdate(root, version string, files map[string][]byte, links, modules ma
 			action = "write"
 		case current.regular && managed && current.digest == baseline:
 			action = "write"
+		case current.regular && managed:
+			// An edited file whose generated sections are as wsup.lock recorded
+			// them takes the new sections and keeps every owner byte.
+			body, err := handle.ReadFile(name)
+			if err != nil {
+				return UpdatePlan{}, err
+			}
+			spliced, ok := spliceRecorded(body, files[name], recordedBlocks(lock, name))
+			switch {
+			case !ok || lockDigest(body) != current.digest:
+				result.Conflicts = append(result.Conflicts, name)
+				continue
+			case bytes.Equal(spliced, body):
+				continue
+			}
+			action = "merge"
+			merged[name] = spliced
 		default:
 			result.Conflicts = append(result.Conflicts, name)
 			continue
@@ -150,6 +168,10 @@ func planUpdate(root, version string, files map[string][]byte, links, modules ma
 		}
 	}
 	if prepared != nil {
+		// A merged file keeps its baseline: its owner bytes are still edits.
+		for name := range merged {
+			proposed.Files[name] = lock.Files[name]
+		}
 		// A kept file keeps its baseline and its blocks' baselines.
 		for name := range kept {
 			if _, exists := proposed.Files[name]; !exists {
@@ -173,8 +195,11 @@ func planUpdate(root, version string, files map[string][]byte, links, modules ma
 		}
 		bodies := make(map[string][]byte)
 		for _, action := range result.Actions {
-			if action.Action == "write" {
+			switch action.Action {
+			case "write":
 				bodies[action.Path] = bytes.Clone(files[action.Path])
+			case "merge":
+				bodies[action.Path] = merged[action.Path]
 			}
 		}
 		*prepared = preparedUpdate{
@@ -225,4 +250,16 @@ func observeFile(root *os.Root, name string) (observation, error) {
 		return observation{}, fmt.Errorf("hash template file %s: %w", name, err)
 	}
 	return observation{exists: true, regular: true, digest: fmt.Sprintf("sha256:%x", hash.Sum(nil))}, nil
+}
+
+// recordedBlocks returns wsup.lock's section digests for one file, keyed by
+// section name.
+func recordedBlocks(lock Lock, name string) map[string]string {
+	recorded := map[string]string{}
+	for key, digest := range lock.Blocks {
+		if section, ok := strings.CutPrefix(key, name+"#"); ok {
+			recorded[section] = digest
+		}
+	}
+	return recorded
 }

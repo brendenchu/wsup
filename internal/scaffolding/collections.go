@@ -169,7 +169,7 @@ func planCollections(root string, names []string) (CollectionPlan, preparedUpdat
 					result.Conflicts = append(result.Conflicts, name)
 					break
 				}
-				result.Actions = append(result.Actions, Action{Path: name, Action: "write"})
+				result.Actions = append(result.Actions, Action{Path: name, Action: "merge"})
 				prepared.files[name] = spliced
 				adopt(name, bundle[name], false)
 			}
