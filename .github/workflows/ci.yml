@@ -61,10 +61,24 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: go vet ./...
 
-      - name: Validate a generated workspace
+      # Drive the built binary from outside the checkout with an empty PATH.
+      - name: Generate, update, and migrate with the built binary
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: |
-          workspace="$RUNNER_TEMP/workspace"
-          go run ./cmd/wsup init "$workspace"
-          go run ./cmd/wsup --root "$workspace" validate
-          go run ./cmd/wsup --root "$workspace" guidance
+          wsup="$RUNNER_TEMP/bin/wsup"
+          go build -o "$wsup" ./cmd/wsup
+          cp -R internal/scaffolding/testdata/v0.2.0 "$RUNNER_TEMP/legacy"
+          cd "$RUNNER_TEMP"
+          export PATH=
+          "$wsup" init workspace
+          "$wsup" --root workspace validate
+          "$wsup" --root workspace guidance
+          "$wsup" --root workspace add journal research --apply
+          "$wsup" --root workspace update --apply
+          "$wsup" init project --template project
+          "$wsup" --root project guidance
+          "$wsup" --root legacy/workspace migrate --apply
+          "$wsup" --root legacy/workspace validate
+          "$wsup" --root legacy/workspace update --apply
+          "$wsup" --root legacy/project migrate --apply
+          "$wsup" --root legacy/project guidance
