@@ -88,7 +88,7 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	if output := run("--root", workspace, "guidance"); !strings.Contains(string(output), `"errors": []`) {
 		t.Fatalf("workspace guidance failed: %s", output)
 	}
-	run("--root", workspace, "editor")
+	run("--root", workspace, "vscode")
 	workspaceState, err := scaffolding.LoadLock(workspace)
 	if err != nil || workspaceState.Lock.Starter != "workspace" || workspaceState.Lock.Version != scaffolding.LockVersion {
 		t.Fatalf("workspace state: %+v %v", workspaceState.Lock, err)
@@ -239,16 +239,9 @@ func TestInitEditorSelection(t *testing.T) {
 	if err != nil || len(lockSelection(t, loaded.Lock).Editors) != 0 {
 		t.Fatalf("project editors: %+v %v", loaded.Lock, err)
 	}
-	// wsup editor writes the same bytes the adapter generated.
-	adapter, err := os.ReadFile(filepath.Join(parent, "default", "my-workspace.code-workspace"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	// wsup vscode finds the adapter's file already current.
 	var stdout, stderr bytes.Buffer
-	if code := Run([]string{"--root", filepath.Join(parent, "default"), "editor", "--output", "copy.code-workspace"}, &stdout, &stderr); code != 0 {
-		t.Fatalf("editor: %s", &stderr)
-	}
-	if copied, err := os.ReadFile(filepath.Join(parent, "default", "copy.code-workspace")); err != nil || !bytes.Equal(copied, adapter) {
-		t.Fatalf("editor output differs from adapter: %s %v", copied, err)
+	if code := Run([]string{"--root", filepath.Join(parent, "default"), "vscode"}, &stdout, &stderr); code != 0 || !strings.Contains(stdout.String(), `"actions": []`) {
+		t.Fatalf("vscode: %s %s", &stdout, &stderr)
 	}
 }

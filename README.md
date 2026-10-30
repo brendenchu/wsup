@@ -93,7 +93,7 @@ to PATH. The main commands:
 | `run PROJECT TASK` | Run one project task in the terminal |
 | `guidance` | Check workspace instructions and local links |
 | `guidance --project ID` | Check one project's instructions |
-| `editor` | Create a relative-path VS Code workspace file (the `vscode` adapter generates one at init) |
+| `vscode` | Preview or apply (`--apply`) regenerating `<name>.code-workspace` from `wsup.json` |
 | `check --project ID` | Run only that project's configured checks |
 | `modules` | List built-in modules: collections, adapters, and presets |
 | `add MODULE...` | Preview adding collections or adapters |

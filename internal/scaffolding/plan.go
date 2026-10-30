@@ -40,6 +40,13 @@ func PlanUpdate(root, version string, files map[string][]byte, keep []string) (U
 // planUpdate plans an update to files and links. A nil links or modules keeps
 // the lock's. prepared, when given, receives what apply needs.
 func planUpdate(root, version string, files map[string][]byte, links, modules map[string]string, keep []string, prepared *preparedUpdate) (UpdatePlan, error) {
+	return planScoped(root, version, files, links, modules, keep, nil, prepared)
+}
+
+// planScoped is planUpdate limited to the paths scope accepts; a nil scope
+// accepts every path. A scoped plan leaves every other path, the links, the
+// modules, and the recorded wsup version as the lock has them.
+func planScoped(root, version string, files map[string][]byte, links, modules map[string]string, keep []string, scope func(string) bool, prepared *preparedUpdate) (UpdatePlan, error) {
 	if files == nil {
 		return UpdatePlan{}, fmt.Errorf("native template bundle is unavailable")
 	}
@@ -59,7 +66,32 @@ func planUpdate(root, version string, files map[string][]byte, links, modules ma
 			return UpdatePlan{}, fmt.Errorf("invalid template bundle path")
 		}
 	}
+	if scope != nil {
+		version, links, modules = lock.WsupVersion, lock.Links, lock.Modules
+	}
 	proposed := newLock(version, lock.Starter, modules, files, links)
+	if scope != nil {
+		for name := range proposed.Files {
+			if !scope(name) {
+				delete(proposed.Files, name)
+			}
+		}
+		for name, digest := range lock.Files {
+			if !scope(name) {
+				proposed.Files[name] = digest
+			}
+		}
+		for key := range proposed.Blocks {
+			if file, _, _ := strings.Cut(key, "#"); !scope(file) {
+				delete(proposed.Blocks, key)
+			}
+		}
+		for key, digest := range lock.Blocks {
+			if file, _, _ := strings.Cut(key, "#"); !scope(file) {
+				proposed.Blocks[key] = digest
+			}
+		}
+	}
 	if _, err := EncodeLock(proposed); err != nil {
 		return UpdatePlan{}, fmt.Errorf("invalid native template bundle: %w", err)
 	}
@@ -84,6 +116,9 @@ func planUpdate(root, version string, files map[string][]byte, links, modules ma
 	names := slices.Concat(slices.Collect(maps.Keys(lock.Files)), slices.Collect(maps.Keys(proposed.Files)))
 	slices.Sort(names)
 	names = slices.Compact(names)
+	if scope != nil {
+		names = slices.DeleteFunc(names, func(name string) bool { return !scope(name) })
+	}
 	result := UpdatePlan{
 		FromVersion: lock.WsupVersion, ToVersion: version,
 		Actions: []Action{}, Conflicts: []string{},
@@ -153,8 +188,12 @@ func planUpdate(root, version string, files map[string][]byte, links, modules ma
 		result.Actions = append(result.Actions, Action{Path: name, Action: action})
 	}
 	// Links are re-created when missing. Anything else at a link path (a real
-	// directory, or a link pointing elsewhere) is reported and left alone.
+	// directory, or a link pointing elsewhere) is reported and left alone. A
+	// scoped plan leaves links to update.
 	for _, name := range slices.Sorted(maps.Keys(proposed.Links)) {
+		if scope != nil {
+			break
+		}
 		status, err := linkStatus(handle, name, proposed.Links[name])
 		if err != nil {
 			return UpdatePlan{}, err

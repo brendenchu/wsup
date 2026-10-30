@@ -8,7 +8,6 @@ import (
 	"io"
 	"maps"
 	"os"
-	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
@@ -87,9 +86,33 @@ func newCommand(s session) *cobra.Command {
 	inspect := &cobra.Command{Use: "guidance", Short: "Inspect portable instructions", Args: cobra.NoArgs, RunE: inspectWorkspace}
 	inspect.Flags().String("project", "", "Inspect one registered project")
 	root.AddCommand(inspect)
-	editor := &cobra.Command{Use: "editor", Short: "Create an optional VS Code multi-root file", Args: cobra.NoArgs, RunE: inspectWorkspace}
-	editor.Flags().String("output", "workspace.code-workspace", "New filename in the workspace root")
-	root.AddCommand(editor)
+	vscode := &cobra.Command{
+		Use: "vscode", Short: "Preview regenerating <name>.code-workspace from wsup.json; --apply writes it",
+		Args: cobra.NoArgs,
+		RunE: func(command *cobra.Command, args []string) error {
+			root, err := command.Root().Flags().GetString("root")
+			if err != nil {
+				return err
+			}
+			apply, err := command.Flags().GetBool("apply")
+			if err != nil {
+				return err
+			}
+			result, err := scaffolding.RefreshEditor(root, Version, apply)
+			if err != nil {
+				return err
+			}
+			if err := writeJSON(command.OutOrStdout(), result); err != nil {
+				return err
+			}
+			if len(result.Conflicts) != 0 {
+				return statusError{1}
+			}
+			return nil
+		},
+	}
+	vscode.Flags().Bool("apply", false, "Write the regenerated file when it has no hand edits")
+	root.AddCommand(vscode)
 	check := &cobra.Command{Use: "check", Short: "Run the check tasks of selected projects", Args: cobra.NoArgs, RunE: runChecks}
 	check.Flags().StringArray("project", nil, "Project ID (repeat to select more; or use --all)")
 	check.Flags().Bool("all", false, "Select every project with check tasks")
@@ -346,12 +369,6 @@ func inspectWorkspace(command *cobra.Command, args []string) error {
 			}
 		}
 		return fmt.Errorf("Unknown project")
-	case "editor":
-		output, err := command.Flags().GetString("output")
-		if err != nil {
-			return err
-		}
-		return createEditor(command.OutOrStdout(), root, output, data)
 	default:
 		return writeJSON(command.OutOrStdout(), config)
 	}
@@ -374,47 +391,6 @@ func inspectGuidance(output io.Writer, root string) error {
 		return statusError{code: 1}
 	}
 	return nil
-}
-
-func createEditor(output io.Writer, root, name string, data registry.Registry) error {
-	target, err := registry.RelativeTarget(root, name)
-	if err != nil {
-		return err
-	}
-	_, statErr := os.Lstat(target)
-	if filepath.Dir(target) != root || statErr == nil {
-		return fmt.Errorf("Editor output must be a new file in the workspace root")
-	}
-	if !os.IsNotExist(statErr) {
-		return statErr
-	}
-	// The same generator writes the vscode adapter's file, so output matches.
-	workspace, _, err := registry.LoadDocument(root)
-	if err != nil {
-		return err
-	}
-	body, err := catalogue.CodeWorkspace(workspace)
-	if err != nil {
-		return err
-	}
-	// Exclusive creation also refuses files created after the preflight check.
-	file, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
-	if err != nil {
-		return err
-	}
-	written, writeErr := file.Write(body)
-	if writeErr == nil && written != len(body) {
-		writeErr = io.ErrShortWrite
-	}
-	closeErr := file.Close()
-	if writeErr != nil {
-		return writeErr
-	}
-	if closeErr != nil {
-		return closeErr
-	}
-	_, err = fmt.Fprintf(output, "Created %s\n", target)
-	return err
 }
 
 // moduleSummary is one row of wsup modules.

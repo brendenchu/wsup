@@ -157,8 +157,8 @@ func TestNativeGeneratedWorkspaceMixedGitOnboarding(t *testing.T) {
 	run("guidance")
 	run("guidance", "--project", "independent")
 	run("check", "--project", "owned", "--project", "independent")
-	run("editor")
-	body, err = os.ReadFile(filepath.Join(root, "workspace.code-workspace"))
+	run("vscode", "--apply")
+	body, err = os.ReadFile(filepath.Join(root, "mixed-fixture.code-workspace"))
 	if err != nil {
 		t.Fatal(err)
 	}

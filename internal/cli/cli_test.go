@@ -2,7 +2,6 @@ package cli
 
 import (
 	"bytes"
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,38 +40,88 @@ func TestHelpVersionAndErrors(t *testing.T) {
 	}
 }
 
-func TestEditorExclusiveCreationAndReadOnlyErrors(t *testing.T) {
-	root := t.TempDir()
-	document := `{"version":3,"name":"Synthetic","projects":[{"id":"app","path":".","kind":"tool","repository":"workspace","purpose":"Fixture","owner":"Test"}]}`
-	for name, body := range map[string]string{"README.md": "Local\n", "wsup.json": document} {
-		if err := os.WriteFile(filepath.Join(root, name), []byte(body), 0600); err != nil {
-			t.Fatal(err)
+func TestVSCodeRefreshesOnlyTheManagedEditorFile(t *testing.T) {
+	parent := t.TempDir()
+	root := filepath.Join(parent, "workspace")
+	invoke := func(want int, args ...string) string {
+		t.Helper()
+		var stdout, stderr bytes.Buffer
+		if code := Run(append([]string{"--root", root}, args...), &stdout, &stderr); code != want {
+			t.Fatalf("%v: %d %s %s", args, code, &stdout, &stderr)
 		}
+		return stdout.String()
 	}
 	var stdout, stderr bytes.Buffer
-	if code := Run([]string{"--root", root, "editor"}, &stdout, &stderr); code != 0 {
-		t.Fatalf("exit %d: %s", code, &stderr)
+	if code := Run([]string{"init", root, "--yes"}, &stdout, &stderr); code != 0 {
+		t.Fatalf("init: %s", &stderr)
 	}
-	name := filepath.Join(root, "workspace.code-workspace")
-	body, err := os.ReadFile(name)
+	if output := invoke(0, "vscode"); !strings.Contains(output, `"actions": []`) {
+		t.Fatalf("fresh workspace not settled: %s", output)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "apps/app"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "apps/app/README.md"), []byte("App\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	document, err := os.ReadFile(filepath.Join(root, "wsup.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	var editor struct{ Folders []map[string]string }
-	if err := json.Unmarshal(body, &editor); err != nil || len(editor.Folders) != 1 ||
-		editor.Folders[0]["path"] != "." {
-		t.Fatalf("invalid editor document: %s %v", body, err)
+	document = bytes.Replace(document, []byte(`"projects": []`), []byte(`"projects": [{"id":"app","path":"apps/app","kind":"app","repository":"workspace","purpose":"P","owner":"O"}]`), 1)
+	if err := os.WriteFile(filepath.Join(root, "wsup.json"), document, 0600); err != nil {
+		t.Fatal(err)
 	}
-	for _, args := range [][]string{{"editor"}, {"editor", "--output", "../escape"}, {"editor", "--output", "sub/file"}} {
-		stdout.Reset()
-		stderr.Reset()
-		if code := Run(append([]string{"--root", root}, args...), &stdout, &stderr); code != 2 {
-			t.Fatalf("invalid editor output accepted: %v", args)
-		}
-		current, err := os.ReadFile(name)
-		if err != nil || !bytes.Equal(body, current) || stdout.Len() != 0 {
-			t.Fatal("existing editor file changed or failed operation printed success")
-		}
+	// Another edited managed file is out of scope and left alone.
+	if err := os.WriteFile(filepath.Join(root, "README.md"), []byte("Owner readme\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	editor := filepath.Join(root, "my-workspace.code-workspace")
+	before, err := os.ReadFile(editor)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if output := invoke(0, "vscode"); !strings.Contains(output, `"path": "my-workspace.code-workspace"`) || strings.Contains(output, "README.md") {
+		t.Fatalf("preview: %s", output)
+	}
+	if current, err := os.ReadFile(editor); err != nil || !bytes.Equal(before, current) {
+		t.Fatal("preview wrote the editor file")
+	}
+	invoke(0, "vscode", "--apply")
+	body, err := os.ReadFile(editor)
+	if err != nil || !strings.Contains(string(body), `"path": "apps/app"`) {
+		t.Fatalf("regenerated file: %s %v", body, err)
+	}
+	if output := invoke(1, "update"); !strings.Contains(output, `"README.md"`) {
+		t.Fatalf("update no longer sees the edited README: %s", output)
+	}
+	// A hand-edited editor file is a conflict, never overwritten.
+	if err := os.WriteFile(editor, append(body, ' '), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "apps/web"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "apps/web/README.md"), []byte("Web\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	document = bytes.Replace(document, []byte(`"owner":"O"}]`), []byte(`"owner":"O"},{"id":"web","path":"apps/web","kind":"app","repository":"workspace","purpose":"P","owner":"O"}]`), 1)
+	if err := os.WriteFile(filepath.Join(root, "wsup.json"), document, 0600); err != nil {
+		t.Fatal(err)
+	}
+	invoke(1, "vscode")
+	invoke(2, "vscode", "--apply")
+	if current, err := os.ReadFile(editor); err != nil || !bytes.Equal(current, append(body, ' ')) {
+		t.Fatal("hand-edited editor file overwritten")
+	}
+
+	plain := filepath.Join(parent, "plain")
+	if code := Run([]string{"init", plain, "--yes", "--editor", "none"}, &stdout, &stderr); code != 0 {
+		t.Fatalf("init: %s", &stderr)
+	}
+	stderr.Reset()
+	if code := Run([]string{"--root", plain, "vscode"}, &stdout, &stderr); code != 2 || !strings.Contains(stderr.String(), "wsup add vscode") {
+		t.Fatalf("missing adapter: %d %s", code, &stderr)
 	}
 }
 
@@ -112,7 +161,7 @@ func TestMalformedRegistryNeverProducesSuccessOrEditorOutput(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			for _, command := range []string{"validate", "projects", "config", "editor"} {
+			for _, command := range []string{"validate", "projects", "config", "vscode"} {
 				var stdout, stderr bytes.Buffer
 				if code := Run([]string{"--root", root, command}, &stdout, &stderr); code != 2 ||
 					stdout.Len() != 0 || !strings.HasPrefix(stderr.String(), "Error: ") {
@@ -123,44 +172,6 @@ func TestMalformedRegistryNeverProducesSuccessOrEditorOutput(t *testing.T) {
 				t.Fatalf("malformed registry created editor output: %v", err)
 			}
 		})
-	}
-}
-
-func TestEditorIsRelativeAndPreservesExistingOutput(t *testing.T) {
-	root := t.TempDir()
-	if err := os.Mkdir(filepath.Join(root, "app"), 0755); err != nil {
-		t.Fatal(err)
-	}
-	for name, body := range map[string]string{
-		"app/README.md": "Synthetic\n",
-		"wsup.json":     `{"version":3,"name":"Synthetic","projects":[{"id":"app","path":"app","kind":"app","repository":"independent","purpose":"Fixture","owner":"Test"}]}`,
-	} {
-		if err := os.WriteFile(filepath.Join(root, name), []byte(body), 0600); err != nil {
-			t.Fatal(err)
-		}
-	}
-	var stdout, stderr bytes.Buffer
-	if code := Run([]string{"--root", root, "editor"}, &stdout, &stderr); code != 0 {
-		t.Fatalf("exit %d: %s", code, &stderr)
-	}
-	filename := filepath.Join(root, "workspace.code-workspace")
-	original, err := os.ReadFile(filename)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var document struct{ Folders []map[string]string }
-	if err := json.Unmarshal(original, &document); err != nil ||
-		len(document.Folders) != 2 || document.Folders[1]["path"] != "app" {
-		t.Fatalf("expected relative project folder: %s %v", original, err)
-	}
-	stdout.Reset()
-	stderr.Reset()
-	if code := Run([]string{"--root", root, "editor"}, &stdout, &stderr); code != 2 || stdout.Len() != 0 {
-		t.Fatalf("overwrite exit %d: stdout=%q stderr=%q", code, &stdout, &stderr)
-	}
-	current, err := os.ReadFile(filename)
-	if err != nil || !bytes.Equal(original, current) {
-		t.Fatalf("existing output changed: %v", err)
 	}
 }
 

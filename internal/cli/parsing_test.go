@@ -11,7 +11,7 @@ func TestHelpAndVersionDoNotBypassInvalidOptions(t *testing.T) {
 		{"--help", "--invalid"},
 		{"--version", "--invalid"},
 		{"guidance", "--help", "--invalid"},
-		{"editor", "--help", "--output"},
+		{"vscode", "--help", "--invalid"},
 	} {
 		var stdout, stderr bytes.Buffer
 		if code := Run(args, &stdout, &stderr); code != 2 || stdout.Len() != 0 ||

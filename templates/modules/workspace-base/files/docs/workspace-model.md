@@ -32,7 +32,7 @@ for product changes. Binary replacement and managed-content updates are separate
 | `projects` | Prints project entries as JSON. |
 | `config` | Prints effective settings and their sources as JSON. |
 | `guidance` | Prints structural findings as JSON; optional `--project ID` selects a registered owner. |
-| `editor` | Creates a relative-path VS Code workspace file, identical to the `vscode` adapter's; `--output NAME` must be a new file directly in the root. |
+| `vscode` | Previews regenerating the `vscode` adapter's `<name>.code-workspace` from `wsup.json`; `--apply` writes it unless hand-edited; other files are left to `update`. |
 | `run PROJECT TASK` | Runs any one task with the terminal's input and output and exits with its exit code (124 on timeout, 130 when interrupted); only the task's `timeout_seconds` or `--timeout` limits it; no report. |
 | `check` | Runs check tasks: repeatable `--project ID` or `--all`; optional repeatable `--task NAME`, `--timeout SECONDS`, `--show-output`. |
 | `init DESTINATION` | Creates a new workspace. In a terminal it asks for the preset, agents, and editors that flags leave open; `--yes`, or no terminal, uses the defaults; repeatable `--agent NAME` and `--editor NAME` select agent and editor adapters (default all; `none` for none; editors are workspace-only); `--preset NAME` selects a preset (default `development`; `none` for the base only) and repeatable `--collection NAME` adds collections to it. `--template project` creates a project without a registry/runtime; presets and collections are workspace-only. |
@@ -371,7 +371,7 @@ per registered project, copies the `vscode` block's `settings`, `extensions`
 project task (labelled `<project>: <task>`, check tasks in the test group)
 followed by the `vscode` block's own `tasks`. It is a managed starter file: `update` regenerates it
 from the current `wsup.json` and writes it while it is unedited, reports a
-hand-edited copy as a conflict, and stops if `wsup.json` cannot be read.
+hand-edited copy as a conflict, and stops if `wsup.json` cannot be read. `wsup vscode` does the same for that file alone.
 Renaming the workspace writes the new file and removes the old one while it is
 unedited; an edited old file is a conflict. There is
 no adapter for JetBrains, Zed, or terminal editors; every editor benefits from

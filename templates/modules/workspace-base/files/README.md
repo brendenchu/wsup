@@ -18,7 +18,7 @@ wsup --version
 wsup validate
 wsup projects
 wsup guidance
-wsup editor
+wsup vscode
 ```
 
 No Go toolchain, package installation, service, or AI client is needed
@@ -29,8 +29,8 @@ not certified; non-Unix check execution explicitly refuses launch.
 Run from this directory or put `--root /path/to/workspace` before the command.
 The executable's location does not select a workspace. With the `vscode`
 editor adapter (installed by default), `<name>.code-workspace` is generated
-from `wsup.json` and refreshed by `update`; `editor` is optional, writes
-the same document to a new file, and refuses existing files. See the [workspace model](docs/workspace-model.md)
+from `wsup.json` and refreshed by `update`; `vscode` previews (and with
+`--apply` writes) just that file, never over hand edits. See the [workspace model](docs/workspace-model.md)
 for command, registry, check, report, ownership, and recovery contracts.
 
 ## Projects and tasks

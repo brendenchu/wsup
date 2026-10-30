@@ -12,6 +12,24 @@ import (
 // explicitly applies same-path content changes. It neither converts other lock
 // versions nor downloads templates or binaries.
 func Update(root, version string, keep []string, apply bool) (UpdatePlan, error) {
+	return update(root, version, keep, nil, apply)
+}
+
+// RefreshEditor previews or applies only the vscode adapter's generated
+// .code-workspace file, from the current wsup.json, with update's conflict
+// rules. It fails when the adapter is not installed.
+func RefreshEditor(root, version string, apply bool) (UpdatePlan, error) {
+	loaded, err := LoadLock(root)
+	if err != nil {
+		return UpdatePlan{}, err
+	}
+	if _, installed := loaded.Lock.Modules["vscode"]; !installed {
+		return UpdatePlan{}, fmt.Errorf("the vscode adapter is not installed; wsup add vscode installs it")
+	}
+	return update(root, version, nil, catalogue.Generated, apply)
+}
+
+func update(root, version string, keep []string, scope func(string) bool, apply bool) (UpdatePlan, error) {
 	loaded, err := LoadLock(root)
 	if err != nil {
 		return UpdatePlan{}, err
@@ -32,7 +50,7 @@ func Update(root, version string, keep []string, apply bool) (UpdatePlan, error)
 		return UpdatePlan{}, err
 	}
 	var prepared preparedUpdate
-	plan, err := planUpdate(root, version, files, links, modules, keep, &prepared)
+	plan, err := planScoped(root, version, files, links, modules, keep, scope, &prepared)
 	if err != nil {
 		return plan, err
 	}

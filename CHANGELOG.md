@@ -27,8 +27,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
   configurations) and `update` refreshes
   it, reporting hand edits as conflicts. Renaming the workspace replaces the
   file: `update` removes the old one while it is unedited. `--editor NAME` selects and
-  `--editor none` skips it; editor adapters are workspace-only. `wsup editor`
-  writes the same document.
+  `--editor none` skips it; editor adapters are workspace-only. `wsup vscode`
+  previews or applies regenerating just that file.
 - In a terminal, `wsup init` asks for the preset, agents, and editors that
   flags leave open (a project: agents only), re-asking after an invalid
   answer. `--yes`, or running without a terminal, uses the defaults.
@@ -99,6 +99,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
 ### Removed
 
 - `wsup collections`; use `wsup modules --kind collection` and `wsup add`.
+- `wsup editor`; `wsup vscode` regenerates the adapter's file, and `wsup add
+  vscode` installs the adapter.
 
 - The `.wsup/` folder, and the `.work/` entries in generated `.gitignore` files.
 
