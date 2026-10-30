@@ -18,7 +18,7 @@ func TestNativeSourceBuildAndGenerationAreSelfContained(t *testing.T) {
 	}
 	checkout := t.TempDir()
 	for _, subtree := range []string{
-		"cmd", "internal", "templates", "go.mod", "go.sum",
+		"cmd", "internal", "schema", "templates", "go.mod", "go.sum",
 		".gitignore", "LICENSE", "AGENTS.md", "CLAUDE.md", "README.md", "CONTRIBUTING.md", "CHANGELOG.md",
 		"docs",
 	} {
@@ -117,7 +117,7 @@ func TestNativeSourceBuildAndGenerationAreSelfContained(t *testing.T) {
 	run("init", workspace, "--collection", "journal")
 	run("--root", workspace, "validate")
 	run("--root", workspace, "guidance")
-	run("--root", workspace, "collections", "--add", "archive", "--apply")
+	run("--root", workspace, "add", "archive", "--apply")
 	run("--root", workspace, "update", "--apply")
 	run("--root", workspace, "init", child)
 	run("--root", child, "guidance")

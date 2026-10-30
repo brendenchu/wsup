@@ -6,9 +6,11 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
+	"github.com/brendenchu/wsup/internal/catalogue"
 	"github.com/brendenchu/wsup/internal/scaffolding"
 )
 
@@ -21,13 +23,13 @@ func ask(t *testing.T, input string, args ...string) (int, string, string) {
 	return code, stdout.String(), stderr.String()
 }
 
-func selection(t *testing.T, root string) scaffolding.State {
+func selection(t *testing.T, root string) catalogue.Selection {
 	t.Helper()
-	loaded, err := scaffolding.LoadState(root)
+	loaded, err := scaffolding.LoadLock(root)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return loaded.State
+	return lockSelection(t, loaded.Lock)
 }
 
 func TestInteractiveInitAsksOpenQuestions(t *testing.T) {
@@ -64,8 +66,8 @@ func TestInteractiveInitAsksOpenQuestions(t *testing.T) {
 			}
 		}
 		state := selection(t, root)
-		if !reflect.DeepEqual(state.Collections, tc.collections) || !reflect.DeepEqual(state.Agents, tc.agents) ||
-			!reflect.DeepEqual(state.Editors, tc.editors) {
+		if !slices.Equal(state.Collections, tc.collections) || !slices.Equal(state.Agents, tc.agents) ||
+			!slices.Equal(state.Editors, tc.editors) {
 			t.Fatalf("%s: %v %v %v", tc.name, state.Collections, state.Agents, state.Editors)
 		}
 	}

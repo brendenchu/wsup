@@ -18,7 +18,7 @@ wsup --version
 wsup validate
 wsup projects
 wsup guidance
-wsup editor
+wsup vscode
 ```
 
 No Go toolchain, package installation, service, or AI client is needed
@@ -29,27 +29,31 @@ not certified; non-Unix check execution explicitly refuses launch.
 Run from this directory or put `--root /path/to/workspace` before the command.
 The executable's location does not select a workspace. With the `vscode`
 editor adapter (installed by default), `<name>.code-workspace` is generated
-from `workspace.json` and refreshed by `update`; `editor` is optional, writes
-the same document to a new file, and refuses existing files. See the [workspace model](docs/workspace-model.md)
+from `wsup.json` and refreshed by `update`; `vscode` previews (and with
+`--apply` writes) just that file, never over hand edits. See the [workspace model](docs/workspace-model.md)
 for command, registry, check, report, ownership, and recovery contracts.
 
-## Projects and checks
+## Projects and tasks
 
-Add projects to `workspace.json` with unique IDs and paths, a purpose, owner,
-kind, intended repository ownership, and optional dependencies and checks.
+Add projects to `wsup.json` with unique IDs and paths, a purpose, owner,
+kind, intended repository ownership, and optional dependencies and tasks. A
+task marked `"check": true` runs under `wsup check`.
 Each project needs its own README, setup, tests, dependencies, and instructions.
 For an independent repository, ignore that exact project directory in this
 workspace before staging; registry metadata alone does not configure Git.
 
 ```sh
 wsup check --project PROJECT_ID
-wsup check --project PROJECT_ID --check test --show-output
+wsup check --project PROJECT_ID --task test --show-output
+wsup check --all
+wsup run PROJECT_ID build
 wsup config
 ```
 
 Review commands before running them: checks run with your permissions. They use
 literal arguments, no interactive stdin, and bounded captured output; dependencies
-are not automatically selected. Reports live under ignored `.wsup/reports/`.
+are not automatically selected. Reports live under ignored
+`workbench/.local/wsup/reports/`.
 Arguments are never substituted; missing tools are explicit launch errors,
 never installed automatically.
 
@@ -74,13 +78,13 @@ Every other collection is created only when selected:
 ```sh
 wsup init /path/to/new-workspace --collection archive --collection journal
 wsup init /path/to/new-workspace --preset none --collection research
-wsup collections
-wsup collections --add decisions --add issues
-wsup collections --add decisions --add issues --apply
+wsup modules --kind collection
+wsup add decisions issues
+wsup add decisions issues --apply
 ```
 
-Selections are deduplicated and retained for template updates, not inherited by
-child workspaces. Existing unmanaged scaffold files are conflicts even when
+Selections are deduplicated, recorded in `wsup.json` and `wsup.lock`, and not
+inherited by child workspaces. Existing unmanaged scaffold files are conflicts even when
 identical; all conflicts block additions. Already-selected managed files retain
 customizations; review them with `update`. Additions create documentation (decisions,
 issues, and journal also include a template), not permissions, backups,
@@ -105,22 +109,21 @@ uses templates embedded in the executable, not this workspace's local edits.
 No runtime, executable, or catalogue is installed in the workspace. Relocation
 requires a compatible separately installed binary on the new machine.
 
-The `.wsup/template-state.json` schema is version 2. Track it with the workspace
-files; ignore reports only. `update` previews managed content from the invoked
-binary; `update --apply`
+`wsup.lock` (version 1) records the installed modules and the hash of every
+file wsup wrote. Commit it with the workspace files; ignore reports only.
+`update` previews managed content from the invoked binary; `update --apply`
 writes only a conflict-free plan. Repeat `--keep PATH` for eligible same-path
-customizations, preserving their old baseline hashes. Registry bytes are
-workspace-owned; omitted homes and unknown/report/local/project bytes survive.
-Only schema-2 workspaces are supported. Unsupported state fails without writes;
-there is no in-place conversion. Do not edit schema numbers to force compatibility.
+customizations, preserving their old baseline hashes. `wsup.json` is
+workspace-owned; unknown/report/local/project bytes survive. Other lock
+versions fail without writes. Do not edit version numbers to force compatibility.
 Binary replacement and workspace-content updates are separate operations,
 never automatic downloads.
 
-Update I/O failures may leave partial content with old state and explicitly
+Update I/O failures may leave partial content with the old lock and explicitly
 report that possibility; no multi-file transaction is promised. Initialization
 failures explicitly identify a partial destination. Inspect and
 recover it before retrying; partial output is retained to avoid deleting
-concurrent owner content. Back up customizations and state before any future
+concurrent owner content. Back up customizations and `wsup.lock` before any future
 update. Nothing is committed, installed globally, or published
 automatically.
 

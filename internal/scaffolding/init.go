@@ -8,6 +8,7 @@ import (
 	"slices"
 
 	"github.com/brendenchu/wsup/internal/catalogue"
+	"github.com/brendenchu/wsup/internal/registry"
 )
 
 // InitialiseProject creates a project from the executable's embedded catalogue,
@@ -28,21 +29,36 @@ func InitialiseSelected(destination, version, kind string, names []string) (stri
 }
 
 // InitialiseWith creates a starter with explicit collections and resolved
-// adapters (see catalogue.ComposeAdapters). Generators read the starter's own
-// registry. Adapter links are created after the files and before state, so a
-// failure never commits state for missing links.
+// adapters (see catalogue.ComposeAdapters). A workspace also gets wsup.json
+// recording that selection, which generators read. Adapter links are created
+// after the files and before wsup.lock, so a failure never records missing links.
 func InitialiseWith(destination, version, kind string, selection catalogue.Selection) (string, error) {
 	selected, err := catalogue.SelectCollections(selection.Collections)
 	if err != nil {
 		return "", err
 	}
 	selection.Collections, selection.Registry = selected, nil
+	owned := map[string][]byte{}
+	if kind == "workspace" {
+		document, err := registry.Encode(registry.Document{
+			Schema: registry.SchemaURL, Name: catalogue.DefaultWorkspaceName,
+			Collections: selected, Agents: selection.Agents, Editors: selection.Editors,
+		})
+		if err != nil {
+			return "", err
+		}
+		selection.Registry = document
+		owned[registry.DocumentPath] = document
+	}
 	files, links, err := catalogue.Starter(kind, selection)
 	if err != nil {
 		return "", err
 	}
-	state := State{Collections: selected, Agents: selection.Agents, Editors: selection.Editors}
-	return initialiseStarter(destination, version, kind, files, links, state, writeManaged)
+	modules, err := catalogue.Installed(kind, selection)
+	if err != nil {
+		return "", err
+	}
+	return initialiseStarter(destination, kind, files, owned, newLock(version, kind, modules, files, links), writeManaged)
 }
 
 func initialiseProject(destination, version string, files map[string][]byte, write func(*os.Root, string, []byte, bool) error) (string, error) {
@@ -53,33 +69,35 @@ func initialise(destination, version, kind string, files map[string][]byte, writ
 	return initialiseSelected(destination, version, kind, files, nil, write)
 }
 
+// initialiseSelected writes injected files for tests, locking the modules the
+// selected collections resolve to.
 func initialiseSelected(destination, version, kind string, files map[string][]byte, selected []string, write func(*os.Root, string, []byte, bool) error) (string, error) {
-	return initialiseStarter(destination, version, kind, files, nil, State{Collections: selected}, write)
-}
-
-// initialiseStarter writes files, then links, then state built from selected
-// (its Collections, Agents, and Editors).
-func initialiseStarter(destination, version, kind string, files map[string][]byte, links map[string]string, selected State, write func(*os.Root, string, []byte, bool) error) (string, error) {
-	if len(files) == 0 {
-		return "", fmt.Errorf("embedded starter catalogue is empty")
-	}
-	state := State{Version: StateVersion, TemplateVersion: version, Template: kind, Files: make(map[string]string, len(files)),
-		Collections: selected.Collections, Agents: selected.Agents, Editors: selected.Editors}
-	if len(links) != 0 {
-		state.Links = links
-	}
-	names := make([]string, 0, len(files))
-	for name, body := range files {
-		if kind == "project" && name == "workspace.json" {
-			return "", fmt.Errorf("project starter must not contain a workspace registry")
-		}
-		state.Files[name] = contentDigest(body)
-		names = append(names, name)
-	}
-	body, err := EncodeNativeState(state)
+	modules, err := catalogue.Installed(kind, catalogue.Selection{Collections: selected})
 	if err != nil {
 		return "", err
 	}
+	return initialiseStarter(destination, kind, files, nil, newLock(version, kind, modules, files, nil), write)
+}
+
+// initialiseStarter writes the managed files, the owner's files (wsup.json),
+// then the lock's links, then wsup.lock.
+func initialiseStarter(destination, kind string, files, owned map[string][]byte, lock Lock, write func(*os.Root, string, []byte, bool) error) (string, error) {
+	if len(files) == 0 {
+		return "", fmt.Errorf("embedded starter catalogue is empty")
+	}
+	if _, exists := files[registry.DocumentPath]; exists {
+		return "", fmt.Errorf("wsup.json belongs to the owner and is never a managed file")
+	}
+	if _, exists := owned[registry.DocumentPath]; exists && kind == "project" {
+		return "", fmt.Errorf("project starter must not contain a workspace registry")
+	}
+	body, err := EncodeLock(lock)
+	if err != nil {
+		return "", err
+	}
+	all := maps.Clone(files)
+	maps.Copy(all, owned)
+	links := lock.Links
 	destination, err = filepath.Abs(destination)
 	if err != nil {
 		return "", err
@@ -104,9 +122,8 @@ func initialiseStarter(destination, version, kind string, files map[string][]byt
 		return fail(err)
 	}
 	defer root.Close()
-	slices.Sort(names)
-	for _, name := range names {
-		if err := write(root, name, files[name], true); err != nil {
+	for _, name := range slices.Sorted(maps.Keys(all)) {
+		if err := write(root, name, all[name], true); err != nil {
 			return fail(err)
 		}
 	}
@@ -115,7 +132,7 @@ func initialiseStarter(destination, version, kind string, files map[string][]byt
 			return fail(err)
 		}
 	}
-	if err := write(root, StatePath, body, true); err != nil {
+	if err := write(root, LockPath, body, true); err != nil {
 		return fail(err)
 	}
 	return destination, nil

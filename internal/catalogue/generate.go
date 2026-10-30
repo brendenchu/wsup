@@ -2,26 +2,17 @@ package catalogue
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"unicode"
 
 	"github.com/brendenchu/wsup/internal/jsoncompat"
+	"github.com/brendenchu/wsup/internal/registry"
 )
 
-// Workspace is the fixed, read-only input generators see: the workspace name
-// and its registered projects, decoded from the workspace registry.
-type Workspace struct {
-	Name     string
-	Projects []Project
-}
-
-// Project is one registered project as generators see it.
-type Project struct {
-	ID   string
-	Path string
-}
+// Workspace is the fixed, read-only input generators see: the decoded
+// wsup.json.
+type Workspace = registry.Document
 
 // generator builds one file from the workspace and returns its path. Only
 // wsup defines generators; modules name them in their manifest's "generate".
@@ -56,45 +47,95 @@ func Generated(name string) bool {
 	return false
 }
 
-// ParseWorkspace decodes a registry's name and project ids and paths for
-// generators. It checks only the shape generators need; registry.Load owns
-// full validation.
+// ParseWorkspace decodes and validates wsup.json for generators, so an invalid
+// file never produces generated output.
 func ParseWorkspace(body []byte) (Workspace, error) {
-	var document struct {
-		Name     string `json:"name"`
-		Projects []struct {
-			ID   string `json:"id"`
-			Path string `json:"path"`
-		} `json:"projects"`
-	}
-	if err := json.Unmarshal(body, &document); err != nil {
-		return Workspace{}, fmt.Errorf("read workspace name and projects: %w", err)
-	}
-	workspace := Workspace{Name: document.Name, Projects: []Project{}}
-	for _, project := range document.Projects {
-		if project.ID == "" || project.Path == "" {
-			return Workspace{}, fmt.Errorf("read workspace projects: every project needs an id and path")
-		}
-		workspace.Projects = append(workspace.Projects, Project{ID: project.ID, Path: project.Path})
-	}
-	return workspace, nil
+	return registry.Decode(body)
 }
 
+// rootFolder names the workspace root in the generated file; tasks address
+// project directories through it.
+const rootFolder = "Workspace"
+
 // CodeWorkspace returns a VS Code multi-root workspace file: the root folder
-// plus one folder per project, with ASCII escapes so bytes are stable.
+// plus one folder per project, the vscode passthrough, and one VS Code task per
+// project task (check tasks in the test group) followed by the passthrough
+// tasks. ASCII escapes keep the bytes stable.
 func CodeWorkspace(workspace Workspace) ([]byte, error) {
 	type folder struct {
 		Name string `json:"name"`
 		Path string `json:"path"`
 	}
+	type options struct {
+		Cwd string `json:"cwd"`
+	}
+	type task struct {
+		Label          string   `json:"label"`
+		Type           string   `json:"type"`
+		Command        string   `json:"command"`
+		Args           []string `json:"args,omitempty"`
+		Options        options  `json:"options"`
+		Group          string   `json:"group,omitempty"`
+		ProblemMatcher []any    `json:"problemMatcher"`
+	}
+	type versioned struct {
+		Version string `json:"version"`
+		Tasks   []any  `json:"tasks,omitempty"`
+		// Configurations is used by launch.
+		Configurations []any `json:"configurations,omitempty"`
+	}
+	type recommendations struct {
+		Recommendations []string `json:"recommendations"`
+	}
 	document := struct {
-		Folders  []folder       `json:"folders"`
-		Settings map[string]any `json:"settings"`
-	}{Folders: []folder{{Name: "Workspace", Path: "."}}, Settings: map[string]any{}}
+		Folders    []folder         `json:"folders"`
+		Settings   map[string]any   `json:"settings"`
+		Extensions *recommendations `json:"extensions,omitempty"`
+		Tasks      *versioned       `json:"tasks,omitempty"`
+		Launch     *versioned       `json:"launch,omitempty"`
+	}{Folders: []folder{{Name: rootFolder, Path: "."}}, Settings: map[string]any{}}
+	tasks := []any{}
 	for _, project := range workspace.Projects {
 		if project.Path != "." {
 			document.Folders = append(document.Folders, folder{Name: project.ID, Path: project.Path})
 		}
+		for _, entry := range project.Tasks {
+			cwd := "${workspaceFolder:" + rootFolder + "}"
+			for _, part := range []string{project.Path, entry.Cwd} {
+				if part != "" && part != "." {
+					cwd += "/" + part
+				}
+			}
+			generated := task{
+				Label: project.ID + ": " + entry.Name, Type: "process",
+				Command: entry.Check.Command[0], Args: entry.Check.Command[1:],
+				Options: options{Cwd: cwd}, ProblemMatcher: []any{},
+			}
+			if entry.IsCheck {
+				generated.Group = "test"
+			}
+			tasks = append(tasks, generated)
+		}
+	}
+	if vscode := workspace.VSCode; vscode != nil {
+		if len(vscode.Settings) != 0 {
+			document.Settings = vscode.Settings
+		}
+		if len(vscode.Extensions) != 0 {
+			document.Extensions = &recommendations{Recommendations: vscode.Extensions}
+		}
+		for _, entry := range vscode.Tasks {
+			tasks = append(tasks, entry)
+		}
+		if len(vscode.Launch) != 0 {
+			document.Launch = &versioned{Version: "0.2.0"}
+			for _, entry := range vscode.Launch {
+				document.Launch.Configurations = append(document.Launch.Configurations, entry)
+			}
+		}
+	}
+	if len(tasks) != 0 {
+		document.Tasks = &versioned{Version: "2.0.0", Tasks: tasks}
 	}
 	encoded, err := jsoncompat.Marshal(document, "  ")
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -52,6 +53,10 @@ func TestExecutionHelper(t *testing.T) {
 		fmt.Fprint(os.Stderr, strings.Repeat("y", 200000))
 	case "bytes":
 		_, _ = os.Stdout.Write([]byte{0xf0, 0x9f, 0x9a, 0x80, 0xff, 0xff})
+	case "echo":
+		body, _ := io.ReadAll(os.Stdin)
+		fmt.Printf("out:%s", body)
+		fmt.Fprint(os.Stderr, "err")
 	case "fail":
 		os.Exit(7)
 	case "signal":

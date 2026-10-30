@@ -5,7 +5,7 @@ description: Implement or repair code in its owning project while preserving rep
 
 # Make a change
 
-1. Identify the owning project from the source path (and workspace.json in a
+1. Identify the owning project from the source path (and wsup.json in a
    workspace). Read its README and the nearest AGENTS.md; inspect staged,
    unstaged and untracked work before choosing the edit location.
 2. Establish expected behaviour from the task, source and callers. For a defect,

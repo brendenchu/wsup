@@ -11,27 +11,19 @@ import (
 )
 
 func TestNativeApplyPreservesOwnershipAndSettles(t *testing.T) {
-	root, state := nativeFixture(t, map[string][]byte{
-		"README.md": []byte("old"), "custom.md": []byte("starter"),
-		"workspace.json": []byte("starter registry"), "orphan.md": []byte("orphan"),
-		"packages/README.md": []byte("home starter"),
+	root, lock := nativeFixture(t, map[string][]byte{
+		"README.md": []byte("old"), "custom.md": []byte("starter"), "orphan.md": []byte("orphan"),
 	})
-	state.Collections = []string{"archive"}
-	state.OmittedHomeFiles = []string{"apps/.gitkeep", "packages/README.md"}
-	saveState(t, root, state)
 	for name, body := range map[string]string{
-		"custom.md": "owner customization", "workspace.json": "owner registry",
-		"orphan.md": "owner orphan", "packages/README.md": "owner home",
-		".wsup/reports/old.json": "historical evidence",
-		"wsup.local.json":        "local settings", "tools/project/source": "project source",
+		"custom.md": "owner customization", "wsup.json": "owner registry", "orphan.md": "owner orphan",
+		"workbench/.local/wsup/reports/old.json": "historical evidence",
+		"wsup.local.json":                        "local settings", "tools/project/source": "project source",
 	} {
 		writeFixture(t, root, name, []byte(body))
 	}
 	before := snapshot(t, root)
 	bundle := map[string][]byte{
-		"README.md": []byte("new"), "custom.md": []byte("new starter"),
-		"workspace.json": []byte("new registry"), "new/nested.md": []byte("new content"),
-		"apps/.gitkeep": {}, "packages/README.md": []byte("new home"),
+		"README.md": []byte("new"), "custom.md": []byte("new starter"), "new/nested.md": []byte("new content"),
 	}
 	result, err := ApplyUpdate(root, "0.2.0", bundle, []string{"custom.md"})
 	if err != nil || !result.Applied || len(result.Conflicts) != 0 {
@@ -39,30 +31,31 @@ func TestNativeApplyPreservesOwnershipAndSettles(t *testing.T) {
 	}
 	after := snapshot(t, root)
 	for name, body := range before {
-		if name != "README.md" && name != filepath.FromSlash(StatePath) && after[name] != body {
+		if name != "README.md" && name != filepath.FromSlash(LockPath) && after[name] != body {
 			t.Fatalf("owner content changed: %s", name)
 		}
 	}
 	if after["README.md"] != "file:new" || after[filepath.FromSlash("new/nested.md")] != "file:new content" {
 		t.Fatal("planned writes missing")
 	}
-	loaded, err := LoadState(root)
+	loaded, err := LoadLock(root)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if loaded.State.TemplateVersion != "0.2.0" ||
-		loaded.State.Files["custom.md"] != state.Files["custom.md"] ||
-		loaded.State.Files["workspace.json"] != state.Files["workspace.json"] ||
-		loaded.State.Files["README.md"] != contentDigest([]byte("new")) ||
-		// A managed former default home implies its collection; an omitted one does not.
-		!reflect.DeepEqual(loaded.State.Collections, []string{"archive", "packages"}) ||
-		!reflect.DeepEqual(loaded.State.OmittedHomeFiles, state.OmittedHomeFiles) {
-		t.Fatalf("incorrect next state: %+v", loaded.State)
+	if loaded.Lock.WsupVersion != "0.2.0" ||
+		loaded.Lock.Files["custom.md"] != lock.Files["custom.md"] ||
+		loaded.Lock.Files["README.md"] != lockDigest([]byte("new")) ||
+		!reflect.DeepEqual(loaded.Lock.Modules, lock.Modules) {
+		t.Fatalf("incorrect next lock: %+v", loaded.Lock)
 	}
-	for _, name := range []string{"orphan.md", "packages/README.md", "apps/.gitkeep"} {
-		if _, managed := loaded.State.Files[name]; managed {
-			t.Fatalf("retained orphan/omission still managed: %s", name)
+	for _, name := range []string{"orphan.md", "wsup.json"} {
+		if _, managed := loaded.Lock.Files[name]; managed {
+			t.Fatalf("orphan or owner file managed: %s", name)
 		}
+	}
+	// wsup.json belongs to the owner; a bundle can never manage it.
+	if _, err := PlanUpdate(root, "0.2.0", map[string][]byte{"wsup.json": []byte("{}")}, nil); err == nil {
+		t.Fatal("bundle managed wsup.json")
 	}
 	settled, err := PlanUpdate(root, "0.2.0", bundle, []string{"custom.md"})
 	if err != nil || !reflect.DeepEqual(settled.Actions, []Action{{"custom.md", "keep-customization"}}) || len(settled.Conflicts) != 0 {
@@ -93,7 +86,7 @@ func prepareFixture(t *testing.T) (string, preparedUpdate) {
 	var prepared preparedUpdate
 	_, err := planUpdate(root, "0.2.0", map[string][]byte{
 		"README.md": []byte("new"), "new/nested.md": []byte("new file"),
-	}, nil, nil, &prepared)
+	}, nil, nil, nil, &prepared)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,7 +94,7 @@ func prepareFixture(t *testing.T) (string, preparedUpdate) {
 }
 
 func TestApplyRechecksStateFilesAndNewDestinationsBeforeAnyWrite(t *testing.T) {
-	for _, name := range []string{StatePath, "README.md", "new/nested.md"} {
+	for _, name := range []string{LockPath, "README.md", "new/nested.md"} {
 		t.Run(name, func(t *testing.T) {
 			root, prepared := prepareFixture(t)
 			writeFixture(t, root, name, []byte("owner changed during planning"))
@@ -132,7 +125,7 @@ func TestApplyRechecksSymlinkParentsWithoutExternalWrites(t *testing.T) {
 }
 
 func TestApplyIOFailureLeavesOldStateAndExplicitPartialError(t *testing.T) {
-	for _, failing := range []string{"README.md", "new/nested.md", StatePath} {
+	for _, failing := range []string{"README.md", "new/nested.md", LockPath} {
 		t.Run(failing, func(t *testing.T) {
 			root, prepared := prepareFixture(t)
 			before := snapshot(t, root)
@@ -148,7 +141,7 @@ func TestApplyIOFailureLeavesOldStateAndExplicitPartialError(t *testing.T) {
 				t.Fatalf("hidden I/O failure: %+v %v", result, err)
 			}
 			after := snapshot(t, root)
-			if before[filepath.FromSlash(StatePath)] != after[filepath.FromSlash(StatePath)] {
+			if before[filepath.FromSlash(LockPath)] != after[filepath.FromSlash(LockPath)] {
 				t.Fatal("failed update committed new state")
 			}
 			if failing == "README.md" && !reflect.DeepEqual(before, after) {

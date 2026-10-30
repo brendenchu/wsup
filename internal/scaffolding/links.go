@@ -69,9 +69,9 @@ const (
 )
 
 // CheckLinks reports every managed link that is missing, wrong, or broken.
-// It reads only the state's link list; a starter without links has no findings.
+// It reads only wsup.lock's link list; a starter without links has no findings.
 func CheckLinks(root string) ([]string, error) {
-	loaded, err := LoadState(root)
+	loaded, err := LoadLock(root)
 	if err != nil {
 		return nil, err
 	}
@@ -81,8 +81,8 @@ func CheckLinks(root string) ([]string, error) {
 	}
 	defer handle.Close()
 	findings := []string{}
-	for _, name := range slices.Sorted(maps.Keys(loaded.State.Links)) {
-		target := loaded.State.Links[name]
+	for _, name := range slices.Sorted(maps.Keys(loaded.Lock.Links)) {
+		target := loaded.Lock.Links[name]
 		status, err := linkStatus(handle, name, target)
 		if err != nil {
 			return nil, err

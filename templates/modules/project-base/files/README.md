@@ -35,15 +35,15 @@ Keep restricted records outside documentation and Git.
 ## Starter attribution
 
 This project starter has no WSUP runtime, binary, catalogue, or workspace registry.
-Its `.wsup/template-state.json` schema 2 records managed starter files. A compatible
+Its committed `wsup.lock` records the installed modules and managed starter files. A compatible
 separately installed native `wsup` can inspect guidance with
 `wsup --root /path/to/project guidance`. Preview managed updates with
 `wsup --root /path/to/project update`; add `--apply` only after reviewing the
-preview and preserving a matched backup of files and state. Conflicts block
+preview and preserving a matched backup of files and `wsup.lock`. Conflicts block
 apply; repeat `--keep PATH` for eligible same-path customizations without
-accepting their current bytes as new baselines. Only schema-2 state is supported.
-Do not edit the schema version to force a downgrade. Updates are not transactional;
-I/O failures may leave partial content with old state and are reported explicitly.
+accepting their current bytes as new baselines. Only lock version 1 is supported.
+Do not edit the version to force a downgrade. Updates are not transactional;
+I/O failures may leave partial content with the old lock and are reported explicitly.
 Project commands and runtime requirements remain this project's responsibility.
 Agent instructions are in [AGENTS.md](AGENTS.md); its Skills section is
 generated between `wsup:begin`/`wsup:end` markers, and the rest is yours.

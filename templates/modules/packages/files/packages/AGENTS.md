@@ -1,6 +1,6 @@
 # Packages
 
-- Each project here is registered in `workspace.json`; its own README and
+- Each project here is registered in `wsup.json`; its own README and
   AGENTS.md govern work inside it.
 - Check the project's repository ownership before any Git action. An
   independent project is its own repository with a root `.gitignore` entry.

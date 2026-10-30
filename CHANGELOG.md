@@ -13,8 +13,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
   include a template.
 - Workspaces and projects include `.editorconfig` (UTF-8, LF, final newline,
   trimmed trailing whitespace) and `.gitattributes` (`* text=auto eol=lf`).
-- Collections can declare ignore entries, written to a marked block in the
-  workspace `.gitignore`. `data` ignores `data/**/*.local.*`.
+- Modules can declare ignore entries, written to a marked block in the
+  workspace or project `.gitignore`. `data` ignores `data/**/*.local.*`, and
+  the `claude` adapter ignores Claude Code's per-user
+  `.claude/settings.local.json`.
 - Agent adapters: `claude` (`CLAUDE.md` importing `AGENTS.md`, and a
   `.claude/skills` link to `.agents/skills`) and `gemini` (`GEMINI.md`).
   `init` installs both by default; `--agent NAME` selects and `--agent none`
@@ -22,23 +24,66 @@ See the [release guide](docs/releases.md) for version and tag policy.
   re-creates it when missing, and `validate` and `guidance` report a missing
   or broken link.
 - Editor adapter `vscode`: `init` generates `<name>.code-workspace` from
-  `workspace.json` (root plus one folder per project) and `update` refreshes
+  `wsup.json` (root plus one folder per project, one VS Code task per project
+  task, and the `vscode` block's settings, extensions, tasks, and launch
+  configurations) and `update` refreshes
   it, reporting hand edits as conflicts. Renaming the workspace replaces the
   file: `update` removes the old one while it is unedited. `--editor NAME` selects and
-  `--editor none` skips it; editor adapters are workspace-only. `wsup editor`
-  writes the same document.
+  `--editor none` skips it; editor adapters are workspace-only. `wsup vscode`
+  previews or applies regenerating just that file.
 - In a terminal, `wsup init` asks for the preset, agents, and editors that
   flags leave open (a project: agents only), re-asking after an invalid
-  answer. `--yes`, or running without a terminal, uses the defaults.
+  answer. `--yes`, or running without a terminal (including with `/dev/null`
+  as input or output), uses the defaults.
 - `wsup init --preset NAME` selects a preset of collections; explicit
   `--collection` choices add to it. `--preset none` creates a base-only
   workspace. Unknown presets fail before anything is written.
+- `wsup migrate` previews converting a wsup 0.2.0 workspace or project, and
+  `--apply` converts it: unedited files are replaced or removed, edited files
+  are kept, `workspace.json` and settings become `wsup.json`, reports move,
+  and every replaced or removed file is first backed up under
+  `workbench/.local/wsup/migrate/`. Conflicts block every write.
+- `wsup migrate --keep PATH` and `wsup add --keep PATH` keep an existing owner
+  file at a path wsup installs instead of reporting a conflict; `update`
+  then treats it as a customization that `update --keep` accepts.
+- `wsup check --all` runs the check tasks of every project.
+- `wsup run PROJECT TASK` runs any project task connected to the terminal and
+  exits with its exit code. Only the task's own `timeout_seconds` (or
+  `--timeout`) limits it, it writes no report, and interrupting it stops the
+  task's process group gracefully.
+- `wsup add MODULE...` previews adding collections or agent and editor
+  adapters (with any modules they require, listed under `installs`); `--apply`
+  installs them, creating the `.claude/skills` link where needed. It works in
+  workspaces and, for agents, in projects.
+- `wsup modules` lists built-in modules; `wsup modules ID` shows a module's
+  manifest and files.
+- `wsup update` reports installed modules whose version changed (applying
+  records the new one), modules listed in `wsup.json` but not installed
+  (offered for `wsup add`, never installed silently), and installed modules
+  `wsup.json` no longer lists.
+- A JSON Schema for `wsup.json` (`schema/wsup-3.json`), named by the `$schema`
+  that `init` writes so editors validate the file; `wsup schema` prints it.
 - One-command local macOS ARM64 candidate verification and packaging with the
   pinned Go toolchain, full notices, checksums, repeated binary builds, and
   extracted-binary smoke checks. Tagging and publication remain explicit.
 
 ### Changed
 
+- `wsup.json` (version 3) is the workspace file, replacing `workspace.json` and
+  the settings-only `wsup.json`. It records the workspace name, the selected
+  collections, agents, and editors, shared `settings`, and projects. Projects
+  declare `tasks` instead of `checks`; a task with `"check": true` runs under
+  `wsup check`, and `--task` replaces `--check`. Tasks keep every check option
+  and add `cwd`. Projects may record a `git` URL.
+- Project kinds are `app`, `package`, `tool`, `infra`, `sandbox`, `template`,
+  `fork`, and `research` (`infrastructure` is now `infra`).
+- `wsup.lock` (committed) replaces `.wsup/template-state.json`. It records each
+  installed module and version, and baseline hashes for managed files, their
+  generated sections, and links. Workspaces created by wsup 0.2.0 report that
+  `wsup migrate` converts them.
+- Check reports default to `workbench/.local/wsup/reports/`, and `report_dir`
+  must stay inside it.
+- Adding a module also records it in `wsup.json`, rewritten in canonical form.
 - `apps/`, `packages/`, `tools/`, and `infra/` are collections instead of
   part of the workspace base, and the default `development` preset selects
   all four. Existing workspaces keep managing `apps/`, `packages/`, and
@@ -61,14 +106,20 @@ See the [release guide](docs/releases.md) for version and tag policy.
   generated between `<!-- wsup:begin NAME -->` / `<!-- wsup:end NAME -->`
   markers. Procedural rule text moved into the skills that use it.
 - Every collection folder has its own `AGENTS.md` with that folder's rules.
-- Adding a collection to a workspace whose `AGENTS.md` or `.gitignore` was
-  edited keeps the owner's text and replaces only the generated sections, as
-  long as those sections are unchanged.
+- When adding a collection or updating, an edited `AGENTS.md` or `.gitignore`
+  keeps the owner's text and only its generated sections are replaced (a
+  `merge` action), as long as those sections are unchanged.
 - The project starter gains `docs/` and `workbench/`.
 - `wsup guidance` requires `AGENTS.md` instead of `AI.md` and the rule index,
   inspects top-level folder `AGENTS.md` files, and reports unpaired markers.
 
 ### Removed
+
+- `wsup collections`; use `wsup modules --kind collection` and `wsup add`.
+- `wsup editor`; `wsup vscode` regenerates the adapter's file, and `wsup add
+  vscode` installs the adapter.
+
+- The `.wsup/` folder, and the `.work/` entries in generated `.gitignore` files.
 
 - `AI.md`, `guidance/rules/`, and `WSUP-LICENSE` from generated workspaces and
   projects. Generated output carries no license file.

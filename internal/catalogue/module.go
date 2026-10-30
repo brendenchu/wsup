@@ -32,6 +32,18 @@ var (
 	versionPattern = regexp.MustCompile(`^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$`)
 )
 
+// ValidID reports whether id has the built-in module id shape: lowercase
+// letters and digits in hyphen-separated words.
+func ValidID(id string) bool {
+	return idPattern.MatchString(id)
+}
+
+// ValidVersion reports whether version is MAJOR.MINOR.PATCH without prefixes
+// or leading zeros.
+func ValidVersion(version string) bool {
+	return versionPattern.MatchString(version)
+}
+
 // Manifest is the predefined module shape read from modules/<id>/module.json.
 // Built-in and future external modules use exactly this format.
 type Manifest struct {

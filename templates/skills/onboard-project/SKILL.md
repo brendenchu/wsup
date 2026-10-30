@@ -18,7 +18,7 @@ description: Onboard a new or existing workspace project. Use when adding or reg
    workspace index or migrating history. Clone/initialize repositories only when
    requested, and verify the project's Git top-level. Never inject an upward
    workspace relationship or project location into its self-contained guidance.
-4. Add registry metadata and established dependency IDs. `workspace.json`
+4. Add registry metadata and established dependency IDs. `wsup.json`
    records actual project paths, owners and dependencies; repository ownership
    is intended topology, not proof that Git exists at a path. Register a
    descendant workspace only through an explicit local entry and operate it with

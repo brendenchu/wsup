@@ -38,8 +38,8 @@ func TestProjectInitCLIAndRejectedArguments(t *testing.T) {
 	if stdout.String() != "Created "+destination+"\n" || stderr.Len() != 0 {
 		t.Fatalf("init output: %s %s", &stdout, &stderr)
 	}
-	state, err := scaffolding.LoadState(destination)
-	if err != nil || state.State.Template != "project" {
+	state, err := scaffolding.LoadLock(destination)
+	if err != nil || state.Lock.Starter != "project" {
 		t.Fatalf("CLI state: %+v %v", state, err)
 	}
 }
@@ -64,7 +64,7 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	}
 	run("--root", filepath.Join(directory, "unrelated"), "init", "project", "--template", "project")
 	project := filepath.Join(directory, "project")
-	first, err := scaffolding.LoadState(project)
+	first, err := scaffolding.LoadLock(project)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,9 +76,9 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 		t.Fatalf("relocated project guidance failed: %s", output)
 	}
 	run("--root", moved, "init", "child", "--template", "project")
-	child, err := scaffolding.LoadState(filepath.Join(directory, "child"))
-	if err != nil || !reflect.DeepEqual(first.State, child.State) {
-		t.Fatalf("child depended on relocated parent/checkout: %+v %v", child.State, err)
+	child, err := scaffolding.LoadLock(filepath.Join(directory, "child"))
+	if err != nil || !reflect.DeepEqual(first.Lock, child.Lock) {
+		t.Fatalf("child depended on relocated parent/checkout: %+v %v", child.Lock, err)
 	}
 	run("--root", filepath.Join(directory, "unrelated"), "init", "workspace")
 	workspace := filepath.Join(directory, "workspace")
@@ -88,10 +88,10 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	if output := run("--root", workspace, "guidance"); !strings.Contains(string(output), `"errors": []`) {
 		t.Fatalf("workspace guidance failed: %s", output)
 	}
-	run("--root", workspace, "editor")
-	workspaceState, err := scaffolding.LoadState(workspace)
-	if err != nil || workspaceState.State.Template != "workspace" || workspaceState.State.Version != 2 {
-		t.Fatalf("workspace state: %+v %v", workspaceState.State, err)
+	run("--root", workspace, "vscode")
+	workspaceState, err := scaffolding.LoadLock(workspace)
+	if err != nil || workspaceState.Lock.Starter != "workspace" || workspaceState.Lock.Version != scaffolding.LockVersion {
+		t.Fatalf("workspace state: %+v %v", workspaceState.Lock, err)
 	}
 	movedWorkspace := filepath.Join(directory, "relocated-workspace")
 	if err := os.Rename(workspace, movedWorkspace); err != nil {
@@ -100,19 +100,8 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(movedWorkspace, "README.md"), []byte("Local customization, not a child default"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	parentState := workspaceState.State
-	parentState.OmittedHomeFiles = []string{"packages/README.md", "tools/README.md"}
-	stateBody, err := scaffolding.EncodeNativeState(parentState)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(movedWorkspace, filepath.FromSlash(scaffolding.StatePath)), stateBody, 0600); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Remove(filepath.Join(movedWorkspace, "tools/README.md")); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(movedWorkspace, "packages/README.md"), []byte("Owner omitted home"), 0600); err != nil {
+	localChanges := []string{"packages/README.md"}
+	if err := os.WriteFile(filepath.Join(movedWorkspace, "packages/README.md"), []byte("Owner home"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.MkdirAll(filepath.Join(movedWorkspace, "templates/project"), 0755); err != nil {
@@ -126,28 +115,28 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 		t.Fatalf("relocated workspace guidance failed: %s", output)
 	}
 	run("--root", movedWorkspace, "init", "child-workspace")
-	next, err := scaffolding.LoadState(filepath.Join(directory, "child-workspace"))
-	if err != nil || !reflect.DeepEqual(workspaceState.State, next.State) {
-		t.Fatalf("child workspace inherited local modifications: %+v %v", next.State, err)
+	next, err := scaffolding.LoadLock(filepath.Join(directory, "child-workspace"))
+	if err != nil || !reflect.DeepEqual(workspaceState.Lock, next.Lock) {
+		t.Fatalf("child workspace inherited local modifications: %+v %v", next.Lock, err)
 	}
-	for _, name := range parentState.OmittedHomeFiles {
+	for _, name := range localChanges {
 		if _, err := os.Stat(filepath.Join(directory, "child-workspace", filepath.FromSlash(name))); err != nil {
-			t.Fatalf("child inherited omitted home: %s", name)
+			t.Fatalf("child inherited a local change: %s", name)
 		}
 	}
 	run("--root", movedWorkspace, "init", "embedded-project", "--template", "project")
-	embeddedProject, err := scaffolding.LoadState(filepath.Join(directory, "embedded-project"))
-	if err != nil || !reflect.DeepEqual(first.State, embeddedProject.State) {
-		t.Fatalf("local catalogue overrode embedded project: %+v %v", embeddedProject.State, err)
+	embeddedProject, err := scaffolding.LoadLock(filepath.Join(directory, "embedded-project"))
+	if err != nil || !reflect.DeepEqual(first.Lock, embeddedProject.Lock) {
+		t.Fatalf("local catalogue overrode embedded project: %+v %v", embeddedProject.Lock, err)
 	}
 	if output := run("--root", filepath.Join(directory, "child-workspace"), "guidance"); !strings.Contains(string(output), `"errors": []`) {
 		t.Fatalf("child workspace guidance failed: %s", output)
 	}
-	preview := run("--root", movedWorkspace, "update", "--keep", "README.md")
+	preview := run("--root", movedWorkspace, "update", "--keep", "README.md", "--keep", "packages/README.md")
 	if !strings.Contains(string(preview), `"keep-customization"`) || !strings.Contains(string(preview), `"applied": false`) {
 		t.Fatalf("standalone update preview failed: %s", preview)
 	}
-	applied := run("--root", movedWorkspace, "update", "--keep", "README.md", "--apply")
+	applied := run("--root", movedWorkspace, "update", "--keep", "README.md", "--keep", "packages/README.md", "--apply")
 	if !strings.Contains(string(applied), `"applied": true`) {
 		t.Fatalf("standalone update apply failed: %s", applied)
 	}
@@ -157,21 +146,21 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	}
 	run("init", "selected-workspace", "--collection", "archive", "--collection", "journal")
 	selected := filepath.Join(directory, "selected-workspace")
-	previewCollections := run("--root", selected, "collections", "--add", "research")
+	previewCollections := run("--root", selected, "add", "research")
 	if !strings.Contains(string(previewCollections), `"applied": false`) {
 		t.Fatalf("collection preview: %s", previewCollections)
 	}
-	run("--root", selected, "collections", "--add", "research", "--apply")
+	run("--root", selected, "add", "research", "--apply")
 	run("--root", selected, "update", "--apply")
 	run("--root", selected, "guidance")
-	selectedState, err := scaffolding.LoadState(selected)
-	if err != nil || !reflect.DeepEqual(selectedState.State.Collections, []string{"apps", "archive", "infra", "journal", "packages", "research", "tools"}) {
-		t.Fatalf("standalone selections: %+v %v", selectedState.State, err)
+	selectedState, err := scaffolding.LoadLock(selected)
+	if err != nil || !reflect.DeepEqual(lockSelection(t, selectedState.Lock).Collections, []string{"apps", "archive", "infra", "journal", "packages", "research", "tools"}) {
+		t.Fatalf("standalone selections: %+v %v", selectedState.Lock, err)
 	}
 	run("--root", selected, "init", "unselected-child")
-	childState, err := scaffolding.LoadState(filepath.Join(directory, "unselected-child"))
-	if err != nil || !reflect.DeepEqual(childState.State.Collections, []string{"apps", "infra", "packages", "tools"}) {
-		t.Fatalf("child inherited collection defaults: %+v %v", childState.State, err)
+	childState, err := scaffolding.LoadLock(filepath.Join(directory, "unselected-child"))
+	if err != nil || !reflect.DeepEqual(lockSelection(t, childState.Lock).Collections, []string{"apps", "infra", "packages", "tools"}) {
+		t.Fatalf("child inherited collection defaults: %+v %v", childState.Lock, err)
 	}
 }
 
@@ -197,10 +186,10 @@ func TestInitAgentSelection(t *testing.T) {
 	if _, err := os.Lstat(filepath.Join(parent, "bad")); !os.IsNotExist(err) {
 		t.Fatal("invalid agent selection wrote output")
 	}
-	for name, want := range map[string][]string{"all": {"claude", "gemini"}, "none": nil, "gemini": {"gemini"}, "project": {"claude"}} {
-		loaded, err := scaffolding.LoadState(filepath.Join(parent, name))
-		if err != nil || !reflect.DeepEqual(loaded.State.Agents, want) {
-			t.Fatalf("%s agents: %v %v", name, loaded.State.Agents, err)
+	for name, want := range map[string][]string{"all": {"claude", "gemini"}, "none": {}, "gemini": {"gemini"}, "project": {"claude"}} {
+		loaded, err := scaffolding.LoadLock(filepath.Join(parent, name))
+		if err != nil || !reflect.DeepEqual(lockSelection(t, loaded.Lock).Agents, want) {
+			t.Fatalf("%s agents: %v %v", name, lockSelection(t, loaded.Lock).Agents, err)
 		}
 	}
 	var stdout, stderr bytes.Buffer
@@ -246,20 +235,13 @@ func TestInitEditorSelection(t *testing.T) {
 			t.Fatalf("%s editor file present=%v", name, err == nil)
 		}
 	}
-	loaded, err := scaffolding.LoadState(filepath.Join(parent, "project"))
-	if err != nil || len(loaded.State.Editors) != 0 {
-		t.Fatalf("project editors: %+v %v", loaded.State, err)
+	loaded, err := scaffolding.LoadLock(filepath.Join(parent, "project"))
+	if err != nil || len(lockSelection(t, loaded.Lock).Editors) != 0 {
+		t.Fatalf("project editors: %+v %v", loaded.Lock, err)
 	}
-	// wsup editor writes the same bytes the adapter generated.
-	adapter, err := os.ReadFile(filepath.Join(parent, "default", "my-workspace.code-workspace"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	// wsup vscode finds the adapter's file already current.
 	var stdout, stderr bytes.Buffer
-	if code := Run([]string{"--root", filepath.Join(parent, "default"), "editor", "--output", "copy.code-workspace"}, &stdout, &stderr); code != 0 {
-		t.Fatalf("editor: %s", &stderr)
-	}
-	if copied, err := os.ReadFile(filepath.Join(parent, "default", "copy.code-workspace")); err != nil || !bytes.Equal(copied, adapter) {
-		t.Fatalf("editor output differs from adapter: %s %v", copied, err)
+	if code := Run([]string{"--root", filepath.Join(parent, "default"), "vscode"}, &stdout, &stderr); code != 0 || !strings.Contains(stdout.String(), `"actions": []`) {
+		t.Fatalf("vscode: %s %s", &stdout, &stderr)
 	}
 }

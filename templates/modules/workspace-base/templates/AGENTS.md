@@ -21,8 +21,8 @@ Each collection folder's AGENTS.md has the rules for working in it.
 - Each workspace knows only itself and its descendants. Do not read, inherit,
   or reference instructions or configuration from outside this root, or record
   where it sits. Descendant workspaces carry their own instructions.
-- `workspace.json` lists every project, its owner, and its checks. A folder is
-  not necessarily its own Git repository: check `workspace.json` and the
+- `wsup.json` lists every project, its owner, and its tasks. A folder is
+  not necessarily its own Git repository: check `wsup.json` and the
   project's own AGENTS.md before editing.
 - Each project keeps its own dependencies, tests, configuration, and
   instructions. Keep reusable libraries independent of application internals.
@@ -45,7 +45,7 @@ Each collection folder's AGENTS.md has the rules for working in it.
 
 ## Verifying
 
-- Use each project's own checks (`wsup check --project <id>`) and installed
+- Use each project's own check tasks (`wsup check --project <id>`) and installed
   versions.
 - Report the checks actually run; never report a skipped check as passing.
 

@@ -24,20 +24,20 @@ func TestNativeProjectMatchesEmbeddedCatalogueAndRelocates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	state, err := LoadState(destination)
-	if err != nil || state.State.Version != StateVersion || state.State.Template != "project" {
-		t.Fatalf("native state: %+v %v", state.State, err)
+	state, err := LoadLock(destination)
+	if err != nil || state.Lock.Version != LockVersion || state.Lock.Starter != "project" {
+		t.Fatalf("native state: %+v %v", state.Lock, err)
 	}
 	for relative, want := range files {
 		got, err := os.ReadFile(filepath.Join(destination, filepath.FromSlash(relative)))
-		if err != nil || !bytes.Equal(want, got) || state.State.Files[relative] != contentDigest(want) {
+		if err != nil || !bytes.Equal(want, got) || state.Lock.Files[relative] != lockDigest(want) {
 			t.Errorf("starter/hash differs: %s %v", relative, err)
 		}
 	}
-	if len(files) != len(state.State.Files) {
+	if len(files) != len(state.Lock.Files) {
 		t.Fatalf("inventory mismatch: %d", len(files))
 	}
-	for _, name := range []string{"workspace.json", ".wsup/runtime", ".wsup/templates"} {
+	for _, name := range []string{"wsup.json", "workspace.json", ".wsup"} {
 		if _, err := os.Lstat(filepath.Join(destination, name)); !os.IsNotExist(err) {
 			t.Fatalf("unexpected registry/runtime/catalogue: %s", name)
 		}
@@ -70,7 +70,7 @@ func TestProjectInitRefusesExistingDestinationsAndInvalidBundleBeforeWrites(t *t
 			t.Fatalf("existing destination accepted: %s", destination)
 		}
 	}
-	for _, name := range []string{"../escape", StatePath, ".wsup/runtime", "workspace.json"} {
+	for _, name := range []string{"../escape", LockPath, "wsup.json"} {
 		if _, err := initialiseProject(filepath.Join(parent, "new"), "0.1.0", map[string][]byte{name: {}}, writeManaged); err == nil {
 			t.Fatalf("invalid bundle accepted: %s", name)
 		}
@@ -85,7 +85,7 @@ func TestProjectInitIOFailureIsExplicitAndStateIsLast(t *testing.T) {
 	destination := filepath.Join(parent, "partial")
 	injected := errors.New("synthetic state write denied")
 	_, err := initialiseProject(destination, "0.1.0", map[string][]byte{"README.md": []byte("new")}, func(root *os.Root, name string, body []byte, exclusive bool) error {
-		if name == StatePath {
+		if name == LockPath {
 			return injected
 		}
 		return writeManaged(root, name, body, exclusive)
@@ -97,7 +97,7 @@ func TestProjectInitIOFailureIsExplicitAndStateIsLast(t *testing.T) {
 	if err != nil || string(body) != "new" {
 		t.Fatal("partial output not retained for inspection")
 	}
-	if _, err := os.Lstat(filepath.Join(destination, StatePath)); !os.IsNotExist(err) {
+	if _, err := os.Lstat(filepath.Join(destination, LockPath)); !os.IsNotExist(err) {
 		t.Fatal("state committed before content completed")
 	}
 }

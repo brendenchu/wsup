@@ -31,7 +31,7 @@ func TestConcurrentProjectInitializersNeverReplaceDestination(t *testing.T) {
 	if successes != 1 {
 		t.Fatalf("expected exactly one exclusive initializer, got %d", successes)
 	}
-	if _, err := LoadState(destination); err != nil {
+	if _, err := LoadLock(destination); err != nil {
 		t.Fatalf("winning initializer incomplete: %v", err)
 	}
 }
@@ -51,7 +51,7 @@ func TestProjectInitializationLateFileCollisionPreservesOwnerBytes(t *testing.T)
 	if err != nil || string(body) != "concurrent owner" {
 		t.Fatal("concurrent owner bytes overwritten or removed")
 	}
-	if _, err := os.Lstat(filepath.Join(destination, StatePath)); !os.IsNotExist(err) {
+	if _, err := os.Lstat(filepath.Join(destination, LockPath)); !os.IsNotExist(err) {
 		t.Fatal("failed initializer wrote state")
 	}
 }

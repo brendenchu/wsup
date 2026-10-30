@@ -16,6 +16,9 @@ import (
 	"github.com/brendenchu/wsup/internal/registry"
 )
 
+// StatePath and State describe wsup 0.2.0's managed-content state. Current
+// workspaces use wsup.lock (see Lock); the 0.2.0 state is read only to report
+// that a workspace needs converting, and as migration input.
 const (
 	StatePath = ".wsup/template-state.json"
 	// StateVersion identifies the managed-content schema.
@@ -50,6 +53,9 @@ type State struct {
 	Editors []string `json:"editors,omitempty"`
 	// Links maps each managed symlink to its relative target.
 	Links map[string]string `json:"links,omitempty"`
+	// retired holds renamed or removed collection names, read only for
+	// migration (see loadLegacyState).
+	retired []string
 }
 
 // LoadedState carries exact original bytes for a later apply-time change check.
@@ -227,30 +233,4 @@ func portableFile(name string) bool {
 	return utf8.ValidString(name) && name != "" && name != "." && path.Clean(name) == name &&
 		!path.IsAbs(name) && !strings.ContainsAny(name, "\\:\x00") &&
 		name != ".." && !strings.HasPrefix(name, "../")
-}
-
-// selection describes this state's installed modules with the given
-// collections, for catalogue.Starter.
-func (s State) selection(collections []string, registry []byte) catalogue.Selection {
-	return catalogue.Selection{Collections: collections, Agents: s.Agents, Editors: s.Editors, Registry: registry}
-}
-
-// readRegistry returns the workspace registry's bytes for generators, or nil
-// when it is absent so the starter's own registry is used. It never follows a
-// symlink at the registry path.
-func readRegistry(root string) ([]byte, error) {
-	root, err := registry.Resolve(root)
-	if err != nil {
-		return nil, err
-	}
-	handle, err := os.OpenRoot(root)
-	if err != nil {
-		return nil, err
-	}
-	defer handle.Close()
-	current, err := observeFile(handle, "workspace.json")
-	if err != nil || !current.regular {
-		return nil, err
-	}
-	return handle.ReadFile("workspace.json")
 }

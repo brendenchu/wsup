@@ -22,10 +22,14 @@ func runChecks(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if len(projects) == 0 {
-		return fmt.Errorf("check requires at least one --project")
+	all, err := command.Flags().GetBool("all")
+	if err != nil {
+		return err
 	}
-	names, err := command.Flags().GetStringArray("check")
+	if all == (len(projects) != 0) {
+		return fmt.Errorf("check requires --project (repeatable) or --all, but not both")
+	}
+	names, err := command.Flags().GetStringArray("task")
 	if err != nil {
 		return err
 	}
@@ -57,7 +61,7 @@ func runChecks(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	selected, err := data.Select(projects, names)
+	selected, err := data.Select(projects, names, all)
 	if err != nil {
 		return err
 	}
@@ -85,7 +89,7 @@ func runChecks(command *cobra.Command, args []string) error {
 			}
 			timeout := effectiveTimeout(config.Settings.TimeoutSeconds, item.Check.TimeoutSeconds, override)
 			run, runErr := execution.Run(command.Context(), item.Check.Command,
-				filepath.Join(root, filepath.FromSlash(item.Project.Path)), time.Duration(timeout)*time.Second,
+				filepath.Join(root, filepath.FromSlash(item.Project.Path), filepath.FromSlash(item.Cwd)), time.Duration(timeout)*time.Second,
 				config.Settings.OutputLimitBytes)
 			if runErr != nil {
 				if run.Status != "error" || run.Error == "" {
@@ -139,6 +143,65 @@ func runChecks(command *cobra.Command, args []string) error {
 	}
 	if failed {
 		return statusError{code: 1}
+	}
+	return nil
+}
+
+// runTask runs one project task with the terminal's streams and exits with
+// its exit code. Only the task's own timeout (or --timeout) applies, so
+// long-running tasks are not stopped by the workspace check default.
+func runTask(command *cobra.Command, args []string) error {
+	name, err := command.Root().Flags().GetString("root")
+	if err != nil {
+		return err
+	}
+	root, err := registry.Resolve(name)
+	if err != nil {
+		return err
+	}
+	data, err := registry.Load(root)
+	if err != nil {
+		return err
+	}
+	project, task, err := data.Task(args[0], args[1])
+	if err != nil {
+		return err
+	}
+	timeout := task.Check.TimeoutSeconds
+	if command.Flags().Changed("timeout") {
+		value, err := command.Flags().GetInt("timeout")
+		if err != nil {
+			return err
+		}
+		if value < 1 || value > 86400 {
+			return fmt.Errorf("--timeout must be 1..86400")
+		}
+		timeout = &value
+	}
+	limit := time.Duration(0)
+	if timeout != nil {
+		limit = time.Duration(*timeout) * time.Second
+	}
+	if err := execution.Supported(); err != nil {
+		return err
+	}
+	cwd := filepath.Join(root, filepath.FromSlash(project.Path), filepath.FromSlash(task.Cwd))
+	result, err := execution.Stream(command.Context(), task.Check.Command, cwd, limit,
+		command.InOrStdin(), command.OutOrStdout(), command.ErrOrStderr())
+	if err != nil {
+		return err
+	}
+	switch {
+	case result.Status == "cancelled":
+		return statusError{code: 130}
+	case result.Status == "timeout":
+		fmt.Fprintf(command.ErrOrStderr(), "%s:%s: timed out\n", project.ID, task.Name)
+		return statusError{code: 124}
+	case result.ExitCode != nil && *result.ExitCode < 0:
+		// A task ended by a signal exits the way a shell reports it.
+		return statusError{code: 128 - *result.ExitCode}
+	case result.ExitCode != nil && *result.ExitCode != 0:
+		return statusError{code: *result.ExitCode}
 	}
 	return nil
 }

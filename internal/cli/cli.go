@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"os"
-	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
@@ -17,6 +17,7 @@ import (
 	"github.com/brendenchu/wsup/internal/guidance"
 	"github.com/brendenchu/wsup/internal/registry"
 	"github.com/brendenchu/wsup/internal/scaffolding"
+	"github.com/brendenchu/wsup/schema"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -61,7 +62,7 @@ func newCommand(s session) *cobra.Command {
 	root := &cobra.Command{
 		Use:              "wsup",
 		Short:            "WSUP portable local workspace tools",
-		Long:             "WSUP portable local workspace tools. Inspect projects and guidance, create workspace/project starters, run explicit Unix checks, manage collections, and preview or apply managed-content updates.",
+		Long:             "WSUP portable local workspace tools. Inspect projects and guidance, create workspace/project starters, run explicit Unix checks, add modules, and preview or apply managed-content updates.",
 		Version:          Version,
 		SilenceErrors:    true,
 		SilenceUsage:     true,
@@ -86,15 +87,43 @@ func newCommand(s session) *cobra.Command {
 	inspect := &cobra.Command{Use: "guidance", Short: "Inspect portable instructions", Args: cobra.NoArgs, RunE: inspectWorkspace}
 	inspect.Flags().String("project", "", "Inspect one registered project")
 	root.AddCommand(inspect)
-	editor := &cobra.Command{Use: "editor", Short: "Create an optional VS Code multi-root file", Args: cobra.NoArgs, RunE: inspectWorkspace}
-	editor.Flags().String("output", "workspace.code-workspace", "New filename in the workspace root")
-	root.AddCommand(editor)
-	check := &cobra.Command{Use: "check", Short: "Run explicitly selected project checks", Args: cobra.NoArgs, RunE: runChecks}
-	check.Flags().StringArray("project", nil, "Project ID (required; repeat to select more)")
-	check.Flags().StringArray("check", nil, "Check name (repeat; defaults to all configured checks)")
+	vscode := &cobra.Command{
+		Use: "vscode", Short: "Preview regenerating <name>.code-workspace from wsup.json; --apply writes it",
+		Args: cobra.NoArgs,
+		RunE: func(command *cobra.Command, args []string) error {
+			root, err := command.Root().Flags().GetString("root")
+			if err != nil {
+				return err
+			}
+			apply, err := command.Flags().GetBool("apply")
+			if err != nil {
+				return err
+			}
+			result, err := scaffolding.RefreshEditor(root, Version, apply)
+			if err != nil {
+				return err
+			}
+			if err := writeJSON(command.OutOrStdout(), result); err != nil {
+				return err
+			}
+			if len(result.Conflicts) != 0 {
+				return statusError{1}
+			}
+			return nil
+		},
+	}
+	vscode.Flags().Bool("apply", false, "Write the regenerated file when it has no hand edits")
+	root.AddCommand(vscode)
+	check := &cobra.Command{Use: "check", Short: "Run the check tasks of selected projects", Args: cobra.NoArgs, RunE: runChecks}
+	check.Flags().StringArray("project", nil, "Project ID (repeat to select more; or use --all)")
+	check.Flags().Bool("all", false, "Select every project with check tasks")
+	check.Flags().StringArray("task", nil, "Check task name (repeat; defaults to every check task)")
 	check.Flags().Int("timeout", 0, "Override timeout in seconds (1..86400)")
 	check.Flags().Bool("show-output", false, "Print retained stdout/stderr to the terminal")
 	root.AddCommand(check)
+	run := &cobra.Command{Use: "run PROJECT TASK", Short: "Run one project task in the terminal", Args: cobra.ExactArgs(2), RunE: runTask}
+	run.Flags().Int("timeout", 0, "Stop the task after this many seconds (1..86400; default: the task's own, or none)")
+	root.AddCommand(run)
 	init := &cobra.Command{
 		Use: "init DESTINATION", Short: "Create a native workspace or project starter",
 		Args: cobra.ExactArgs(1),
@@ -223,15 +252,11 @@ func newCommand(s session) *cobra.Command {
 	update.Flags().Bool("apply", false, "Apply a conflict-free native content update")
 	update.Flags().StringArray("keep", nil, "Preserve an existing same-path customization (repeatable)")
 	root.AddCommand(update)
-	collections := &cobra.Command{
-		Use: "collections", Short: "List or preview optional collection additions",
+	migrate := &cobra.Command{
+		Use: "migrate", Short: "Preview converting a wsup 0.2.0 workspace or project; --apply converts it",
 		Args: cobra.NoArgs,
 		RunE: func(command *cobra.Command, args []string) error {
 			root, err := command.Root().Flags().GetString("root")
-			if err != nil {
-				return err
-			}
-			names, err := command.Flags().GetStringArray("add")
 			if err != nil {
 				return err
 			}
@@ -239,7 +264,17 @@ func newCommand(s session) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			result, err := scaffolding.AddCollections(root, names, apply)
+			options := scaffolding.MigrationOptions{}
+			if options.Agents, err = command.Flags().GetStringArray("agent"); err != nil {
+				return err
+			}
+			if options.Editors, err = command.Flags().GetStringArray("editor"); err != nil {
+				return err
+			}
+			if options.Keep, err = command.Flags().GetStringArray("keep"); err != nil {
+				return err
+			}
+			result, err := scaffolding.Migrate(root, Version, options, apply)
 			if err != nil {
 				return err
 			}
@@ -252,9 +287,57 @@ func newCommand(s session) *cobra.Command {
 			return nil
 		},
 	}
-	collections.Flags().StringArray("add", nil, "Collection name to add (repeatable)")
-	collections.Flags().Bool("apply", false, "Apply conflict-free collection additions")
-	root.AddCommand(collections)
+	migrate.Flags().Bool("apply", false, "Convert when conflict-free, backing up every replaced or removed file")
+	migrate.Flags().StringArray("keep", nil, "Keep an existing owner file at a path the conversion installs (repeatable)")
+	migrate.Flags().StringArray("agent", nil, "Agent adapter ("+strings.Join(catalogue.AgentNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
+	migrate.Flags().StringArray("editor", nil, "Workspace editor adapter ("+strings.Join(catalogue.EditorNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
+	root.AddCommand(migrate)
+	add := &cobra.Command{
+		Use: "add MODULE...", Short: "Preview adding collections or adapters; --apply installs them",
+		Args: cobra.MinimumNArgs(1),
+		RunE: func(command *cobra.Command, args []string) error {
+			root, err := command.Root().Flags().GetString("root")
+			if err != nil {
+				return err
+			}
+			apply, err := command.Flags().GetBool("apply")
+			if err != nil {
+				return err
+			}
+			keep, err := command.Flags().GetStringArray("keep")
+			if err != nil {
+				return err
+			}
+			result, err := scaffolding.AddModulesKeeping(root, args, keep, apply)
+			if err != nil {
+				return err
+			}
+			if err := writeJSON(command.OutOrStdout(), result); err != nil {
+				return err
+			}
+			if len(result.Conflicts) != 0 {
+				return statusError{1}
+			}
+			return nil
+		},
+	}
+	add.Flags().Bool("apply", false, "Apply a conflict-free addition")
+	add.Flags().StringArray("keep", nil, "Keep an existing owner file at a path the addition installs (repeatable)")
+	root.AddCommand(add)
+	modules := &cobra.Command{
+		Use: "modules [ID]", Short: "List built-in modules, or show one module's files and skills",
+		Args: cobra.MaximumNArgs(1),
+		RunE: listModules,
+	}
+	modules.Flags().String("kind", "", "Only list modules of this kind (base, collection, agent, editor, preset)")
+	root.AddCommand(modules)
+	root.AddCommand(&cobra.Command{
+		Use: "schema", Short: "Print the JSON Schema for wsup.json", Args: cobra.NoArgs,
+		RunE: func(command *cobra.Command, args []string) error {
+			_, err := command.OutOrStdout().Write(schema.Workspace)
+			return err
+		},
+	})
 	return root
 }
 
@@ -319,9 +402,9 @@ func inspectWorkspace(command *cobra.Command, args []string) error {
 		_, err = fmt.Fprintf(command.OutOrStdout(), "Valid: %s (%d projects)\n", data.Name, len(data.Projects))
 		return err
 	case "projects":
-		projects := make([]map[string]any, 0, len(data.Projects))
+		projects := make([]registry.ProjectEntry, 0, len(data.Projects))
 		for _, project := range data.Projects {
-			projects = append(projects, project.Raw)
+			projects = append(projects, project.Entry)
 		}
 		return writeJSON(command.OutOrStdout(), projects)
 	case "guidance":
@@ -339,12 +422,6 @@ func inspectWorkspace(command *cobra.Command, args []string) error {
 			}
 		}
 		return fmt.Errorf("Unknown project")
-	case "editor":
-		output, err := command.Flags().GetString("output")
-		if err != nil {
-			return err
-		}
-		return createEditor(command.OutOrStdout(), root, output, data)
 	default:
 		return writeJSON(command.OutOrStdout(), config)
 	}
@@ -369,45 +446,62 @@ func inspectGuidance(output io.Writer, root string) error {
 	return nil
 }
 
-func createEditor(output io.Writer, root, name string, data registry.Registry) error {
-	target, err := registry.RelativeTarget(root, name)
+// moduleSummary is one row of wsup modules.
+type moduleSummary struct {
+	ID          string `json:"id"`
+	Kind        string `json:"kind"`
+	Version     string `json:"version"`
+	Description string `json:"description"`
+}
+
+// moduleDetail is wsup modules ID: the manifest plus the files it installs.
+type moduleDetail struct {
+	moduleSummary
+	AppliesTo []string          `json:"applies_to"`
+	Requires  []string          `json:"requires"`
+	Modules   []string          `json:"modules,omitempty"`
+	Skills    []string          `json:"skills"`
+	Files     []string          `json:"files"`
+	Ignore    []string          `json:"ignore"`
+	Generate  []string          `json:"generate"`
+	Links     map[string]string `json:"links,omitempty"`
+}
+
+func listModules(command *cobra.Command, args []string) error {
+	kind, err := command.Flags().GetString("kind")
 	if err != nil {
 		return err
 	}
-	_, statErr := os.Lstat(target)
-	if filepath.Dir(target) != root || statErr == nil {
-		return fmt.Errorf("Editor output must be a new file in the workspace root")
+	if kind != "" && !slices.Contains([]string{catalogue.KindBase, catalogue.KindCollection, catalogue.KindAgent, catalogue.KindEditor, catalogue.KindPreset}, kind) {
+		return fmt.Errorf("unknown kind %q", kind)
 	}
-	if !os.IsNotExist(statErr) {
-		return statErr
+	summaries := []moduleSummary{}
+	for _, module := range catalogue.Modules() {
+		summary := moduleSummary{ID: module.ID, Kind: module.Kind, Version: module.Version, Description: module.Description}
+		if len(args) == 1 && module.ID == args[0] {
+			files := slices.Collect(maps.Keys(module.Files))
+			files = slices.Sorted(slices.Values(append(files, slices.Collect(maps.Keys(module.Templates))...)))
+			return writeJSON(command.OutOrStdout(), moduleDetail{
+				moduleSummary: summary, AppliesTo: nonNil(module.AppliesTo), Requires: nonNil(module.Requires),
+				Modules: module.Modules, Skills: nonNil(module.Skills), Files: files, Ignore: nonNil(module.Ignore),
+				Generate: nonNil(module.Generate), Links: module.Links,
+			})
+		}
+		if kind == "" || module.Kind == kind {
+			summaries = append(summaries, summary)
+		}
 	}
-	// The same generator writes the vscode adapter's file, so output matches.
-	workspace := catalogue.Workspace{Name: data.Name, Projects: []catalogue.Project{}}
-	for _, project := range data.Projects {
-		workspace.Projects = append(workspace.Projects, catalogue.Project{ID: project.ID, Path: project.Path})
+	if len(args) == 1 {
+		return fmt.Errorf("unknown module %q", args[0])
 	}
-	body, err := catalogue.CodeWorkspace(workspace)
-	if err != nil {
-		return err
+	return writeJSON(command.OutOrStdout(), summaries)
+}
+
+func nonNil(values []string) []string {
+	if values == nil {
+		return []string{}
 	}
-	// Exclusive creation also refuses files created after the preflight check.
-	file, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
-	if err != nil {
-		return err
-	}
-	written, writeErr := file.Write(body)
-	if writeErr == nil && written != len(body) {
-		writeErr = io.ErrShortWrite
-	}
-	closeErr := file.Close()
-	if writeErr != nil {
-		return writeErr
-	}
-	if closeErr != nil {
-		return closeErr
-	}
-	_, err = fmt.Fprintf(output, "Created %s\n", target)
-	return err
+	return values
 }
 
 func writeJSON(destination io.Writer, value any) error {

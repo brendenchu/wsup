@@ -61,10 +61,10 @@ func TestCheckTool(t *testing.T) {
 	case "sleep":
 		time.Sleep(30 * time.Second)
 	case "break-report":
-		if err := os.Remove("../workspace.json"); err != nil {
+		if err := os.Remove("../wsup.json"); err != nil {
 			os.Exit(98)
 		}
-		if err := os.Mkdir("../workspace.json", 0700); err != nil {
+		if err := os.Mkdir("../wsup.json", 0700); err != nil {
 			os.Exit(99)
 		}
 	case "descendant":
@@ -120,15 +120,15 @@ func checkFixture(t *testing.T, checks map[string]any) string {
 	if err := os.WriteFile(filepath.Join(root, "app/README.md"), []byte("Synthetic\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	document := map[string]any{"version": 1, "name": "Synthetic", "projects": []any{
+	document := map[string]any{"version": 3, "name": "Synthetic", "projects": []any{
 		map[string]any{"id": "app", "path": "app", "kind": "app", "repository": "independent",
-			"purpose": "Fixture", "owner": "Test", "checks": checks},
+			"purpose": "Fixture", "owner": "Test", "tasks": checkTasks(checks)},
 	}}
 	body, err := json.Marshal(document)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "workspace.json"), body, 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "wsup.json"), body, 0600); err != nil {
 		t.Fatal(err)
 	}
 	return root
@@ -155,7 +155,7 @@ type checkReport struct {
 
 func readCheckReport(t *testing.T, root string) (checkReport, []byte) {
 	t.Helper()
-	files, err := filepath.Glob(filepath.Join(root, ".wsup/reports/*.json"))
+	files, err := filepath.Glob(filepath.Join(root, "workbench/.local/wsup/reports/*.json"))
 	if err != nil || len(files) != 1 {
 		t.Fatalf("expected one report: %v %v", files, err)
 	}
@@ -209,15 +209,15 @@ func TestChecksContinueLiteralArgumentsAndSanitizedReports(t *testing.T) {
 	if err != nil || data.Selection[1].CommandSHA256 != digest {
 		t.Fatalf("command identity mismatch: %s %v", body, err)
 	}
-	registry, err := os.ReadFile(filepath.Join(root, "workspace.json"))
+	registry, err := os.ReadFile(filepath.Join(root, "wsup.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	hash := sha256.Sum256(registry)
-	if data.Inputs["workspace.json"] != hex.EncodeToString(hash[:]) {
+	if data.Inputs["wsup.json"] != hex.EncodeToString(hash[:]) {
 		t.Fatal("input hash differs")
 	}
-	reports, _ := filepath.Glob(filepath.Join(root, ".wsup/reports/*"))
+	reports, _ := filepath.Glob(filepath.Join(root, "workbench/.local/wsup/reports/*"))
 	for _, path := range reports {
 		body, err := os.ReadFile(path)
 		if err != nil {
@@ -274,8 +274,9 @@ func TestCheckPreflightRejectsInvalidSelectionConfigAndReportParent(t *testing.T
 		parentFile bool
 	}{
 		{"missing projects", nil, "", false},
-		{"unknown check", []string{"--project", "app", "--check", "write", "--check", "missing"}, "", false},
+		{"unknown check", []string{"--project", "app", "--task", "write", "--task", "missing"}, "", false},
 		{"unknown project", []string{"--project", "app", "--project", "missing"}, "", false},
+		{"all and project", []string{"--all", "--project", "app"}, "", false},
 		{"bad boolean", []string{"--project", "app"}, `{"timeout_seconds":false}`, false},
 		{"bad report", []string{"--project", "app"}, `{"report_dir":"../outside"}`, false},
 		{"unknown config", []string{"--project", "app"}, `{"unknown":1}`, false},
@@ -290,7 +291,7 @@ func TestCheckPreflightRejectsInvalidSelectionConfigAndReportParent(t *testing.T
 				}
 			}
 			if tc.parentFile {
-				if err := os.WriteFile(filepath.Join(root, ".wsup"), []byte("Keep\n"), 0600); err != nil {
+				if err := os.WriteFile(filepath.Join(root, "workbench"), []byte("Keep\n"), 0600); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -302,7 +303,7 @@ func TestCheckPreflightRejectsInvalidSelectionConfigAndReportParent(t *testing.T
 				t.Fatal("preflight ran a command")
 			}
 			if !tc.parentFile {
-				if _, err := os.Stat(filepath.Join(root, ".wsup")); !os.IsNotExist(err) {
+				if _, err := os.Stat(filepath.Join(root, "workbench", ".local")); err == nil {
 					t.Fatal("invalid selection/config created reports")
 				}
 			}
@@ -325,7 +326,7 @@ func TestSelectionDeduplicationOrderAndTimeoutPrecedence(t *testing.T) {
 		"b": checkTool(t, "exit", "0"),
 	})
 	code, stdout, stderr := invokeCheck(root, "--project", "app", "--project", "app",
-		"--check", "b", "--check", "b", "--check", "a")
+		"--task", "b", "--task", "b", "--task", "a")
 	if code != 0 || stderr != "" || strings.Count(stdout, "Running ") != 2 ||
 		!strings.Contains(stdout, "app:b: passed\nRunning app:a\n") {
 		t.Fatalf("selection order: %d %q %q", code, stdout, stderr)

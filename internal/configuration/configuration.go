@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -25,13 +26,17 @@ type Result struct {
 	Sources  map[string]string `json:"sources"`
 }
 
-// Load applies defaults, shared file, local file, environment, then optional CLI
+// ReportsPath is the default report directory and the root every configured
+// report_dir must stay inside. workbench/.local/ is ignored in every workspace.
+const ReportsPath = "workbench/.local/wsup/reports"
+
+// Load applies defaults, wsup.json settings, wsup.local.json, environment, then optional CLI
 // timeout, without searching parent directories or creating report directories.
 // lookup supplies environment access explicitly; nil timeout means no CLI override.
 func Load(root string, timeout *int, lookup func(string) (string, bool)) (Result, error) {
 	values := map[string]any{
 		"timeout_seconds": json.Number("300"), "output_limit_bytes": json.Number("65536"),
-		"report_dir": ".wsup/reports",
+		"report_dir": ReportsPath,
 	}
 	sources := map[string]string{}
 	for key := range values {
@@ -47,7 +52,7 @@ func Load(root string, timeout *int, lookup func(string) (string, bool)) (Result
 		}
 		return nil
 	}
-	for _, filename := range []string{"wsup.json", "wsup.local.json"} {
+	for _, filename := range []string{registry.DocumentPath, "wsup.local.json"} {
 		path := filepath.Join(root, filename)
 		_, err := os.Stat(path)
 		if os.IsNotExist(err) {
@@ -60,8 +65,17 @@ func Load(root string, timeout *int, lookup func(string) (string, bool)) (Result
 		if err != nil {
 			return Result{}, err
 		}
-		settings, err := ParseSettings(filename, body)
-		if err != nil {
+		var settings map[string]any
+		if filename == registry.DocumentPath {
+			document, err := registry.Decode(body)
+			if err != nil {
+				return Result{}, err
+			}
+			settings = document.Settings
+			if settings == nil {
+				continue
+			}
+		} else if settings, err = ParseSettings(filename, body); err != nil {
 			return Result{}, err
 		}
 		if err := merge(settings, filename); err != nil {
@@ -117,7 +131,7 @@ func Load(root string, timeout *int, lookup func(string) (string, bool)) (Result
 	}, nil
 }
 
-// ParseSettings validates configuration structure without merging away an
+// ParseSettings validates wsup.local.json's structure without merging away an
 // explicitly recorded report policy. Load validates effective values separately.
 func ParseSettings(filename string, body []byte) (map[string]any, error) {
 	document, err := registry.ParseObject(filename, body)
@@ -150,19 +164,20 @@ func ReportDirectory(root, name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	reports := filepath.Join(root, ".wsup", "reports")
+	reports := filepath.Join(root, filepath.FromSlash(ReportsPath))
 	resolvedReports, err := registry.Resolve(reports)
 	if err != nil {
 		return "", err
 	}
-	isSymlink := func(name string) bool {
-		info, err := os.Lstat(name)
-		return err == nil && info.Mode()&os.ModeSymlink != 0
+	// Resolved containment alone would accept a redirected reports root, so no
+	// component of it may be a symlink.
+	redirected := false
+	for name := ReportsPath; name != "."; name = path.Dir(name) {
+		info, err := os.Lstat(filepath.Join(root, filepath.FromSlash(name)))
+		redirected = redirected || (err == nil && info.Mode()&os.ModeSymlink != 0)
 	}
-	// Resolved containment alone would accept a redirected reports root.
-	if !registry.Within(resolvedReports, resolvedReport) ||
-		isSymlink(filepath.Join(root, ".wsup")) || isSymlink(reports) {
-		return "", fmt.Errorf("report_dir must be inside the local .wsup/reports directory")
+	if !registry.Within(resolvedReports, resolvedReport) || redirected {
+		return "", fmt.Errorf("report_dir must be inside the local %s directory", ReportsPath)
 	}
 	return report, nil
 }

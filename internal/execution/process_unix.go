@@ -22,6 +22,15 @@ func stopProcess(command *exec.Cmd) error {
 	return err
 }
 
+// terminateProcess asks the whole process group to stop.
+func terminateProcess(command *exec.Cmd) error {
+	err := syscall.Kill(-command.Process.Pid, syscall.SIGTERM)
+	if errors.Is(err, syscall.ESRCH) {
+		return nil
+	}
+	return err
+}
+
 func processExitCode(state *os.ProcessState) int {
 	status := state.Sys().(syscall.WaitStatus)
 	if status.Signaled() {

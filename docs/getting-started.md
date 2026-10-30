@@ -34,9 +34,10 @@ Expected version: `0.2.0`. Stop if this is not the intended trusted executable.
 
 Initialization creates documentation, guidance, the `development` preset's
 homes (`apps/`, `packages/`, `tools/`, `infra/`), an empty
-`workspace.json` registry, and schema-2 state under `.wsup/`. `projects` initially
-prints `[]`; `guidance` should have no errors. These commands do not run project
-checks. The package stays separate; `.wsup/` does not contain an executable.
+`wsup.json` with no projects, and `wsup.lock`, which records what wsup installed.
+`projects` initially prints `[]`; `guidance` should have no errors. These
+commands do not run project checks. The package stays separate; the workspace
+contains no executable.
 
 `--root` goes before the command. Relative `init` destinations are resolved from
 the terminal's current directory, not `--root`; this tutorial uses absolute
@@ -54,13 +55,12 @@ Initialization does not add a registry entry automatically.
 
 ## 4. Register the project and a check
 
-Open the new workspace's `workspace.json` in your editor and replace its initial
-empty registry with this object. Do not replace an existing customized registry:
+Open the new workspace's `wsup.json` in your editor and replace its empty
+`projects` list with this one, keeping the other fields. Do not replace projects
+you have already registered:
 
 ```json
 {
-  "version": 1,
-  "name": "First workspace",
   "projects": [
     {
       "id": "readme-demo",
@@ -70,8 +70,8 @@ empty registry with this object. Do not replace an existing customized registry:
       "purpose": "Learn explicit project checks",
       "owner": "Workspace owner",
       "dependencies": [],
-      "checks": {
-        "readme": ["/usr/bin/grep", "-q", "^## Setup$", "README.md"]
+      "tasks": {
+        "readme": {"command": ["/usr/bin/grep", "-q", "^## Setup$", "README.md"], "check": true}
       }
     }
   ]
@@ -96,7 +96,7 @@ before staging anything.
 "$WSUP" --root "$WORKSPACE" validate
 "$WSUP" --root "$WORKSPACE" projects
 "$WSUP" --root "$WORKSPACE" guidance --project readme-demo
-"$WSUP" --root "$WORKSPACE" check --project readme-demo --check readme --show-output
+"$WSUP" --root "$WORKSPACE" check --project readme-demo --task readme --show-output
 ```
 
 Validation should report one project, the listing should include `readme-demo`,
@@ -104,7 +104,7 @@ and the check should pass with exit code 0. `grep -q` has no normal output.
 Checks run with your permissions; inspect registry commands before invoking
 them. Nothing runs merely because a project is registered.
 
-The check writes JSON and Markdown reports under `.wsup/reports/`. They include
+The check writes JSON and Markdown reports under `workbench/.local/wsup/reports/`. They include
 statuses, hashes, and native version metadata, not command arguments or captured
 output. Reports are ignored local evidence; review them before sharing. Git
 metadata may be unavailable if Git is absent or no repository exists; it is

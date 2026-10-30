@@ -5,6 +5,7 @@ package catalogue
 import (
 	"fmt"
 	"io/fs"
+	"maps"
 	"slices"
 	"strings"
 
@@ -17,6 +18,8 @@ const (
 	// NoPreset selects the base plus explicit collections only. It is reserved
 	// and can never be a module id.
 	NoPreset = "none"
+	// DefaultWorkspaceName names a new workspace in its wsup.json.
+	DefaultWorkspaceName = "My workspace"
 )
 
 // mustLoad returns the embedded catalogue. It is validated by tests, so a load
@@ -118,22 +121,38 @@ type Selection struct {
 	Collections []string
 	Agents      []string
 	Editors     []string
-	// Registry is the workspace registry generators read; nil uses the
-	// starter's own, as at init.
+	// Registry is the wsup.json generators read; nil means a new workspace
+	// with no projects.
 	Registry []byte
 }
 
-// Starter returns the files, including generated ones, and links for a
-// starter with the given selection.
-func Starter(kind string, selection Selection) (map[string][]byte, map[string]string, error) {
-	collections := selection.Collections
+// Modules returns every built-in module, sorted by id. The result is shared
+// and must be treated as read-only.
+func Modules() []Module {
+	c := mustLoad()
+	modules := make([]Module, 0, len(c.modules))
+	for _, id := range slices.Sorted(maps.Keys(c.modules)) {
+		modules = append(modules, c.modules[id])
+	}
+	return modules
+}
+
+// KindOf returns a built-in module's kind.
+func KindOf(id string) (string, bool) {
+	module, ok := mustLoad().Module(id)
+	return module.Kind, ok
+}
+
+// resolve validates a selection for a starter and returns the catalogue and
+// the resolved module ids, base first.
+func resolve(kind string, selection Selection) (*Catalogue, []string, error) {
 	if kind != "workspace" && kind != "project" {
 		return nil, nil, fmt.Errorf("template must be workspace or project")
 	}
-	if kind != "workspace" && len(collections) != 0 {
+	if kind != "workspace" && len(selection.Collections) != 0 {
 		return nil, nil, fmt.Errorf("optional collections require a workspace template")
 	}
-	selected, err := SelectCollections(collections)
+	selected, err := SelectCollections(selection.Collections)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -155,6 +174,30 @@ func Starter(kind string, selection Selection) (map[string][]byte, map[string]st
 	if err != nil {
 		return nil, nil, err
 	}
+	return c, ids, nil
+}
+
+// Installed returns the version of every module a starter with the given
+// selection installs, including its base and required modules.
+func Installed(kind string, selection Selection) (map[string]string, error) {
+	c, ids, err := resolve(kind, selection)
+	if err != nil {
+		return nil, err
+	}
+	versions := make(map[string]string, len(ids))
+	for _, id := range ids {
+		versions[id] = c.modules[id].Version
+	}
+	return versions, nil
+}
+
+// Starter returns the files, including generated ones, and links for a
+// starter with the given selection.
+func Starter(kind string, selection Selection) (map[string][]byte, map[string]string, error) {
+	c, ids, err := resolve(kind, selection)
+	if err != nil {
+		return nil, nil, err
+	}
 	files, err := c.Files(ids)
 	if err != nil {
 		return nil, nil, err
@@ -164,13 +207,11 @@ func Starter(kind string, selection Selection) (map[string][]byte, map[string]st
 	}
 	// The registry is read only when a resolved module has a generator.
 	if slices.ContainsFunc(ids, func(id string) bool { return len(c.modules[id].Generate) != 0 }) {
-		registry := selection.Registry
-		if registry == nil {
-			registry = files["workspace.json"]
-		}
-		workspace, err := ParseWorkspace(registry)
-		if err != nil {
-			return nil, nil, err
+		workspace := Workspace{Name: DefaultWorkspaceName}
+		if selection.Registry != nil {
+			if workspace, err = ParseWorkspace(selection.Registry); err != nil {
+				return nil, nil, err
+			}
 		}
 		generated, err := c.Generate(ids, workspace)
 		if err != nil {
