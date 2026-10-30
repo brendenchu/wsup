@@ -130,8 +130,13 @@ func TestModuleCatalogueDocMatchesTheCatalogue(t *testing.T) {
 		if got := listed(row[3]); !slices.Equal(got, module.Ignore) {
 			t.Errorf("%s ignores: doc %v, manifest %v", module.ID, got, module.Ignore)
 		}
-		skills := map[string]string{"code-change": strings.Join(codeChange, ","), "—": ""}[row[4]]
-		if skills != strings.Join(module.Skills, ",") {
+		// The Skills cell is "code-change", "—", or backticked skill names.
+		skills := listed(row[4])
+		if row[4] == "code-change" {
+			skills = codeChange
+		}
+		slices.Sort(skills)
+		if !slices.Equal(skills, module.Skills) {
 			t.Errorf("%s skills: doc %q, manifest %v", module.ID, row[4], module.Skills)
 		}
 	}
