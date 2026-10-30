@@ -199,3 +199,30 @@ func TestMigrationMapsRetiredCollections(t *testing.T) {
 		}
 	}
 }
+
+func TestMigrationKeepsOwnerFilesAtInstalledPathsWhenAsked(t *testing.T) {
+	root := legacyFixture(t, "workspace")
+	writeFixture(t, root, "apps/README.md", []byte("Owner apps readme\n"))
+	if plan, err := Migrate(root, "0.3.0", MigrationOptions{}, false); err != nil || !reflect.DeepEqual(plan.Conflicts, []string{"apps/README.md"}) {
+		t.Fatalf("without keep: %+v %v", plan, err)
+	}
+	before := snapshot(t, root)
+	if _, err := Migrate(root, "0.3.0", MigrationOptions{Keep: []string{"apps/README.me"}}, true); err == nil || !strings.Contains(err.Error(), "--keep apps/README.me") ||
+		!reflect.DeepEqual(before, snapshot(t, root)) {
+		t.Fatalf("mistyped keep: %v", err)
+	}
+	plan, err := Migrate(root, "0.3.0", MigrationOptions{Keep: []string{"apps/README.md"}}, true)
+	if err != nil || !plan.Applied || !slices.Contains(plan.Actions, Action{"apps/README.md", "keep"}) {
+		t.Fatalf("keep: %+v %v", plan, err)
+	}
+	if body := string(must(os.ReadFile(filepath.Join(root, "apps/README.md")))); body != "Owner apps readme\n" {
+		t.Fatalf("kept file changed: %q", body)
+	}
+	// The kept file is a customization: update reports it until it is kept.
+	if update, err := Update(root, "0.3.0", nil, false); err != nil || !reflect.DeepEqual(update.Conflicts, []string{"apps/README.md"}) {
+		t.Fatalf("update: %+v %v", update, err)
+	}
+	if update, err := Update(root, "0.3.0", []string{"apps/README.md"}, true); err != nil || !update.Applied {
+		t.Fatalf("update --keep: %+v %v", update, err)
+	}
+}

@@ -38,7 +38,9 @@ description: Create workspace or project starters, maintain template content, or
    compatibility. A wsup 0.2.0 starter (`.wsup/template-state.json`) is
    converted with `wsup migrate`: review its preview, actions, and notes, then
    `wsup migrate --apply` only when authorized; report the backup folder and
-   every note left for the owner.
+   every note left for the owner. An owner file at a path wsup installs is a
+   conflict; ask whether to keep it (`--keep PATH`) or replace it, never decide
+   for the owner.
 5. Verify source changes in a disposable destination outside the checkout.
    Run `wsup --root DESTINATION validate` and `guidance` for workspaces; inspect
    project guidance separately. Relocate output and generate another workspace

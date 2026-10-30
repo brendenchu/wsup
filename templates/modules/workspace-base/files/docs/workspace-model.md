@@ -112,7 +112,8 @@ and selections; it never inherits the parent's collections.
 Unknown names, project selections, and symlink destinations fail explicitly.
 
 Unmanaged existing scaffold files are conflicts even when identical; they are
-never adopted or overwritten. Missing selected managed files are conflicts.
+never adopted or overwritten. `wsup add --keep PATH` keeps one as your
+customization instead, as `migrate --keep` does. Missing selected managed files are conflicts.
 Already-selected regular managed files, including customizations, are left
 unchanged with their original hashes; use update to review those customizations.
 Unselected managed collection files conflict rather than being implicitly adopted.
@@ -341,7 +342,10 @@ instead of `wsup.lock`; other commands report that it needs converting.
 - Agent and editor adapters default to all, as at `init`.
 
 An existing unmanaged file at a path the conversion installs (such as an
-owner-written `CLAUDE.md`) is a conflict, and any conflict blocks every write.
+owner-written `CLAUDE.md` or `apps/README.md`) is a conflict, and any conflict
+blocks every write. Repeat `--keep PATH` to keep such a file instead: it is
+left as it is and recorded against wsup's version, so `update` reports it
+until `update --keep` accepts it. A `--keep` path that names no such file fails.
 Before writing, every file to be replaced or removed is copied to
 `workbench/.local/wsup/migrate/<timestamp>/`; `wsup.lock` is written after the
 content and the 0.2.0 state is removed last. If a migration fails partway,

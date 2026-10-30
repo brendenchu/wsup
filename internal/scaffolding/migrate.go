@@ -56,6 +56,9 @@ type MigrationPlan struct {
 type MigrationOptions struct {
 	Agents  []string
 	Editors []string
+	// Keep lists existing owner files at paths the conversion installs to
+	// keep instead of treating as conflicts (see keepOwnerFile).
+	Keep []string
 }
 
 // preparedMigration is what apply needs: the plan, observed files, new bytes,
@@ -184,11 +187,17 @@ func planMigration(root, version string, options MigrationOptions) (preparedMigr
 			} else {
 				result.Notes = append(result.Notes, editedRetiredNote(name))
 			}
+		case current.exists && slices.Contains(options.Keep, name):
+			keepOwnerFile(&lock, name, target)
+			result.Actions = append(result.Actions, Action{Path: name, Action: "keep"})
 		case current.exists:
 			result.Conflicts = append(result.Conflicts, name)
 		default:
 			write()
 		}
+	}
+	if err := checkKept(options.Keep, result.Actions); err != nil {
+		return preparedMigration{}, err
 	}
 	for _, name := range slices.Sorted(maps.Keys(links)) {
 		status, err := linkStatus(handle, name, links[name])

@@ -27,7 +27,14 @@ type AddPlan struct {
 // even when their bytes match the embedded template. A workspace's wsup.json
 // records the new selection.
 func AddModules(root string, ids []string, apply bool) (AddPlan, error) {
-	result, prepared, err := planAdd(root, ids)
+	return AddModulesKeeping(root, ids, nil, apply)
+}
+
+// AddModulesKeeping is AddModules that keeps the listed existing owner files
+// at paths the addition installs instead of treating them as conflicts (see
+// keepOwnerFile).
+func AddModulesKeeping(root string, ids, keep []string, apply bool) (AddPlan, error) {
+	result, prepared, err := planAdd(root, ids, keep)
 	if err != nil || !apply {
 		return result, err
 	}
@@ -39,7 +46,7 @@ func AddModules(root string, ids []string, apply bool) (AddPlan, error) {
 	return result, nil
 }
 
-func planAdd(root string, ids []string) (AddPlan, preparedUpdate, error) {
+func planAdd(root string, ids, keep []string) (AddPlan, preparedUpdate, error) {
 	result := AddPlan{Selected: []string{}, Installs: []string{}, Actions: []Action{}, Conflicts: []string{}}
 	if len(ids) == 0 {
 		return result, preparedUpdate{}, fmt.Errorf("name at least one module to add; wsup modules lists them")
@@ -193,6 +200,9 @@ func planAdd(root string, ids []string) (AddPlan, preparedUpdate, error) {
 			if !enabled || !current.regular {
 				result.Conflicts = append(result.Conflicts, name)
 			}
+		} else if current.exists && current.regular && slices.Contains(keep, name) {
+			keepOwnerFile(&next, name, bundle[name])
+			result.Actions = append(result.Actions, Action{Path: name, Action: "keep"})
 		} else if current.exists {
 			result.Conflicts = append(result.Conflicts, name)
 		} else {
@@ -240,6 +250,9 @@ func planAdd(root string, ids []string) (AddPlan, preparedUpdate, error) {
 		}
 	}
 	slices.SortFunc(result.Actions, func(a, b Action) int { return strings.Compare(a.Path, b.Path) })
+	if err := checkKept(keep, result.Actions); err != nil {
+		return result, preparedUpdate{}, err
+	}
 	prepared.lockAfter, err = EncodeLock(next)
 	if err != nil {
 		return result, preparedUpdate{}, err
@@ -255,4 +268,23 @@ func mergeIDs(current, added []string) []string {
 
 func isSkill(name string) bool {
 	return strings.HasPrefix(name, ".agents/skills/")
+}
+
+// keepOwnerFile records an owner's existing file at a path wsup installs
+// without touching it. The lock records wsup's version of the path (body), so
+// the owner's file reads as a customization: update reports it until
+// update --keep accepts it or the owner takes wsup's version.
+func keepOwnerFile(lock *Lock, name string, body []byte) {
+	lock.Files[name] = lockDigest(body)
+}
+
+// checkKept fails when a --keep path did not name a kept file, so a typo is
+// never silently ignored.
+func checkKept(keep []string, actions []Action) error {
+	for _, name := range keep {
+		if !slices.Contains(actions, Action{Path: name, Action: "keep"}) {
+			return fmt.Errorf("--keep %s: not an existing file at a path this installs", name)
+		}
+	}
+	return nil
 }

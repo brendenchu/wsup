@@ -271,6 +271,9 @@ func newCommand(s session) *cobra.Command {
 			if options.Editors, err = command.Flags().GetStringArray("editor"); err != nil {
 				return err
 			}
+			if options.Keep, err = command.Flags().GetStringArray("keep"); err != nil {
+				return err
+			}
 			result, err := scaffolding.Migrate(root, Version, options, apply)
 			if err != nil {
 				return err
@@ -285,6 +288,7 @@ func newCommand(s session) *cobra.Command {
 		},
 	}
 	migrate.Flags().Bool("apply", false, "Convert when conflict-free, backing up every replaced or removed file")
+	migrate.Flags().StringArray("keep", nil, "Keep an existing owner file at a path the conversion installs (repeatable)")
 	migrate.Flags().StringArray("agent", nil, "Agent adapter ("+strings.Join(catalogue.AgentNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
 	migrate.Flags().StringArray("editor", nil, "Workspace editor adapter ("+strings.Join(catalogue.EditorNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
 	root.AddCommand(migrate)
@@ -300,7 +304,11 @@ func newCommand(s session) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			result, err := scaffolding.AddModules(root, args, apply)
+			keep, err := command.Flags().GetStringArray("keep")
+			if err != nil {
+				return err
+			}
+			result, err := scaffolding.AddModulesKeeping(root, args, keep, apply)
 			if err != nil {
 				return err
 			}
@@ -314,6 +322,7 @@ func newCommand(s session) *cobra.Command {
 		},
 	}
 	add.Flags().Bool("apply", false, "Apply a conflict-free addition")
+	add.Flags().StringArray("keep", nil, "Keep an existing owner file at a path the addition installs (repeatable)")
 	root.AddCommand(add)
 	modules := &cobra.Command{
 		Use: "modules [ID]", Short: "List built-in modules, or show one module's files and skills",

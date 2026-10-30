@@ -43,13 +43,22 @@ func TestMigrateCLIPreviewsThenConvertsAWorkspace(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(root, "wsup.lock")); !os.IsNotExist(err) {
 		t.Fatal("preview wrote wsup.lock")
 	}
+	if err := os.WriteFile(filepath.Join(root, "apps/README.md"), []byte("Owner\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if code, stdout, _ := invoke("migrate"); code != 1 || !strings.Contains(stdout, `"apps/README.md"`) {
+		t.Fatalf("owner file conflict: %d %s", code, stdout)
+	}
+	if code, _, stderr := invoke("migrate", "--keep", "apps/README.mdx"); code != 2 || !strings.Contains(stderr, "--keep") {
+		t.Fatalf("mistyped keep: %d %s", code, stderr)
+	}
 	if code, _, _ := invoke("migrate", "--agent", "unknown"); code != 2 {
 		t.Fatal("unknown agent accepted")
 	}
-	if code, stdout, stderr := invoke("migrate", "--apply", "--agent", "claude"); code != 0 || !strings.Contains(stdout, `"backup": "workbench/.local/wsup/migrate/`) {
+	if code, stdout, stderr := invoke("migrate", "--apply", "--agent", "claude", "--keep", "apps/README.md"); code != 0 || !strings.Contains(stdout, `"backup": "workbench/.local/wsup/migrate/`) {
 		t.Fatalf("apply: %d %s %s", code, stdout, stderr)
 	}
-	for _, args := range [][]string{{"validate"}, {"update"}} {
+	for _, args := range [][]string{{"validate"}, {"update", "--keep", "apps/README.md"}} {
 		if code, stdout, stderr := invoke(args...); code != 0 {
 			t.Fatalf("%v after migration: %d %s %s", args, code, stdout, stderr)
 		}

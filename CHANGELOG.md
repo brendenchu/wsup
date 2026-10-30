@@ -43,6 +43,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
   are kept, `workspace.json` and settings become `wsup.json`, reports move,
   and every replaced or removed file is first backed up under
   `workbench/.local/wsup/migrate/`. Conflicts block every write.
+- `wsup migrate --keep PATH` and `wsup add --keep PATH` keep an existing owner
+  file at a path wsup installs instead of reporting a conflict; `update`
+  then treats it as a customization that `update --keep` accepts.
 - `wsup check --all` runs the check tasks of every project.
 - `wsup run PROJECT TASK` runs any project task connected to the terminal and
   exits with its exit code. Only the task's own `timeout_seconds` (or

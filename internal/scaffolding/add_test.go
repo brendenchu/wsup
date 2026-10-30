@@ -148,7 +148,7 @@ func TestCollectionConflictsBlockAllAdditionsEvenIdenticalUnmanagedBytes(t *test
 func TestCollectionStaleStateDestinationAndPartialIOFailure(t *testing.T) {
 	for _, change := range []string{LockPath, "archive/README.md"} {
 		root := collectionWorkspace(t)
-		_, prepared, err := planAdd(root, []string{"archive"})
+		_, prepared, err := planAdd(root, []string{"archive"}, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -159,7 +159,7 @@ func TestCollectionStaleStateDestinationAndPartialIOFailure(t *testing.T) {
 		}
 	}
 	root := collectionWorkspace(t)
-	_, prepared, err := planAdd(root, []string{"archive", "journal"})
+	_, prepared, err := planAdd(root, []string{"archive", "journal"}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -322,5 +322,27 @@ func TestClaudeAdapterIgnoresLocalSettingsInWorkspacesAndProjects(t *testing.T) 
 		if !strings.HasPrefix(body, "/owner/\n") || !strings.HasSuffix(body, entry) {
 			t.Fatalf("%s merged .gitignore: %q", kind, body)
 		}
+	}
+}
+
+func TestAddKeepsOwnerFilesAtInstalledPathsWhenAsked(t *testing.T) {
+	root := collectionWorkspace(t)
+	writeFixture(t, root, "journal/README.md", []byte("Owner journal\n"))
+	if plan, err := AddModules(root, []string{"journal"}, false); err != nil || !reflect.DeepEqual(plan.Conflicts, []string{"journal/README.md"}) {
+		t.Fatalf("without keep: %+v %v", plan, err)
+	}
+	if _, err := AddModulesKeeping(root, []string{"journal"}, []string{"journal/TEMPLATE.md"}, true); err == nil {
+		t.Fatal("keep of a file that does not exist accepted")
+	}
+	plan, err := AddModulesKeeping(root, []string{"journal"}, []string{"journal/README.md"}, true)
+	if err != nil || !plan.Applied || !slices.Contains(plan.Actions, Action{"journal/README.md", "keep"}) ||
+		!slices.Contains(plan.Actions, Action{"journal/TEMPLATE.md", "write"}) {
+		t.Fatalf("keep: %+v %v", plan, err)
+	}
+	if body := string(must(os.ReadFile(filepath.Join(root, "journal/README.md")))); body != "Owner journal\n" {
+		t.Fatalf("kept file changed: %q", body)
+	}
+	if update, err := Update(root, "0.1.0", nil, false); err != nil || !reflect.DeepEqual(update.Conflicts, []string{"journal/README.md"}) {
+		t.Fatalf("update: %+v %v", update, err)
 	}
 }
