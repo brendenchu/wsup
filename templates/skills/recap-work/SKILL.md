@@ -20,7 +20,7 @@ With the journal collection installed, append one timestamped update to
 `journal/YYYY/MM/YYYY-MM-DD.md` (ISO timestamps with an explicit offset),
 following `journal/TEMPLATE.md`, and correct earlier claims by appending rather
 than rewriting them. Without it, return the recap in the conversation and
-suggest `wsup collections --add journal`; never create `journal/` yourself.
+suggest `wsup add journal`; never create `journal/` yourself.
 
 Completion means claims have evidence, proposed/uncommitted work is labelled and
 sensitive data is omitted. A recap does not authorise code changes, commits,

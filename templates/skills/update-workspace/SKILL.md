@@ -15,7 +15,7 @@ description: Create workspace or project starters, maintain template content, or
    destination. Inspect guidance, `wsup.json` where applicable,
    `wsup.lock`, and local links. Relative destinations use cwd, not `--root`.
    Use repeatable `--collection NAME` only for explicit optional workspace homes.
-   `wsup collections --add NAME` previews existing-workspace additions; apply
+   `wsup add NAME` previews adding a collection or adapter to an existing workspace; apply
    only when authorized and conflict-free with `--apply`. Never adopt pre-existing
    unmanaged scaffold files, even if identical, or assume parent selections carry
    into child generation. Selection creates no security/backup/retention controls.

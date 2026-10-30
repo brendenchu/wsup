@@ -15,7 +15,7 @@ func TestCollectionAdditionPreservesUnrelatedDirectoryContents(t *testing.T) {
 	root := collectionWorkspace(t)
 	writeFixture(t, root, "archive/existing.txt", []byte("Owner evidence\x00\r\n"))
 	before := snapshot(t, root)
-	if result, err := AddCollections(root, []string{"archive"}, true); err != nil || !result.Applied {
+	if result, err := AddModules(root, []string{"archive"}, true); err != nil || !result.Applied {
 		t.Fatalf("addition: %+v %v", result, err)
 	}
 	after := snapshot(t, root)
@@ -123,7 +123,7 @@ func TestInvalidPersistedLocksBlockEveryOperation(t *testing.T) {
 		if _, err := Update(root, "0.2.0", nil, true); err == nil {
 			t.Fatalf("update accepted %s", name)
 		}
-		if _, err := AddCollections(root, []string{"archive"}, true); err == nil {
+		if _, err := AddModules(root, []string{"archive"}, true); err == nil {
 			t.Fatalf("collections accepted %s", name)
 		}
 		if !reflect.DeepEqual(before, snapshot(t, root)) {
@@ -153,7 +153,7 @@ func TestCollectionFileSymlinkAndNonDirectoryParentsBlockAllWrites(t *testing.T)
 				}
 			}
 			before, outside := snapshot(t, root), snapshot(t, external)
-			if _, err := AddCollections(root, []string{"archive", "releases"}, true); err == nil {
+			if _, err := AddModules(root, []string{"archive", "releases"}, true); err == nil {
 				t.Fatal("invalid destination accepted")
 			}
 			if !reflect.DeepEqual(before, snapshot(t, root)) || !reflect.DeepEqual(outside, snapshot(t, external)) {

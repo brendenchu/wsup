@@ -146,11 +146,11 @@ func TestStandaloneProjectInitWithoutToolchainOrCheckout(t *testing.T) {
 	}
 	run("init", "selected-workspace", "--collection", "archive", "--collection", "journal")
 	selected := filepath.Join(directory, "selected-workspace")
-	previewCollections := run("--root", selected, "collections", "--add", "research")
+	previewCollections := run("--root", selected, "add", "research")
 	if !strings.Contains(string(previewCollections), `"applied": false`) {
 		t.Fatalf("collection preview: %s", previewCollections)
 	}
-	run("--root", selected, "collections", "--add", "research", "--apply")
+	run("--root", selected, "add", "research", "--apply")
 	run("--root", selected, "update", "--apply")
 	run("--root", selected, "guidance")
 	selectedState, err := scaffolding.LoadLock(selected)

@@ -117,7 +117,7 @@ func TestNativeSourceBuildAndGenerationAreSelfContained(t *testing.T) {
 	run("init", workspace, "--collection", "journal")
 	run("--root", workspace, "validate")
 	run("--root", workspace, "guidance")
-	run("--root", workspace, "collections", "--add", "archive", "--apply")
+	run("--root", workspace, "add", "archive", "--apply")
 	run("--root", workspace, "update", "--apply")
 	run("--root", workspace, "init", child)
 	run("--root", child, "guidance")

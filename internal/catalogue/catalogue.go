@@ -5,6 +5,7 @@ package catalogue
 import (
 	"fmt"
 	"io/fs"
+	"maps"
 	"slices"
 	"strings"
 
@@ -123,6 +124,17 @@ type Selection struct {
 	// Registry is the wsup.json generators read; nil means a new workspace
 	// with no projects.
 	Registry []byte
+}
+
+// Modules returns every built-in module, sorted by id. The result is shared
+// and must be treated as read-only.
+func Modules() []Module {
+	c := mustLoad()
+	modules := make([]Module, 0, len(c.modules))
+	for _, id := range slices.Sorted(maps.Keys(c.modules)) {
+		modules = append(modules, c.modules[id])
+	}
+	return modules
 }
 
 // KindOf returns a built-in module's kind.

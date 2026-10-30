@@ -36,6 +36,12 @@ See the [release guide](docs/releases.md) for version and tag policy.
   `--collection` choices add to it. `--preset none` creates a base-only
   workspace. Unknown presets fail before anything is written.
 - `wsup check --all` runs the check tasks of every project.
+- `wsup add MODULE...` previews adding collections or agent and editor
+  adapters (with any modules they require, listed under `installs`); `--apply`
+  installs them, creating the `.claude/skills` link where needed. It works in
+  workspaces and, for agents, in projects.
+- `wsup modules` lists built-in modules; `wsup modules ID` shows a module's
+  manifest and files.
 - One-command local macOS ARM64 candidate verification and packaging with the
   pinned Go toolchain, full notices, checksums, repeated binary builds, and
   extracted-binary smoke checks. Tagging and publication remain explicit.
@@ -56,7 +62,7 @@ See the [release guide](docs/releases.md) for version and tag policy.
   they need converting.
 - Check reports default to `workbench/.local/wsup/reports/`, and `report_dir`
   must stay inside it.
-- Adding a collection also adds it to `wsup.json`, rewritten in canonical form.
+- Adding a module also records it in `wsup.json`, rewritten in canonical form.
 - `apps/`, `packages/`, `tools/`, and `infra/` are collections instead of
   part of the workspace base, and the default `development` preset selects
   all four. Existing workspaces keep managing `apps/`, `packages/`, and
@@ -87,6 +93,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
   inspects top-level folder `AGENTS.md` files, and reports unpaired markers.
 
 ### Removed
+
+- `wsup collections`; use `wsup modules --kind collection` and `wsup add`.
 
 - The `.wsup/` folder, and the `.work/` entries in generated `.gitignore` files.
 

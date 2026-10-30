@@ -36,7 +36,8 @@ for product changes. Binary replacement and managed-content updates are separate
 | `check` | Runs check tasks: repeatable `--project ID` or `--all`; optional repeatable `--task NAME`, `--timeout SECONDS`, `--show-output`. |
 | `init DESTINATION` | Creates a new workspace. In a terminal it asks for the preset, agents, and editors that flags leave open; `--yes`, or no terminal, uses the defaults; repeatable `--agent NAME` and `--editor NAME` select agent and editor adapters (default all; `none` for none; editors are workspace-only); `--preset NAME` selects a preset (default `development`; `none` for the base only) and repeatable `--collection NAME` adds collections to it. `--template project` creates a project without a registry/runtime; presets and collections are workspace-only. |
 | `update` | Prints a managed-content plan; `--apply` writes when conflict-free, repeatable `--keep PATH` retains eligible same-path customizations. |
-| `collections` | Lists available names; repeatable `--add NAME` previews additions, `--apply` writes when conflict-free. |
+| `add MODULE...` | Previews adding collections or agent/editor adapters, with the modules they require; `--apply` writes when conflict-free. |
+| `modules [ID]` | Lists built-in modules as JSON (`--kind KIND` filters); with an ID, shows its manifest and files. |
 
 Use `--help`, `COMMAND --help`, and `--version` for options and product version.
 Invalid options fail even when help/version is also present. Unambiguous long
@@ -95,16 +96,16 @@ controls are separately established. Ignored does not mean confidential.
 ```sh
 wsup init /path/to/new-workspace --collection archive --collection journal
 wsup init /path/to/new-workspace --preset none --collection research
-wsup collections
-wsup collections --add decisions --add issues
-wsup collections --add decisions --add issues --apply
+wsup modules --kind collection
+wsup add decisions issues
+wsup add decisions issues --apply
 ```
 
 Preset and collection names are validated, sorted, and deduplicated before
 anything is written. The binary carries every collection source; only selected
 ones are installed and managed. A child workspace starts from its own preset
 and selections; it never inherits the parent's collections.
-Listing needs no managed workspace; additions require `wsup.lock` and `wsup.json`.
+`wsup modules` needs no workspace. Additions require `wsup.lock`, and in a workspace `wsup.json`; a project can add agent adapters. Required modules are listed under `installs` in the preview, never added silently.
 Unknown names, project selections, and symlink destinations fail explicitly.
 
 Unmanaged existing scaffold files are conflicts even when identical; they are
@@ -170,7 +171,7 @@ entry:
 
 Run `validate` and `projects` after editing. There is no project-add command.
 `wsup.json` belongs to the workspace: `update` reads it but never rewrites it,
-and a collection addition only adds to its `collections` list.
+and `wsup add` only adds to its `collections`, `agents`, and `editors` lists.
 
 ## Git ownership
 

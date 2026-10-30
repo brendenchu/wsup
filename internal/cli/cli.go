@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -61,7 +62,7 @@ func newCommand(s session) *cobra.Command {
 	root := &cobra.Command{
 		Use:              "wsup",
 		Short:            "WSUP portable local workspace tools",
-		Long:             "WSUP portable local workspace tools. Inspect projects and guidance, create workspace/project starters, run explicit Unix checks, manage collections, and preview or apply managed-content updates.",
+		Long:             "WSUP portable local workspace tools. Inspect projects and guidance, create workspace/project starters, run explicit Unix checks, add modules, and preview or apply managed-content updates.",
 		Version:          Version,
 		SilenceErrors:    true,
 		SilenceUsage:     true,
@@ -224,15 +225,11 @@ func newCommand(s session) *cobra.Command {
 	update.Flags().Bool("apply", false, "Apply a conflict-free native content update")
 	update.Flags().StringArray("keep", nil, "Preserve an existing same-path customization (repeatable)")
 	root.AddCommand(update)
-	collections := &cobra.Command{
-		Use: "collections", Short: "List or preview optional collection additions",
-		Args: cobra.NoArgs,
+	add := &cobra.Command{
+		Use: "add MODULE...", Short: "Preview adding collections or adapters; --apply installs them",
+		Args: cobra.MinimumNArgs(1),
 		RunE: func(command *cobra.Command, args []string) error {
 			root, err := command.Root().Flags().GetString("root")
-			if err != nil {
-				return err
-			}
-			names, err := command.Flags().GetStringArray("add")
 			if err != nil {
 				return err
 			}
@@ -240,7 +237,7 @@ func newCommand(s session) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			result, err := scaffolding.AddCollections(root, names, apply)
+			result, err := scaffolding.AddModules(root, args, apply)
 			if err != nil {
 				return err
 			}
@@ -253,9 +250,15 @@ func newCommand(s session) *cobra.Command {
 			return nil
 		},
 	}
-	collections.Flags().StringArray("add", nil, "Collection name to add (repeatable)")
-	collections.Flags().Bool("apply", false, "Apply conflict-free collection additions")
-	root.AddCommand(collections)
+	add.Flags().Bool("apply", false, "Apply a conflict-free addition")
+	root.AddCommand(add)
+	modules := &cobra.Command{
+		Use: "modules [ID]", Short: "List built-in modules, or show one module's files and skills",
+		Args: cobra.MaximumNArgs(1),
+		RunE: listModules,
+	}
+	modules.Flags().String("kind", "", "Only list modules of this kind (base, collection, agent, editor, preset)")
+	root.AddCommand(modules)
 	return root
 }
 
@@ -409,6 +412,64 @@ func createEditor(output io.Writer, root, name string, data registry.Registry) e
 	}
 	_, err = fmt.Fprintf(output, "Created %s\n", target)
 	return err
+}
+
+// moduleSummary is one row of wsup modules.
+type moduleSummary struct {
+	ID          string `json:"id"`
+	Kind        string `json:"kind"`
+	Version     string `json:"version"`
+	Description string `json:"description"`
+}
+
+// moduleDetail is wsup modules ID: the manifest plus the files it installs.
+type moduleDetail struct {
+	moduleSummary
+	AppliesTo []string          `json:"applies_to"`
+	Requires  []string          `json:"requires"`
+	Modules   []string          `json:"modules,omitempty"`
+	Skills    []string          `json:"skills"`
+	Files     []string          `json:"files"`
+	Ignore    []string          `json:"ignore"`
+	Generate  []string          `json:"generate"`
+	Links     map[string]string `json:"links,omitempty"`
+}
+
+func listModules(command *cobra.Command, args []string) error {
+	kind, err := command.Flags().GetString("kind")
+	if err != nil {
+		return err
+	}
+	if kind != "" && !slices.Contains([]string{catalogue.KindBase, catalogue.KindCollection, catalogue.KindAgent, catalogue.KindEditor, catalogue.KindPreset}, kind) {
+		return fmt.Errorf("unknown kind %q", kind)
+	}
+	summaries := []moduleSummary{}
+	for _, module := range catalogue.Modules() {
+		summary := moduleSummary{ID: module.ID, Kind: module.Kind, Version: module.Version, Description: module.Description}
+		if len(args) == 1 && module.ID == args[0] {
+			files := slices.Collect(maps.Keys(module.Files))
+			files = slices.Sorted(slices.Values(append(files, slices.Collect(maps.Keys(module.Templates))...)))
+			return writeJSON(command.OutOrStdout(), moduleDetail{
+				moduleSummary: summary, AppliesTo: nonNil(module.AppliesTo), Requires: nonNil(module.Requires),
+				Modules: module.Modules, Skills: nonNil(module.Skills), Files: files, Ignore: nonNil(module.Ignore),
+				Generate: nonNil(module.Generate), Links: module.Links,
+			})
+		}
+		if kind == "" || module.Kind == kind {
+			summaries = append(summaries, summary)
+		}
+	}
+	if len(args) == 1 {
+		return fmt.Errorf("unknown module %q", args[0])
+	}
+	return writeJSON(command.OutOrStdout(), summaries)
+}
+
+func nonNil(values []string) []string {
+	if values == nil {
+		return []string{}
+	}
+	return values
 }
 
 func writeJSON(destination io.Writer, value any) error {

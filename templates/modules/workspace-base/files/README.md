@@ -77,9 +77,9 @@ Every other collection is created only when selected:
 ```sh
 wsup init /path/to/new-workspace --collection archive --collection journal
 wsup init /path/to/new-workspace --preset none --collection research
-wsup collections
-wsup collections --add decisions --add issues
-wsup collections --add decisions --add issues --apply
+wsup modules --kind collection
+wsup add decisions issues
+wsup add decisions issues --apply
 ```
 
 Selections are deduplicated, recorded in `wsup.json` and `wsup.lock`, and not

@@ -76,7 +76,7 @@ env PATH= "$binary" --help > "$verification/help.txt"
 env PATH= "$binary" init "$verification/workspace"
 env PATH= "$binary" --root "$verification/workspace" validate
 env PATH= "$binary" --root "$verification/workspace" guidance > "$verification/guidance.json"
-env PATH= "$binary" --root "$verification/workspace" collections --add journal --apply
+env PATH= "$binary" --root "$verification/workspace" add journal --apply
 env PATH= "$binary" --root "$verification/workspace" update --apply
 mv "$verification/workspace" "$verification/relocated"
 env PATH= "$binary" --root "$verification/relocated" validate

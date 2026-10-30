@@ -76,28 +76,26 @@ func TestCollectionsInitSelectionAndAllOptionalHomes(t *testing.T) {
 }
 
 func TestCollectionListingPreviewApplyAndIdempotence(t *testing.T) {
-	// Listing needs no workspace or state.
-	listed, err := AddCollections(filepath.Join(t.TempDir(), "absent"), nil, false)
-	if err != nil || !reflect.DeepEqual(listed.Available, catalogue.CollectionNames()) || listed.Selected != nil {
-		t.Fatalf("list: %+v %v", listed, err)
+	if _, err := AddModules(collectionWorkspace(t), nil, false); err == nil {
+		t.Fatal("empty addition accepted")
 	}
 	root := collectionWorkspace(t)
 	before := snapshot(t, root)
-	preview, err := AddCollections(root, []string{"journal", "archive", "journal"}, false)
+	preview, err := AddModules(root, []string{"journal", "archive", "journal"}, false)
 	want := []Action{{"AGENTS.md", "write"}, {"archive/AGENTS.md", "write"}, {"archive/README.md", "write"},
 		{"journal/AGENTS.md", "write"}, {"journal/README.md", "write"}, {"journal/TEMPLATE.md", "write"}, {"wsup.json", "write"}}
-	if err != nil || !reflect.DeepEqual(preview.Actions, want) || !reflect.DeepEqual(*preview.Selected, []string{"archive", "journal"}) || preview.Applied {
+	if err != nil || !reflect.DeepEqual(preview.Actions, want) || !reflect.DeepEqual(preview.Selected, []string{"archive", "journal"}) || preview.Applied {
 		t.Fatalf("preview: %+v %v", preview, err)
 	}
 	if !reflect.DeepEqual(before, snapshot(t, root)) {
 		t.Fatal("preview wrote files")
 	}
-	applied, err := AddCollections(root, []string{"journal", "archive"}, true)
+	applied, err := AddModules(root, []string{"journal", "archive"}, true)
 	if err != nil || !applied.Applied || !reflect.DeepEqual(applied.Actions, want) {
 		t.Fatalf("apply: %+v %v", applied, err)
 	}
 	before = snapshot(t, root)
-	again, err := AddCollections(root, []string{"journal", "archive"}, true)
+	again, err := AddModules(root, []string{"journal", "archive"}, true)
 	if err != nil || !again.Applied || len(again.Actions) != 0 || !reflect.DeepEqual(before, snapshot(t, root)) {
 		t.Fatalf("not idempotent: %+v %v", again, err)
 	}
@@ -107,7 +105,7 @@ func TestCollectionListingPreviewApplyAndIdempotence(t *testing.T) {
 		t.Fatal(err)
 	}
 	before = snapshot(t, root)
-	again, err = AddCollections(root, []string{"archive"}, true)
+	again, err = AddModules(root, []string{"archive"}, true)
 	if err != nil || len(again.Actions) != 0 || !reflect.DeepEqual(before, snapshot(t, root)) {
 		t.Fatal("selected customized scaffold rewritten")
 	}
@@ -125,7 +123,7 @@ func TestCollectionConflictsBlockAllAdditionsEvenIdenticalUnmanagedBytes(t *test
 			t.Fatal(err)
 		}
 		if managed {
-			if _, err := AddCollections(root, []string{"archive"}, true); err != nil {
+			if _, err := AddModules(root, []string{"archive"}, true); err != nil {
 				t.Fatal(err)
 			}
 			if err := os.Remove(filepath.Join(root, "archive/README.md")); err != nil {
@@ -135,11 +133,11 @@ func TestCollectionConflictsBlockAllAdditionsEvenIdenticalUnmanagedBytes(t *test
 			writeFixture(t, root, "archive/README.md", bundle["archive/README.md"])
 		}
 		before := snapshot(t, root)
-		preview, err := AddCollections(root, []string{"archive", "releases"}, false)
+		preview, err := AddModules(root, []string{"archive", "releases"}, false)
 		if err != nil || !reflect.DeepEqual(preview.Conflicts, []string{"archive/README.md"}) {
 			t.Fatalf("conflicts: %+v %v", preview, err)
 		}
-		result, err := AddCollections(root, []string{"archive", "releases"}, true)
+		result, err := AddModules(root, []string{"archive", "releases"}, true)
 		if err == nil || result.Applied || !reflect.DeepEqual(before, snapshot(t, root)) {
 			t.Fatal("conflict did not block all additions")
 		}
@@ -149,7 +147,7 @@ func TestCollectionConflictsBlockAllAdditionsEvenIdenticalUnmanagedBytes(t *test
 func TestCollectionStaleStateDestinationAndPartialIOFailure(t *testing.T) {
 	for _, change := range []string{LockPath, "archive/README.md"} {
 		root := collectionWorkspace(t)
-		_, prepared, err := planCollections(root, []string{"archive"})
+		_, prepared, err := planAdd(root, []string{"archive"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -160,7 +158,7 @@ func TestCollectionStaleStateDestinationAndPartialIOFailure(t *testing.T) {
 		}
 	}
 	root := collectionWorkspace(t)
-	_, prepared, err := planCollections(root, []string{"archive", "journal"})
+	_, prepared, err := planAdd(root, []string{"archive", "journal"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -187,7 +185,7 @@ func TestCollectionsInvalidInputsAndSymlinkRefusal(t *testing.T) {
 	root := collectionWorkspace(t)
 	before := snapshot(t, root)
 	for _, names := range [][]string{nil, {"unknown"}, {"../escape"}} {
-		if _, err := AddCollections(root, names, true); err == nil {
+		if _, err := AddModules(root, names, true); err == nil {
 			t.Fatalf("invalid addition accepted: %v", names)
 		}
 	}
@@ -198,7 +196,7 @@ func TestCollectionsInvalidInputsAndSymlinkRefusal(t *testing.T) {
 	if _, err := InitialiseProject(project, "0.1.0"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := AddCollections(project, []string{"archive"}, true); err == nil {
+	if _, err := AddModules(project, []string{"archive"}, true); err == nil {
 		t.Fatal("project addition accepted")
 	}
 	outside := t.TempDir()
@@ -206,7 +204,7 @@ func TestCollectionsInvalidInputsAndSymlinkRefusal(t *testing.T) {
 		t.Skipf("symlink unavailable: %v", err)
 	}
 	before, external := snapshot(t, root), snapshot(t, outside)
-	if _, err := AddCollections(root, []string{"archive"}, true); err == nil {
+	if _, err := AddModules(root, []string{"archive"}, true); err == nil {
 		t.Fatal("symlink addition accepted")
 	}
 	if !reflect.DeepEqual(before, snapshot(t, root)) || !reflect.DeepEqual(external, snapshot(t, outside)) {
@@ -222,11 +220,11 @@ func TestCollectionAdditionInstallsOwnedSkillsOnce(t *testing.T) {
 		want = append(want, Action{".agents/skills/" + skill + "/SKILL.md", "write"})
 	}
 	want = append(want, Action{"AGENTS.md", "write"}, Action{"apps/AGENTS.md", "write"}, Action{"apps/README.md", "write"}, Action{"wsup.json", "write"})
-	added, err := AddCollections(root, []string{"apps"}, true)
+	added, err := AddModules(root, []string{"apps"}, true)
 	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, want) {
 		t.Fatalf("first project collection: %+v %v", added, err)
 	}
-	added, err = AddCollections(root, []string{"tools"}, true)
+	added, err = AddModules(root, []string{"tools"}, true)
 	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, []Action{{"AGENTS.md", "write"}, {"tools/AGENTS.md", "write"}, {"tools/README.md", "write"}, {"wsup.json", "write"}}) {
 		t.Fatalf("second project collection: %+v %v", added, err)
 	}
@@ -256,7 +254,7 @@ func TestDataIgnoreEntryRendersIntoTheGitignoreBlock(t *testing.T) {
 
 	// Adding data later rewrites an unedited .gitignore with the entry.
 	root = collectionWorkspace(t)
-	added, err := AddCollections(root, []string{"data"}, true)
+	added, err := AddModules(root, []string{"data"}, true)
 	want := []Action{{".gitignore", "write"}, {"AGENTS.md", "write"}, {"data/AGENTS.md", "write"}, {"data/README.md", "write"}, {"wsup.json", "write"}}
 	if err != nil || !added.Applied || !reflect.DeepEqual(added.Actions, want) {
 		t.Fatalf("data addition: %+v %v", added, err)
@@ -273,7 +271,7 @@ func TestDataIgnoreEntryRendersIntoTheGitignoreBlock(t *testing.T) {
 	root = collectionWorkspace(t)
 	owner := "/apps/independent/\n"
 	writeFixture(t, root, ".gitignore", append([]byte(owner), must(os.ReadFile(filepath.Join(root, ".gitignore")))...))
-	if added, err := AddCollections(root, []string{"data"}, true); err != nil || !added.Applied {
+	if added, err := AddModules(root, []string{"data"}, true); err != nil || !added.Applied {
 		t.Fatalf("edited ignore addition: %+v %v", added, err)
 	}
 	body = must(os.ReadFile(filepath.Join(root, ".gitignore")))
@@ -286,7 +284,7 @@ func TestDataIgnoreEntryRendersIntoTheGitignoreBlock(t *testing.T) {
 	inside := strings.Replace(string(must(os.ReadFile(filepath.Join(root, ".gitignore")))), "# wsup:end ignore", "owner-entry\n# wsup:end ignore", 1)
 	writeFixture(t, root, ".gitignore", []byte(inside))
 	before := snapshot(t, root)
-	if added, err := AddCollections(root, []string{"data"}, true); err == nil || added.Applied ||
+	if added, err := AddModules(root, []string{"data"}, true); err == nil || added.Applied ||
 		!reflect.DeepEqual(added.Conflicts, []string{".gitignore"}) || !reflect.DeepEqual(before, snapshot(t, root)) {
 		t.Fatalf("block-edited ignore addition: %+v %v", added, err)
 	}

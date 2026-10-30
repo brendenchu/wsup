@@ -94,9 +94,9 @@ to PATH. The main commands:
 | `guidance --project ID` | Check one project's instructions |
 | `editor` | Create a relative-path VS Code workspace file (the `vscode` adapter generates one at init) |
 | `check --project ID` | Run only that project's configured checks |
-| `collections` | List available optional collection scaffolds |
-| `collections --add NAME` | Preview adding a collection; repeat `--add` to select more |
-| `collections --add NAME --apply` | Add scaffolds without replacing existing files |
+| `modules` | List built-in modules: collections, adapters, and presets |
+| `add MODULE...` | Preview adding collections or adapters |
+| `add MODULE... --apply` | Add them without replacing existing files |
 | `update` | Preview available template updates |
 | `update --apply` | Apply conflict-free updates |
 | `update --keep PATH` | Retain a same-path customization (repeat for each path) |
@@ -157,8 +157,8 @@ Select optional collections during initialization, or add them later:
 
 ```sh
 wsup init /path/to/workspace --collection archive --collection releases
-wsup --root /path/to/workspace collections --add decisions
-wsup --root /path/to/workspace collections --add decisions --apply
+wsup --root /path/to/workspace add decisions
+wsup --root /path/to/workspace add decisions --apply
 ```
 
 Each collection creates a purpose-and-boundaries README; decisions, issues,
