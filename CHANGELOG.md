@@ -66,6 +66,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
 - One-command local macOS ARM64 candidate verification and packaging with the
   pinned Go toolchain, full notices, checksums, repeated binary builds, and
   extracted-binary smoke checks. Tagging and publication remain explicit.
+- A [migration guide](docs/migrating.md) from wsup 0.2.0. The workspace model
+  gains a glossary (a module is an installable unit; a project is a member
+  registered in `wsup.json`), a module catalogue with each collection's files,
+  ignore entries, and skills, presets, and a `wsup.lock` reference.
 
 ### Changed
 
@@ -114,6 +118,13 @@ See the [release guide](docs/releases.md) for version and tag policy.
   inspects top-level folder `AGENTS.md` files (skipping a folder with its own
   `wsup.lock`, which is a nested workspace or project), and reports unpaired
   markers.
+- `validate`, `projects`, `config`, and `check` on a wsup 0.2.0 workspace say
+  to run `wsup migrate` instead of reporting a missing `wsup.json`.
+- The README and `wsup --help` describe wsup as AI-native and local-first:
+  generated files are ready for coding agents, and the CLI never calls an AI
+  service. The README no longer promises AI-optional workflows, and the help
+  for `validate`, `projects`, `config`, `guidance`, `init`, and `update` says
+  what each command does.
 
 ### Removed
 
@@ -141,6 +152,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
   `module.json` manifest and its files under `templates/modules/`, and skills
   live once in a shared `templates/skills/` library. Generated output is
   unchanged.
+- Acceptance tests generate every advertised selection and compare it with
+  the contract's file, skill, and adapter tables; check that init, add, and
+  migrate agree; and keep the README, the command reference, and the module
+  catalogue in step with `wsup --help` and the module manifests.
 
 ## 0.2.0 (2026-10-25)
 

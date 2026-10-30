@@ -6,10 +6,13 @@ Maintain durable product and contributor documentation here:
   commands.
 - [First-workspace tutorial](getting-started.md): create a workspace, register
   a project, and run a check with the downloaded binary.
-- [Workspace model](../templates/modules/workspace-base/files/docs/workspace-model.md): layout, ownership, registry, CLI
-  configuration, optional collections, and safe updates.
+- [Workspace model](../templates/modules/workspace-base/files/docs/workspace-model.md): glossary, layout, module
+  catalogue, presets, ownership, registry, `wsup.lock`, CLI configuration, and
+  safe updates.
   Its [command reference](../templates/modules/workspace-base/files/docs/workspace-model.md#command-reference) covers options,
   output, root selection, and exit codes.
+- [Migrating from wsup 0.2.0](migrating.md): preview, resolve conflicts,
+  apply, and finish converting an existing workspace or project.
 - [AI guidance](ai-guidance.md): portable instructions, skills, and optional
   client discovery.
 - [Releases](releases.md): current published release, versioning, and manual

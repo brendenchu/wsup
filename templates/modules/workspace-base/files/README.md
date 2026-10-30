@@ -21,8 +21,8 @@ wsup guidance
 wsup vscode
 ```
 
-No Go toolchain, package installation, service, or AI client is needed
-to initialize or inspect this workspace. Project checks supply their own tools.
+wsup needs no Go toolchain, package installation, network service, or AI
+service to initialize or inspect this workspace. Project checks supply their own tools.
 Native check execution is verified on macOS ARM64. Other runtime platforms are
 not certified; non-Unix check execution explicitly refuses launch.
 
