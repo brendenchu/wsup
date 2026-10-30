@@ -17,6 +17,7 @@ import (
 	"github.com/brendenchu/wsup/internal/guidance"
 	"github.com/brendenchu/wsup/internal/registry"
 	"github.com/brendenchu/wsup/internal/scaffolding"
+	"github.com/brendenchu/wsup/schema"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -285,6 +286,13 @@ func newCommand(s session) *cobra.Command {
 	}
 	modules.Flags().String("kind", "", "Only list modules of this kind (base, collection, agent, editor, preset)")
 	root.AddCommand(modules)
+	root.AddCommand(&cobra.Command{
+		Use: "schema", Short: "Print the JSON Schema for wsup.json", Args: cobra.NoArgs,
+		RunE: func(command *cobra.Command, args []string) error {
+			_, err := command.OutOrStdout().Write(schema.Workspace)
+			return err
+		},
+	})
 	return root
 }
 

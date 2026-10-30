@@ -39,6 +39,7 @@ for product changes. Binary replacement and managed-content updates are separate
 | `update` | Prints a managed-content plan; `--apply` writes when conflict-free, repeatable `--keep PATH` retains eligible same-path customizations. |
 | `add MODULE...` | Previews adding collections or agent/editor adapters, with the modules they require; `--apply` writes when conflict-free. |
 | `modules [ID]` | Lists built-in modules as JSON (`--kind KIND` filters); with an ID, shows its manifest and files. |
+| `schema` | Prints the JSON Schema for `wsup.json` (the file `$schema` names). |
 
 Use `--help`, `COMMAND --help`, and `--version` for options and product version.
 Invalid options fail even when help/version is also present. Unambiguous long
@@ -129,7 +130,8 @@ an edited copy is a conflict.
 ## Register projects
 
 `wsup.json` is UTF-8 JSON with `version: 3`, a nonempty `name`, and a `projects`
-array. `init` writes it with `$schema`, the selected `collections`, `agents`, and
+array. Its `$schema` lets editors validate and complete it; `wsup schema` prints
+the same schema. `init` writes it with `$schema`, the selected `collections`, `agents`, and
 `editors`, and no projects. Optional `settings` hold shared settings (see below).
 Optional `vscode` holds `settings`, `extensions`, `tasks`, and `launch` for VS
 Code. Projects have:

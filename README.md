@@ -96,6 +96,7 @@ to PATH. The main commands:
 | `vscode` | Preview or apply (`--apply`) regenerating `<name>.code-workspace` from `wsup.json` |
 | `check --project ID` | Run only that project's configured checks |
 | `modules` | List built-in modules: collections, adapters, and presets |
+| `schema` | Print the JSON Schema for `wsup.json` |
 | `add MODULE...` | Preview adding collections or adapters |
 | `add MODULE... --apply` | Add them without replacing existing files |
 | `update` | Preview available template updates |

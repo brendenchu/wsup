@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/brendenchu/wsup/main/schema/wsup-3.json",
+  "title": "wsup.json",
+  "description": "A wsup workspace: its name, selected modules, shared settings, projects, and VS Code passthrough. wsup validate checks paths and dependencies beyond this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "name", "projects"],
+  "properties": {
+    "$schema": {"type": "string", "minLength": 1},
+    "version": {"const": 3},
+    "name": {"type": "string", "pattern": "\\S", "description": "Workspace name; the .code-workspace file is named from it."},
+    "collections": {"$ref": "#/$defs/moduleIds", "description": "Selected collection modules."},
+    "agents": {"$ref": "#/$defs/moduleIds", "description": "Selected agent adapters."},
+    "editors": {"$ref": "#/$defs/moduleIds", "description": "Selected editor adapters."},
+    "settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 86400},
+        "output_limit_bytes": {"type": "integer", "minimum": 1, "maximum": 10485760},
+        "report_dir": {"type": "string", "minLength": 1, "description": "Must stay inside workbench/.local/wsup/reports."}
+      }
+    },
+    "projects": {"type": "array", "items": {"$ref": "#/$defs/project"}},
+    "vscode": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Copied into the generated .code-workspace file.",
+      "properties": {
+        "settings": {"type": "object"},
+        "extensions": {"type": "array", "items": {"type": "string"}},
+        "tasks": {"type": "array", "items": {"type": "object"}},
+        "launch": {"type": "array", "items": {"type": "object"}}
+      }
+    }
+  },
+  "$defs": {
+    "moduleIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"}
+    },
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$"},
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[^/\\\\:]",
+      "description": "A clean, relative, forward-slash path that stays inside its base."
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "kind", "repository", "purpose", "owner"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "path": {"$ref": "#/$defs/relativePath"},
+        "kind": {"enum": ["app", "package", "tool", "infra", "sandbox", "template", "fork", "research"]},
+        "repository": {"enum": ["workspace", "independent"], "description": "Intended Git ownership, not proof of Git setup."},
+        "git": {"type": "string", "minLength": 1, "description": "Clone URL."},
+        "purpose": {"type": "string", "pattern": "\\S"},
+        "owner": {"type": "string", "pattern": "\\S"},
+        "dependencies": {"type": "array", "items": {"$ref": "#/$defs/identifier"}},
+        "tasks": {
+          "type": "object",
+          "propertyNames": {"$ref": "#/$defs/identifier"},
+          "additionalProperties": {"$ref": "#/$defs/task"}
+        }
+      }
+    },
+    "command": {
+      "type": "array",
+      "minItems": 1,
+      "prefixItems": [{"type": "string", "minLength": 1}],
+      "items": {"type": "string"},
+      "description": "Literal arguments; no shell, no substitution."
+    },
+    "task": {
+      "oneOf": [
+        {"$ref": "#/$defs/command"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["command"],
+          "properties": {
+            "command": {"$ref": "#/$defs/command"},
+            "check": {"type": "boolean", "description": "Run under wsup check."},
+            "cwd": {"$ref": "#/$defs/relativePath", "description": "Relative to the project."},
+            "mode": {"enum": ["required", "report"]},
+            "enabled": {"type": "boolean"},
+            "reason": {"type": "string", "description": "Required when enabled is false."},
+            "timeout_seconds": {"type": ["integer", "null"], "minimum": 1, "maximum": 86400},
+            "finding_exit_codes": {"type": "array", "items": {"type": "integer", "minimum": 1, "maximum": 255}}
+          }
+        }
+      ]
+    }
+  }
+}

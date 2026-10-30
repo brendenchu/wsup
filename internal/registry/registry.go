@@ -17,6 +17,9 @@ import (
 
 var identifier = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]*$`)
 
+// checkFields are the fields of a check object (and of a task, with taskFields).
+var checkFields = []string{"command", "mode", "enabled", "reason", "timeout_seconds", "finding_exit_codes"}
+
 // Project is a loaded wsup.json project whose paths were checked against the
 // filesystem.
 type Project struct {
@@ -374,7 +377,7 @@ func ParseCheck(raw any) (Check, error) {
 	if _, list := raw.([]any); list {
 		value, ok = map[string]any{"command": raw}, true
 	}
-	if !ok || !Fields(value, "command", "mode", "enabled", "reason", "timeout_seconds", "finding_exit_codes") {
+	if !ok || !Fields(value, checkFields...) {
 		return Check{}, fmt.Errorf("Check must be an argument list or supported check object")
 	}
 	command, ok := stringsValue(value["command"])

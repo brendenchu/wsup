@@ -13,6 +13,9 @@ This repository is the wsup CLI: Go source, tests, and the starter content that
   `text/template` against `catalogue.RenderData`) and shared skills under
   `skills/`.
   Edit generated content here; there is no second copy elsewhere in the repo.
+- `schema/`: the JSON Schema for `wsup.json`, embedded for `wsup schema` and
+  served from the repository. Change it with `internal/registry/document.go`;
+  a test keeps their fields in step.
 - `docs/`: the product manual (install, getting started, releases, AI guidance).
 - `scripts/package.sh`: local macOS ARM64 release candidate packaging.
 

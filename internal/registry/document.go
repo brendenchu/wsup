@@ -24,6 +24,17 @@ const (
 // documents decoded by this package.
 var moduleID = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 
+// Field lists for each wsup.json object. The JSON Schema in schema/ must
+// declare exactly these (see the schema test).
+var (
+	documentFields = []string{"$schema", "version", "name", "collections", "agents", "editors", "settings", "projects", "vscode"}
+	settingsFields = []string{"timeout_seconds", "output_limit_bytes", "report_dir"}
+	projectFields  = []string{"id", "path", "kind", "repository", "git", "purpose", "owner", "dependencies", "tasks"}
+	vscodeFields   = []string{"settings", "extensions", "tasks", "launch"}
+	// taskFields are a task's own fields; the rest are checkFields.
+	taskFields = []string{"check", "cwd"}
+)
+
 // projectKinds is the closed set of project kinds (contract amendment 1).
 var projectKinds = []string{"app", "package", "tool", "infra", "sandbox", "template", "fork", "research"}
 
@@ -83,7 +94,7 @@ func Decode(body []byte) (Document, error) {
 	if err != nil {
 		return Document{}, err
 	}
-	if !Fields(object, "$schema", "version", "name", "collections", "agents", "editors", "settings", "projects", "vscode") {
+	if !Fields(object, documentFields...) {
 		return Document{}, fmt.Errorf("wsup.json: unknown top-level field")
 	}
 	if version, ok := Integer(object["version"]); !ok || version != DocumentVersion {
@@ -120,7 +131,7 @@ func Decode(body []byte) (Document, error) {
 	}
 	if raw, exists := object["settings"]; exists {
 		settings, ok := raw.(map[string]any)
-		if !ok || !Fields(settings, "timeout_seconds", "output_limit_bytes", "report_dir") {
+		if !ok || !Fields(settings, settingsFields...) {
 			return Document{}, fmt.Errorf("wsup.json: settings may contain only timeout_seconds, output_limit_bytes, and report_dir")
 		}
 		document.Settings = settings
@@ -169,7 +180,7 @@ func Decode(body []byte) (Document, error) {
 
 func decodeProject(entry any, rawTasks json.RawMessage) (ProjectEntry, error) {
 	raw, ok := entry.(map[string]any)
-	if !ok || !Fields(raw, "id", "path", "kind", "repository", "git", "purpose", "owner", "dependencies", "tasks") {
+	if !ok || !Fields(raw, projectFields...) {
 		return ProjectEntry{}, fmt.Errorf("wsup.json: each project is an object with supported fields")
 	}
 	project := ProjectEntry{Dependencies: []string{}, Tasks: []Task{}}
@@ -267,7 +278,7 @@ func decodeVSCode(raw any) (*VSCode, error) {
 		return nil, nil
 	}
 	object, ok := raw.(map[string]any)
-	if !ok || !Fields(object, "settings", "extensions", "tasks", "launch") {
+	if !ok || !Fields(object, vscodeFields...) {
 		return nil, fmt.Errorf("wsup.json: vscode may contain only settings, extensions, tasks, and launch")
 	}
 	vscode := &VSCode{Settings: map[string]any{}, Extensions: []string{}, Tasks: []map[string]any{}, Launch: []map[string]any{}}

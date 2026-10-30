@@ -47,6 +47,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
   workspaces and, for agents, in projects.
 - `wsup modules` lists built-in modules; `wsup modules ID` shows a module's
   manifest and files.
+- A JSON Schema for `wsup.json` (`schema/wsup-3.json`), named by the `$schema`
+  that `init` writes so editors validate the file; `wsup schema` prints it.
 - One-command local macOS ARM64 candidate verification and packaging with the
   pinned Go toolchain, full notices, checksums, repeated binary builds, and
   extracted-binary smoke checks. Tagging and publication remain explicit.
