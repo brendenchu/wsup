@@ -66,6 +66,18 @@ See the [release guide](docs/releases.md) for version and tag policy.
 - One-command local macOS ARM64 candidate verification and packaging with the
   pinned Go toolchain, full notices, checksums, repeated binary builds, and
   extracted-binary smoke checks. Tagging and publication remain explicit.
+- Opt-in collections with their own skills: `decisions` installs
+  `record-decision`, which writes numbered decision records from the template,
+  Proposed until the user says the decision is made, and supersedes an old
+  record by changing only its status line. `research` and `reference` install
+  `investigate-question` (a scoped question, weighed sources, and a synthesis
+  with its limits, saved under `research/<slug>/`) and `promote-findings`
+  (reviewed findings moved into `reference/` or project docs, linked both
+  ways, original kept). `journal` installs `review-week` (a weekly review in
+  `journal/YYYY/YYYY-Www.md` built only from that week's daily entries), and
+  `releases` installs `prepare-release` (a release record with version
+  rationale, build provenance, checksums, and bundle review; it never tags or
+  publishes).
 - A [migration guide](docs/migrating.md) from wsup 0.2.0. The workspace model
   gains a glossary (a module is an installable unit; a project is a member
   registered in `wsup.json`), a module catalogue with each collection's files,

@@ -148,8 +148,10 @@ Every workspace has seven base skills: check-workspace, run-checks,
 update-workspace, onboard-project, plan-work, recap-work, and
 maintain-agents-md. The project collections add five code-change skills
 (make-change, review-change, diagnose-issue, write-commit, infer-conventions),
-installed once however many are selected. The project starter has those five
-plus plan-work.
+installed once however many are selected. Some opt-in collections bring
+their own skills, such as `record-decision` with `decisions`; the module
+catalogue lists them. The project starter has the five code-change skills plus
+plan-work.
 
 Agent adapters point agents that don't read `AGENTS.md` or `.agents/skills/`
 natively at the same files. They hold no instructions of their own:

@@ -83,7 +83,7 @@ func TestCollectionListingPreviewApplyAndIdempotence(t *testing.T) {
 	root := collectionWorkspace(t)
 	before := snapshot(t, root)
 	preview, err := AddModules(root, []string{"journal", "archive", "journal"}, false)
-	want := []Action{{"AGENTS.md", "write"}, {"archive/AGENTS.md", "write"}, {"archive/README.md", "write"},
+	want := []Action{{".agents/skills/review-week/SKILL.md", "write"}, {"AGENTS.md", "write"}, {"archive/AGENTS.md", "write"}, {"archive/README.md", "write"},
 		{"journal/AGENTS.md", "write"}, {"journal/README.md", "write"}, {"journal/TEMPLATE.md", "write"}, {"wsup.json", "write"}}
 	if err != nil || !reflect.DeepEqual(preview.Actions, want) || !reflect.DeepEqual(preview.Selected, []string{"archive", "journal"}) || preview.Applied {
 		t.Fatalf("preview: %+v %v", preview, err)
