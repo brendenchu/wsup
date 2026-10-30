@@ -73,6 +73,15 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- **Breaking.** Workspaces and projects created by wsup 0.2.0 must be
+  converted before other commands accept them: `workspace.json` and `.wsup/`
+  become `wsup.json` and `wsup.lock`, `AI.md` and `guidance/rules/` become
+  `AGENTS.md`, checks become tasks (`--check` is now `--task`), skills are
+  renamed, and `infrastructure`, `artifacts`, and `private` are replaced by
+  `infra`, `releases`, and nothing. `wsup collections` and `wsup editor` are
+  replaced by `wsup add`, `wsup modules`, and `wsup vscode`. Run `wsup
+  migrate`, then `wsup migrate --apply`; see the
+  [migration guide](docs/migrating.md).
 - `wsup.json` (version 3) is the workspace file, replacing `workspace.json` and
   the settings-only `wsup.json`. It records the workspace name, the selected
   collections, agents, and editors, shared `settings`, and projects. Projects
