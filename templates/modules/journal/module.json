@@ -7,7 +7,9 @@
     "workspace"
   ],
   "requires": [],
-  "skills": [],
+  "skills": [
+    "review-week"
+  ],
   "ignore": [],
   "generate": []
 }

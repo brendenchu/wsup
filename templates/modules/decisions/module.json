@@ -7,7 +7,9 @@
     "workspace"
   ],
   "requires": [],
-  "skills": [],
+  "skills": [
+    "record-decision"
+  ],
   "ignore": [],
   "generate": []
 }

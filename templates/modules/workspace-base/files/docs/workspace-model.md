@@ -163,13 +163,13 @@ infer-conventions.
 | `sandbox` | Experiments, spikes, and throwaway prototypes | — | — | code-change |
 | `templates` | Project starters and scaffolds other projects are created from | — | — | code-change |
 | `forks` | Forks and vendored copies of external repositories | — | — | code-change |
-| `research` | Scoped workspace-wide investigations | — | — | — |
-| `reference` | Reviewed, reusable knowledge with evidence and applicability | — | — | — |
-| `decisions` | Workspace-wide decision records | `TEMPLATE.md` | — | — |
+| `research` | Scoped workspace-wide investigations | — | — | `investigate-question`, `promote-findings` |
+| `reference` | Reviewed, reusable knowledge with evidence and applicability | — | — | `investigate-question`, `promote-findings` |
+| `decisions` | Workspace-wide decision records | `TEMPLATE.md` | — | `record-decision` |
 | `learning` | Curricula, exercises, and learning projects | — | — | — |
-| `journal` | Dated activity entries | `TEMPLATE.md` | — | — |
+| `journal` | Dated activity entries | `TEMPLATE.md` | — | `review-week` |
 | `archive` | Parked or historical work with a clear owner and status | — | — | — |
-| `releases` | Intentional deliverables with provenance and retention purpose | — | — | — |
+| `releases` | Intentional deliverables with provenance and retention purpose | — | — | `prepare-release` |
 | `issues` | Keyed Markdown issue files | `TEMPLATE.md` | — | — |
 | `ai` | Prompts, evaluations, and other reusable AI working material | — | — | — |
 | `design` | Mockups, design-system assets, and design sources | — | — | — |
@@ -465,8 +465,9 @@ owner left those sections as `wsup.lock` recorded them; otherwise the file is a
 conflict. Seven base skills are always
 included under `.agents/skills/`; project collections (`apps`, `packages`,
 `tools`, `infra`, `sandbox`, `templates`, `forks`) add five code-change skills,
-installed once however many are selected. Adding a collection installs any of
-its skills not already present. No provider, credential, or MCP server is
+installed once however many are selected. Some opt-in collections add their
+own skills, listed in the [module catalogue](#module-catalogue). Adding a
+collection installs any of its skills not already present. No provider, credential, or MCP server is
 required. Clients may discover that shared path or need explicit skill
 paths. Verify client loading separately from file presence. `guidance` checks
 metadata, local links, marker pairing, owner containment, and structural findings, not whether

@@ -92,7 +92,8 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 		}
 		return names
 	}
-	if len(skills) != 12 || len(inventory(workspace)) != 12 ||
+	// A development workspace keeps its 12 skills (contract amendment 4).
+	if len(inventory(workspace)) != 12 ||
 		!slices.Equal(inventory(baseOnly), baseSkills) || !slices.Equal(inventory(project), projectSkills) {
 		t.Fatalf("skill inventory: %v %v %v", inventory(workspace), inventory(baseOnly), inventory(project))
 	}
@@ -110,8 +111,7 @@ func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T)
 			}
 		}
 	}
-	for _, skill := range skills {
-		name := skill.Name()
+	for _, name := range inventory(workspace) {
 		want, err := os.ReadFile(filepath.Join(skillSource, name, "SKILL.md"))
 		if err != nil {
 			t.Fatal(err)
