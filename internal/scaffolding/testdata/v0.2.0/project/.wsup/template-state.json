@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "template_version": "0.2.0",
+  "template": "project",
+  "files": {
+    ".gitignore": "50bffc17ddf87d681dd297aa6214e03c3980644fbf54c54fbb2d2dccbec67f71",
+    "AGENTS.md": "cc1767ea0c804857cd73f4220eb09f1f99fcf59ea136f17ba17f1874180b10ff",
+    "AI.md": "5e9e7acb90c9f384fbf682dfb89d209236ed438e8584f20ffa7caf7fda9e7ca2",
+    "README.md": "83db5d3350a4eb04598b9c81a9dc37ea94527faeca044ac0e04c682e27af644b",
+    "WSUP-LICENSE": "7a156d8ef118b977e14b60350712c0ed06d6220bba4a64ff00c4dfa523899197",
+    "guidance/rules/boundaries.md": "0dcc2a3bd04bd729711b006fd035114070f65bc2857d43c58ed87ebcb0d6e343",
+    "guidance/rules/changes.md": "bc3a2b53fbec86cac997eb187dd7a02c164d55ed83b2bb9d0020e49400397540",
+    "guidance/rules/documentation.md": "3918fd96b428ac683c9298fdfb7f095c54ce1c04a81dbf7ae3843890ac4ad3a4",
+    "guidance/rules/index.md": "efe819002b400a264846f615eceeace40e5589269604d552d665062f671413c9",
+    "guidance/rules/interfaces.md": "013b84c644d0c16b687dbe03aa7b65fd50fa9bcfc55749e11335a16ed3905b03",
+    "guidance/rules/verification.md": "e8ab894309bde541d0383262b837f06af934a5d5eda282e576025c4162a5248f"
+  }
+}

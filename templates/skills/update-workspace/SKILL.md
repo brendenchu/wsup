@@ -35,7 +35,10 @@ description: Create workspace or project starters, maintain template content, or
    inspect failures rather than retrying blindly. Restore matched files and lock
    from backup before retrying. No automatic backup or rollback is provided.
    Only lock version 1 is supported; never change version numbers to force
-   compatibility.
+   compatibility. A wsup 0.2.0 starter (`.wsup/template-state.json`) is
+   converted with `wsup migrate`: review its preview, actions, and notes, then
+   `wsup migrate --apply` only when authorized; report the backup folder and
+   every note left for the owner.
 5. Verify source changes in a disposable destination outside the checkout.
    Run `wsup --root DESTINATION validate` and `guidance` for workspaces; inspect
    project guidance separately. Relocate output and generate another workspace

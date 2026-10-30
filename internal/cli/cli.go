@@ -252,6 +252,42 @@ func newCommand(s session) *cobra.Command {
 	update.Flags().Bool("apply", false, "Apply a conflict-free native content update")
 	update.Flags().StringArray("keep", nil, "Preserve an existing same-path customization (repeatable)")
 	root.AddCommand(update)
+	migrate := &cobra.Command{
+		Use: "migrate", Short: "Preview converting a wsup 0.2.0 workspace or project; --apply converts it",
+		Args: cobra.NoArgs,
+		RunE: func(command *cobra.Command, args []string) error {
+			root, err := command.Root().Flags().GetString("root")
+			if err != nil {
+				return err
+			}
+			apply, err := command.Flags().GetBool("apply")
+			if err != nil {
+				return err
+			}
+			options := scaffolding.MigrationOptions{}
+			if options.Agents, err = command.Flags().GetStringArray("agent"); err != nil {
+				return err
+			}
+			if options.Editors, err = command.Flags().GetStringArray("editor"); err != nil {
+				return err
+			}
+			result, err := scaffolding.Migrate(root, Version, options, apply)
+			if err != nil {
+				return err
+			}
+			if err := writeJSON(command.OutOrStdout(), result); err != nil {
+				return err
+			}
+			if len(result.Conflicts) != 0 {
+				return statusError{1}
+			}
+			return nil
+		},
+	}
+	migrate.Flags().Bool("apply", false, "Convert when conflict-free, backing up every replaced or removed file")
+	migrate.Flags().StringArray("agent", nil, "Agent adapter ("+strings.Join(catalogue.AgentNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
+	migrate.Flags().StringArray("editor", nil, "Workspace editor adapter ("+strings.Join(catalogue.EditorNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
+	root.AddCommand(migrate)
 	add := &cobra.Command{
 		Use: "add MODULE...", Short: "Preview adding collections or adapters; --apply installs them",
 		Args: cobra.MinimumNArgs(1),

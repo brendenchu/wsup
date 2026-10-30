@@ -36,6 +36,11 @@ See the [release guide](docs/releases.md) for version and tag policy.
 - `wsup init --preset NAME` selects a preset of collections; explicit
   `--collection` choices add to it. `--preset none` creates a base-only
   workspace. Unknown presets fail before anything is written.
+- `wsup migrate` previews converting a wsup 0.2.0 workspace or project, and
+  `--apply` converts it: unedited files are replaced or removed, edited files
+  are kept, `workspace.json` and settings become `wsup.json`, reports move,
+  and every replaced or removed file is first backed up under
+  `workbench/.local/wsup/migrate/`. Conflicts block every write.
 - `wsup check --all` runs the check tasks of every project.
 - `wsup run PROJECT TASK` runs any project task connected to the terminal and
   exits with its exit code. Only the task's own `timeout_seconds` (or
@@ -70,7 +75,7 @@ See the [release guide](docs/releases.md) for version and tag policy.
 - `wsup.lock` (committed) replaces `.wsup/template-state.json`. It records each
   installed module and version, and baseline hashes for managed files, their
   generated sections, and links. Workspaces created by wsup 0.2.0 report that
-  they need converting.
+  `wsup migrate` converts them.
 - Check reports default to `workbench/.local/wsup/reports/`, and `report_dir`
   must stay inside it.
 - Adding a module also records it in `wsup.json`, rewritten in canonical form.

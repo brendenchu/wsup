@@ -53,6 +53,9 @@ type State struct {
 	Editors []string `json:"editors,omitempty"`
 	// Links maps each managed symlink to its relative target.
 	Links map[string]string `json:"links,omitempty"`
+	// retired holds renamed or removed collection names, read only for
+	// migration (see loadLegacyState).
+	retired []string
 }
 
 // LoadedState carries exact original bytes for a later apply-time change check.

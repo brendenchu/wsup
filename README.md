@@ -94,6 +94,7 @@ to PATH. The main commands:
 | `guidance` | Check workspace instructions and local links |
 | `guidance --project ID` | Check one project's instructions |
 | `vscode` | Preview or apply (`--apply`) regenerating `<name>.code-workspace` from `wsup.json` |
+| `migrate` | Preview or apply (`--apply`) converting a wsup 0.2.0 workspace or project |
 | `check --project ID` | Run only that project's configured checks |
 | `modules` | List built-in modules: collections, adapters, and presets |
 | `schema` | Print the JSON Schema for `wsup.json` |

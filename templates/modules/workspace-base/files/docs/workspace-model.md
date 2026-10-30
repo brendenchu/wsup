@@ -37,6 +37,7 @@ for product changes. Binary replacement and managed-content updates are separate
 | `check` | Runs check tasks: repeatable `--project ID` or `--all`; optional repeatable `--task NAME`, `--timeout SECONDS`, `--show-output`. |
 | `init DESTINATION` | Creates a new workspace. In a terminal it asks for the preset, agents, and editors that flags leave open; `--yes`, or no terminal, uses the defaults; repeatable `--agent NAME` and `--editor NAME` select agent and editor adapters (default all; `none` for none; editors are workspace-only); `--preset NAME` selects a preset (default `development`; `none` for the base only) and repeatable `--collection NAME` adds collections to it. `--template project` creates a project without a registry/runtime; presets and collections are workspace-only. |
 | `update` | Prints a managed-content plan; `--apply` writes when conflict-free, repeatable `--keep PATH` retains eligible same-path customizations. |
+| `migrate` | Previews converting a wsup 0.2.0 workspace or project; `--apply` converts it when conflict-free; `--agent` and `--editor` as for `init`. |
 | `add MODULE...` | Previews adding collections or agent/editor adapters, with the modules they require; `--apply` writes when conflict-free. |
 | `modules [ID]` | Lists built-in modules as JSON (`--kind KIND` filters); with an ID, shows its manifest and files. |
 | `schema` | Prints the JSON Schema for `wsup.json` (the file `$schema` names). |
@@ -309,10 +310,40 @@ Orphan bytes are retained but cease to be managed, except a generated file
 replaced under a new name, which is removed while unedited. Unknown files,
 project contents, reports, and local settings survive.
 
-Only lock version 1 is supported. Other versions fail without writes. A
-workspace created by wsup 0.2.0 (`.wsup/template-state.json`) is reported as
-such. Do not change version numbers or fabricate baselines to force
-compatibility.
+Only lock version 1 is supported. Other versions fail without writes. Do not
+change version numbers or fabricate baselines to force compatibility.
+
+## Migrating from wsup 0.2.0
+
+A workspace or project created by wsup 0.2.0 has `.wsup/template-state.json`
+instead of `wsup.lock`; other commands report that it needs converting.
+`wsup migrate` previews the conversion and `wsup migrate --apply` performs it:
+
+- Files wsup wrote and you never edited are replaced with their current
+  version, or removed when wsup no longer installs them (`AI.md`,
+  `guidance/rules/`, renamed skills, `WSUP-LICENSE`, `.gitkeep` homes).
+- Files you edited are kept (`keep`). One wsup still installs, such as
+  `README.md`, keeps its 0.2.0 baseline, so `update` reports it until you
+  `--keep` it or replace it. One wsup no longer installs is noted, for example
+  to fold an edited `AI.md` into `AGENTS.md`.
+- `workspace.json` and the settings-only `wsup.json` become `wsup.json`:
+  checks become tasks with `"check": true`, the `infrastructure` kind becomes
+  `infra`, and a `report_dir` under `.wsup/reports` moves under
+  `workbench/.local/wsup/reports` (in `wsup.local.json` too).
+- `.wsup/reports/` moves to `workbench/.local/wsup/reports/`; `.wsup/` is
+  removed.
+- Former default homes it still manages become collections (`infrastructure/`
+  selects `infra`); `artifacts` becomes `releases` and `private` is dropped.
+  Folders holding your content are never moved; the preview's notes say where
+  they belong.
+- Agent and editor adapters default to all, as at `init`.
+
+An existing unmanaged file at a path the conversion installs (such as an
+owner-written `CLAUDE.md`) is a conflict, and any conflict blocks every write.
+Before writing, every file to be replaced or removed is copied to
+`workbench/.local/wsup/migrate/<timestamp>/`; `wsup.lock` is written after the
+content and the 0.2.0 state is removed last. If a migration fails partway,
+restore from that folder before retrying.
 No remote downloader or automatic binary upgrade is provided.
 
 Before any later update, preserve a reviewed backup of files and `wsup.lock`,
