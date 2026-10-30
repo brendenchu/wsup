@@ -1,5 +1,20 @@
 # Workspace model
 
+## Glossary
+
+| Term | Meaning |
+| --- | --- |
+| Workspace | A root with `wsup.json` and `wsup.lock` that groups projects; it knows only itself and its descendants. |
+| Project | A member registered in `wsup.json`: a directory with its own README, owner, and tasks. A project starter (`init --template project`) is a standalone project root with `wsup.lock` but no registry. |
+| Module | An installable unit with a manifest: the base, a collection, an agent or editor adapter, or a preset. |
+| Base | The module every starter gets: `workspace-base` or `project-base`. |
+| Collection | An opt-in workspace folder with its own README, AGENTS.md, and sometimes skills or ignore entries. |
+| Adapter | A module that points one agent or editor at the shared files (`claude`, `gemini`, `vscode`). It holds no instructions. |
+| Preset | A named list of collections, used only by `init`; the workspace records the collections, never the preset. |
+| Skill | A portable procedure in `.agents/skills/<name>/SKILL.md`, installed once when any selected module lists it. |
+| Task | A named command of a project in `wsup.json`; a check task (`"check": true`) also runs under `wsup check`. |
+| Managed file | A file wsup wrote and records in `wsup.lock`, so `update` can tell your edits from its changes. |
+
 ## Installation and ownership
 
 Each workspace knows only itself and its descendants. Its registry, guidance,
@@ -37,8 +52,8 @@ for product changes. Binary replacement and managed-content updates are separate
 | `check` | Runs check tasks: repeatable `--project ID` or `--all`; optional repeatable `--task NAME`, `--timeout SECONDS`, `--show-output`. |
 | `init DESTINATION` | Creates a new workspace. In a terminal it asks for the preset, agents, and editors that flags leave open; `--yes`, or no terminal, uses the defaults; repeatable `--agent NAME` and `--editor NAME` select agent and editor adapters (default all; `none` for none; editors are workspace-only); `--preset NAME` selects a preset (default `development`; `none` for the base only) and repeatable `--collection NAME` adds collections to it. `--template project` creates a project without a registry/runtime; presets and collections are workspace-only. |
 | `update` | Prints a managed-content plan; `--apply` writes when conflict-free, repeatable `--keep PATH` retains eligible same-path customizations. |
-| `migrate` | Previews converting a wsup 0.2.0 workspace or project; `--apply` converts it when conflict-free; `--agent` and `--editor` as for `init`. |
-| `add MODULE...` | Previews adding collections or agent/editor adapters, with the modules they require; `--apply` writes when conflict-free. |
+| `migrate` | Previews converting a wsup 0.2.0 workspace or project; `--apply` converts it when conflict-free; `--agent` and `--editor` as for `init`; repeatable `--keep PATH` keeps an owner file at a path the conversion installs. |
+| `add MODULE...` | Previews adding collections or agent/editor adapters, with the modules they require; `--apply` writes when conflict-free; repeatable `--keep PATH` keeps an owner file at a path the addition installs. |
 | `modules [ID]` | Lists built-in modules as JSON (`--kind KIND` filters); with an ID, shows its manifest and files. |
 | `schema` | Prints the JSON Schema for `wsup.json` (the file `$schema` names). |
 
@@ -130,6 +145,60 @@ between `# wsup:begin ignore` and `# wsup:end ignore`: `data` ignores
 selection, such as that `.gitignore`, are rewritten while they match their
 baseline; an edited copy gets only its generated block replaced (`merge`) when
 that block is unchanged, and is otherwise a conflict.
+
+## Module catalogue
+
+`wsup modules` lists every built-in module and `wsup modules ID` shows one
+module's manifest and files. Every collection installs `<folder>/README.md`
+and `<folder>/AGENTS.md`; the table lists what else it adds. The code-change
+skills are make-change, review-change, diagnose-issue, write-commit, and
+infer-conventions.
+
+| Collection | Holds | Extra files | Ignores | Skills |
+| --- | --- | --- | --- | --- |
+| `apps` | Applications and user-facing deliverables | — | — | code-change |
+| `packages` | Reusable libraries and packages | — | — | code-change |
+| `tools` | Local developer tools | — | — | code-change |
+| `infra` | Provisioning, deployment, and operations code | — | — | code-change |
+| `sandbox` | Experiments, spikes, and throwaway prototypes | — | — | code-change |
+| `templates` | Project starters and scaffolds other projects are created from | — | — | code-change |
+| `forks` | Forks and vendored copies of external repositories | — | — | code-change |
+| `research` | Scoped workspace-wide investigations | — | — | — |
+| `reference` | Reviewed, reusable knowledge with evidence and applicability | — | — | — |
+| `decisions` | Workspace-wide decision records | `TEMPLATE.md` | — | — |
+| `learning` | Curricula, exercises, and learning projects | — | — | — |
+| `journal` | Dated activity entries | `TEMPLATE.md` | — | — |
+| `archive` | Parked or historical work with a clear owner and status | — | — | — |
+| `releases` | Intentional deliverables with provenance and retention purpose | — | — | — |
+| `issues` | Keyed Markdown issue files | `TEMPLATE.md` | — | — |
+| `ai` | Prompts, evaluations, and other reusable AI working material | — | — | — |
+| `design` | Mockups, design-system assets, and design sources | — | — | — |
+| `content` | Written and media content meant for publication | — | — | — |
+| `data` | Datasets, samples, and fixtures shared across projects | — | `data/**/*.local.*` | — |
+
+The bases install the skills every starter has:
+
+| Base | Skills |
+| --- | --- |
+| `workspace-base` | check-workspace, run-checks, update-workspace, onboard-project, plan-work, recap-work, maintain-agents-md |
+| `project-base` | make-change, review-change, diagnose-issue, write-commit, infer-conventions, plan-work |
+
+A skill listed by several selected modules is installed once. Adapters are
+described under [Guidance](#agent-adapters-and-the-skills-link).
+
+### Presets
+
+A preset selects collections at `init` and nowhere else. `wsup.json` records
+the resolved collections, so a later change to a preset never alters an
+existing workspace.
+
+| Preset | Collections |
+| --- | --- |
+| `development` (default) | `apps`, `packages`, `tools`, `infra` |
+| `none` | The base only |
+
+`--collection NAME` adds to the preset: `--preset none --collection research`
+creates the base plus `research/`.
 
 ## Register projects
 
@@ -291,7 +360,29 @@ No existing report is rewritten to change provenance.
 `project`), each installed module and its version, and baseline SHA-256 hashes
 of managed files, of each generated section, and of the skills link. It never
 lists `wsup.json` or reports. Commit it with the files so future updates can
-identify customizations.
+identify customizations. wsup writes it; do not edit it by hand.
+
+```json
+{
+  "version": 1,
+  "wsup_version": "0.3.0",
+  "starter": "project",
+  "modules": {"claude": "1.1.0", "project-base": "1.0.0"},
+  "files": {"AGENTS.md": "sha256:…", "CLAUDE.md": "sha256:…"},
+  "blocks": {"AGENTS.md#skills": "sha256:…", ".gitignore#ignore": "sha256:…"},
+  "links": {".claude/skills": "../.agents/skills"}
+}
+```
+
+| Field | Contract |
+| --- | --- |
+| `version` | Lock format; only `1` is supported |
+| `wsup_version` | The wsup version that last wrote the lock |
+| `starter` | `workspace` or `project` |
+| `modules` | Every installed module (bases, collections, adapters; never presets) and its version |
+| `files` | Each managed file's baseline hash |
+| `blocks` | Each generated section's baseline hash, as `FILE#NAME` |
+| `links` | The skills link and its target |
 Local instructions and skills are workspace customizations, not implicit defaults for child
 generation. A new workspace always uses the binary's embedded baseline.
 
@@ -319,7 +410,8 @@ change version numbers or fabricate baselines to force compatibility.
 ## Migrating from wsup 0.2.0
 
 A workspace or project created by wsup 0.2.0 has `.wsup/template-state.json`
-instead of `wsup.lock`; other commands report that it needs converting.
+instead of `wsup.lock`; commands that read `wsup.json` or `wsup.lock` report
+that it needs converting.
 `wsup migrate` previews the conversion and `wsup migrate --apply` performs it:
 
 - Files wsup wrote and you never edited are replaced with their current
@@ -379,7 +471,9 @@ required. Clients may discover that shared path or need explicit skill
 paths. Verify client loading separately from file presence. `guidance` checks
 metadata, local links, marker pairing, owner containment, and structural findings, not whether
 an AI client invoked a skill. Findings are sorted lexically, preserving duplicates.
-Independent projects keep their required guidance themselves.
+Independent projects keep their required guidance themselves: `guidance`
+reads `AGENTS.md` one folder deep only, and skips a folder that has its own
+`wsup.lock` (a nested workspace or project).
 
 ### Agent adapters and the skills link
 

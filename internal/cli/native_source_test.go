@@ -104,6 +104,10 @@ func TestNativeSourceBuildAndGenerationAreSelfContained(t *testing.T) {
 	if output, err := test.CombinedOutput(); err != nil {
 		t.Fatalf("isolated native suite with only Go/Git on PATH: %s %v", output, err)
 	}
+	// The binary must not need the source it was built from.
+	if err := os.RemoveAll(checkout); err != nil {
+		t.Fatal(err)
+	}
 	run := func(args ...string) {
 		t.Helper()
 		command := exec.Command(binary, args...)
@@ -123,4 +127,17 @@ func TestNativeSourceBuildAndGenerationAreSelfContained(t *testing.T) {
 	run("--root", child, "guidance")
 	run("--root", workspace, "init", project, "--template", "project")
 	run("--root", project, "guidance")
+	for _, starter := range []string{"workspace", "project"} {
+		legacy := filepath.Join(t.TempDir(), starter)
+		if err := os.CopyFS(legacy, os.DirFS(filepath.Join(source, "internal/scaffolding/testdata/v0.2.0", starter))); err != nil {
+			t.Fatal(err)
+		}
+		run("--root", legacy, "migrate")
+		run("--root", legacy, "migrate", "--apply")
+		if starter == "workspace" {
+			run("--root", legacy, "validate")
+		}
+		run("--root", legacy, "guidance")
+		run("--root", legacy, "update", "--apply")
+	}
 }

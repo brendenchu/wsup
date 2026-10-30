@@ -110,7 +110,8 @@ Before removing a package directory, confirm no PATH entry still depends on it.
 ```
 
 Destinations must not exist. The generated workspace contains managed files,
-schema-2 state under `.wsup/`, and local reports when checks run. It contains no
+`wsup.json`, `wsup.lock`, and local reports under `workbench/.local/` when
+checks run. It contains no
 executable or copied catalogue. Retain access to a compatible external binary
 after moving the workspace.
 
@@ -142,5 +143,5 @@ content instead, preserving the original workspace and reports.
 
 To stop using an extracted executable, remove only its explicitly selected
 binary/package files or any PATH entry the owner separately created. Do not
-remove workspaces, `.wsup/` state/reports, projects, or local settings. WSUP has
+remove workspaces, `wsup.lock`, reports, projects, or local settings. WSUP has
 no service, global credentials, telemetry, or uninstaller to run.

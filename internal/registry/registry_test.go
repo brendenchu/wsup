@@ -104,6 +104,22 @@ func TestLoadRequiresAWorkspaceFile(t *testing.T) {
 	}
 }
 
+func TestLoadPointsVersion1WorkspacesAtMigrate(t *testing.T) {
+	root, _ := fixture(t)
+	if err := os.WriteFile(filepath.Join(root, "workspace.json"), []byte(`{"version": 1}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	// Without wsup.json, and with the v0.2.0 settings-only wsup.json.
+	for _, document := range []any{nil, map[string]any{"version": 1, "settings": map[string]any{}}} {
+		if document != nil {
+			save(t, root, document)
+		}
+		if _, err := Load(root); err == nil || !strings.Contains(err.Error(), "wsup migrate") {
+			t.Fatalf("v0.2.0 workspace not pointed at migrate: %v", err)
+		}
+	}
+}
+
 func TestSelectRunsCheckTasksInOrder(t *testing.T) {
 	root, document := fixture(t)
 	if err := os.Mkdir(filepath.Join(root, "lib"), 0755); err != nil {

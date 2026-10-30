@@ -72,7 +72,6 @@ always uses the invoked binary's catalogue.
 
 | Experience | Documented discovery | Precedence and refresh | WSUP evidence |
 | --- | --- | --- | --- |
-| No AI client | Ordinary CLI commands; no discovery needed | Not applicable | Core commands have no AI-service requirement |
 | Any assistant able to read local files | Explicit `SKILL.md` path | User requests the procedure | Portable fallback; invocation not guaranteed |
 | VS Code Copilot | `.agents/skills/`, `.github/skills/`, `.claude/skills/` | Same-name skills can appear in multiple locations; inspect the Skills view. Do not infer cross-location precedence from workspace-root precedence | Upstream documentation only |
 | Codex CLI / IDE extension | `.agents/skills/` from the current directory up to the repository root | Same-name skills are not merged and can both appear. Changes are detected automatically; restart if needed | Upstream documentation only |

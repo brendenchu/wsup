@@ -85,13 +85,14 @@ func Inspect(root string) (Result, error) {
 	// Agent adapter files point at AGENTS.md; inspect them when present.
 	candidates := []string{filepath.Join(root, "AGENTS.md"), filepath.Join(root, "CLAUDE.md"), filepath.Join(root, "GEMINI.md")}
 	// Folder rules live one level down (collections, docs, workbench). Deeper
-	// AGENTS.md files belong to projects, inspected with --project.
+	// AGENTS.md files belong to projects, inspected with --project. A top-level
+	// folder with its own wsup.lock is a nested starter, which owns its guidance.
 	entries, err := os.ReadDir(root)
 	if err != nil {
 		return Result{}, err
 	}
 	for _, entry := range entries {
-		if entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") {
+		if entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") && !regular(filepath.Join(root, entry.Name(), "wsup.lock")) {
 			candidates = append(candidates, filepath.Join(root, entry.Name(), "AGENTS.md"))
 		}
 	}

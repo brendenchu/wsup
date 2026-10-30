@@ -106,6 +106,8 @@ func TestFolderRulesAreInspectedButProjectRulesAreNot(t *testing.T) {
 	put(t, root, "research/AGENTS.md", "Folder rules\n")
 	put(t, root, "apps/app/AGENTS.md", "[missing](missing.md)\n")
 	put(t, root, ".hidden/AGENTS.md", "[missing](missing.md)\n")
+	put(t, root, "nested/AGENTS.md", "[missing](missing.md)\n")
+	put(t, root, "nested/wsup.lock", "{}\n")
 	result, err := Inspect(root)
 	if err != nil || len(result.Errors) != 0 || strings.Join(result.Files, ",") != "AGENTS.md,research/AGENTS.md" {
 		t.Fatalf("folder rule scope: %+v %v", result, err)
