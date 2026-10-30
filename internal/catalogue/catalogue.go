@@ -195,13 +195,11 @@ func Starter(kind string, selection Selection) (map[string][]byte, map[string]st
 	}
 	// The registry is read only when a resolved module has a generator.
 	if slices.ContainsFunc(ids, func(id string) bool { return len(c.modules[id].Generate) != 0 }) {
-		registry := selection.Registry
-		if registry == nil {
-			registry = []byte(`{"name":"` + DefaultWorkspaceName + `","projects":[]}`)
-		}
-		workspace, err := ParseWorkspace(registry)
-		if err != nil {
-			return nil, nil, err
+		workspace := Workspace{Name: DefaultWorkspaceName}
+		if selection.Registry != nil {
+			if workspace, err = ParseWorkspace(selection.Registry); err != nil {
+				return nil, nil, err
+			}
 		}
 		generated, err := c.Generate(ids, workspace)
 		if err != nil {

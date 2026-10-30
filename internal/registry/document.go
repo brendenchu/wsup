@@ -5,10 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"regexp"
 	"slices"
 	"strings"
-
-	"github.com/brendenchu/wsup/internal/catalogue"
 )
 
 const (
@@ -19,6 +18,11 @@ const (
 	// SchemaURL is written as $schema so editors validate wsup.json.
 	SchemaURL = "https://raw.githubusercontent.com/brendenchu/wsup/main/schema/wsup-3.json"
 )
+
+// moduleID matches built-in module ids. It mirrors the catalogue's id rule,
+// which cannot be imported here because the catalogue's generators read
+// documents decoded by this package.
+var moduleID = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 
 // projectKinds is the closed set of project kinds (contract amendment 1).
 var projectKinds = []string{"app", "package", "tool", "infra", "sandbox", "template", "fork", "research"}
@@ -108,7 +112,7 @@ func Decode(body []byte) (Document, error) {
 			return Document{}, fmt.Errorf("wsup.json: %s must be a list of module ids", list.key)
 		}
 		for i, id := range ids {
-			if !catalogue.ValidID(id) || slices.Contains(ids[:i], id) {
+			if !moduleID.MatchString(id) || slices.Contains(ids[:i], id) {
 				return Document{}, fmt.Errorf("wsup.json: %s: %q is not a unique module id", list.key, id)
 			}
 		}

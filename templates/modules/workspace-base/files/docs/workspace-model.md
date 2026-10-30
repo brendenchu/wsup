@@ -359,7 +359,10 @@ the workspace root.
 generates `<name>.code-workspace`, named from the slugified `name` in
 `wsup.json` (for example `my-workspace.code-workspace`). It covers VS Code,
 Cursor, Windsurf, and VSCodium. The file lists the workspace root and one folder
-per registered project. It is a managed starter file: `update` regenerates it
+per registered project, copies the `vscode` block's `settings`, `extensions`
+(as recommendations), and `launch` configurations, and has one VS Code task per
+project task (labelled `<project>: <task>`, check tasks in the test group)
+followed by the `vscode` block's own `tasks`. It is a managed starter file: `update` regenerates it
 from the current `wsup.json` and writes it while it is unedited, reports a
 hand-edited copy as a conflict, and stops if `wsup.json` cannot be read.
 Renaming the workspace writes the new file and removes the old one while it is

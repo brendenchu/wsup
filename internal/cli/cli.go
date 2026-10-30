@@ -383,9 +383,9 @@ func createEditor(output io.Writer, root, name string, data registry.Registry) e
 		return statErr
 	}
 	// The same generator writes the vscode adapter's file, so output matches.
-	workspace := catalogue.Workspace{Name: data.Name, Projects: []catalogue.Project{}}
-	for _, project := range data.Projects {
-		workspace.Projects = append(workspace.Projects, catalogue.Project{ID: project.ID, Path: project.Path})
+	workspace, _, err := registry.LoadDocument(root)
+	if err != nil {
+		return err
 	}
 	body, err := catalogue.CodeWorkspace(workspace)
 	if err != nil {

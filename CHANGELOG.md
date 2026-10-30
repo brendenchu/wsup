@@ -22,7 +22,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
   re-creates it when missing, and `validate` and `guidance` report a missing
   or broken link.
 - Editor adapter `vscode`: `init` generates `<name>.code-workspace` from
-  `wsup.json` (root plus one folder per project) and `update` refreshes
+  `wsup.json` (root plus one folder per project, one VS Code task per project
+  task, and the `vscode` block's settings, extensions, tasks, and launch
+  configurations) and `update` refreshes
   it, reporting hand edits as conflicts. Renaming the workspace replaces the
   file: `update` removes the old one while it is unedited. `--editor NAME` selects and
   `--editor none` skips it; editor adapters are workspace-only. `wsup editor`
