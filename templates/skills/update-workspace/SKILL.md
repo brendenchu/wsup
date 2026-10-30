@@ -26,8 +26,10 @@ description: Create workspace or project starters, maintain template content, or
    defaults for another workspace.
 4. For native updates, preserve a reviewed matched backup of files and `wsup.lock` and
    inspect Git status, then run `wsup update`. Review all actions and conflicts
-   before authorized `wsup update --apply`. Repeat `--keep PATH` only for eligible
-   existing same-path customizations; their original baselines remain unchanged.
+   before authorized `wsup update --apply`. Report the preview's `modules`:
+   offered ids need an explicit `wsup add`, and unlisted modules are not
+   removed. Repeat `--keep PATH` only for eligible existing same-path
+   customizations; their original baselines remain unchanged.
    Preserve missing files for manual resolution and never regenerate the
    user-owned `wsup.json`. I/O failures may leave partial content with the old lock;
    inspect failures rather than retrying blindly. Restore matched files and lock

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/brendenchu/wsup/internal/catalogue"
+	"github.com/brendenchu/wsup/internal/registry"
 )
 
 func TestEmbeddedUpdatePreservesInstalledModulesAndBaselines(t *testing.T) {
@@ -96,5 +97,49 @@ func TestUpdateMergesGeneratedSectionsAroundOwnerEdits(t *testing.T) {
 	if plan, err := Update(root, "0.1.0", nil, true); err == nil || !reflect.DeepEqual(plan.Conflicts, []string{"AGENTS.md"}) ||
 		!reflect.DeepEqual(before, snapshot(t, root)) {
 		t.Fatalf("section edit: %+v %v", plan, err)
+	}
+}
+
+func TestUpdateReportsModuleVersionsOffersAndUnlisted(t *testing.T) {
+	root := collectionWorkspace(t, "apps", "tools")
+	loaded, err := LoadLock(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	loaded.Lock.Modules["apps"] = "0.9.0"
+	saveLock(t, root, loaded.Lock)
+	document, err := registry.Decode(must(os.ReadFile(filepath.Join(root, "wsup.json"))))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// journal is listed by hand; tools is no longer listed.
+	document.Collections = []string{"apps", "journal"}
+	writeFixture(t, root, "wsup.json", must(registry.Encode(document)))
+
+	plan, err := Update(root, "0.1.0", nil, false)
+	want := &ModuleReport{
+		Updated:  []VersionChange{{ID: "apps", From: "0.9.0", To: "1.0.0"}},
+		Offered:  []string{"journal"},
+		Unlisted: []string{"tools"},
+	}
+	if err != nil || !reflect.DeepEqual(plan.Modules, want) || len(plan.Actions) != 0 {
+		t.Fatalf("module report: %+v %+v %v", plan, plan.Modules, err)
+	}
+	if _, err := Update(root, "0.1.0", nil, true); err != nil {
+		t.Fatal(err)
+	}
+	after, err := LoadLock(root)
+	if err != nil || after.Lock.Modules["apps"] != "1.0.0" || after.Lock.Modules["tools"] == "" {
+		t.Fatalf("apply must record the new version and keep unlisted modules: %+v %v", after.Lock.Modules, err)
+	}
+	if _, installed := after.Lock.Modules["journal"]; installed {
+		t.Fatal("offered module installed silently")
+	}
+	if _, err := os.Stat(filepath.Join(root, "journal")); !os.IsNotExist(err) {
+		t.Fatal("offered module wrote files")
+	}
+	settled, err := Update(root, "0.1.0", nil, false)
+	if err != nil || len(settled.Modules.Updated) != 0 || !reflect.DeepEqual(settled.Modules.Offered, []string{"journal"}) {
+		t.Fatalf("after apply: %+v %v", settled.Modules, err)
 	}
 }

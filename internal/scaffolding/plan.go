@@ -27,7 +27,28 @@ type UpdatePlan struct {
 	ToVersion   string   `json:"to_version"`
 	Actions     []Action `json:"actions"`
 	Conflicts   []string `json:"conflicts"`
-	Applied     bool     `json:"applied"`
+	// Modules is reported by a full update only.
+	Modules *ModuleReport `json:"modules,omitempty"`
+	Applied bool          `json:"applied"`
+}
+
+// ModuleReport compares installed modules with this wsup and with wsup.json.
+// Nothing in it is installed or removed: offered modules need wsup add.
+type ModuleReport struct {
+	// Updated lists installed modules whose version differs in this wsup;
+	// applying the update records the new version.
+	Updated []VersionChange `json:"updated"`
+	// Offered lists ids wsup.json selects that are not installed.
+	Offered []string `json:"offered"`
+	// Unlisted lists installed modules wsup.json no longer selects.
+	Unlisted []string `json:"unlisted"`
+}
+
+// VersionChange is one module's recorded and available versions.
+type VersionChange struct {
+	ID   string `json:"id"`
+	From string `json:"from"`
+	To   string `json:"to"`
 }
 
 // PlanUpdate compares the lock with an already selected template bundle and

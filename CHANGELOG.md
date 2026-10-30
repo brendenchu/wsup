@@ -47,6 +47,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
   workspaces and, for agents, in projects.
 - `wsup modules` lists built-in modules; `wsup modules ID` shows a module's
   manifest and files.
+- `wsup update` reports installed modules whose version changed (applying
+  records the new one), modules listed in `wsup.json` but not installed
+  (offered for `wsup add`, never installed silently), and installed modules
+  `wsup.json` no longer lists.
 - A JSON Schema for `wsup.json` (`schema/wsup-3.json`), named by the `$schema`
   that `init` writes so editors validate the file; `wsup schema` prints it.
 - One-command local macOS ARM64 candidate verification and packaging with the

@@ -3,8 +3,11 @@ package scaffolding
 import (
 	"bytes"
 	"fmt"
+	"maps"
+	"slices"
 
 	"github.com/brendenchu/wsup/internal/catalogue"
+	"github.com/brendenchu/wsup/internal/registry"
 )
 
 // Update renders the executable's embedded catalogue for the modules wsup.lock
@@ -54,6 +57,9 @@ func update(root, version string, keep []string, scope func(string) bool, apply 
 	if err != nil {
 		return plan, err
 	}
+	if scope == nil {
+		plan.Modules = moduleReport(loaded.Lock, modules, selection.Registry)
+	}
 	if !bytes.Equal(loaded.Original, prepared.lockBefore) {
 		return UpdatePlan{}, fmt.Errorf("wsup.lock changed during catalogue selection; no files updated")
 	}
@@ -61,4 +67,46 @@ func update(root, version string, keep []string, scope func(string) bool, apply 
 		return prepared.apply()
 	}
 	return plan, nil
+}
+
+// moduleReport compares the lock's modules with the versions this wsup
+// installs and with wsup.json's selection. A missing or invalid wsup.json
+// (validate reports it) offers nothing.
+func moduleReport(lock Lock, available map[string]string, documentBody []byte) *ModuleReport {
+	report := &ModuleReport{Updated: []VersionChange{}, Offered: []string{}, Unlisted: []string{}}
+	for _, id := range slices.Sorted(maps.Keys(lock.Modules)) {
+		if next, ok := available[id]; ok && next != lock.Modules[id] {
+			report.Updated = append(report.Updated, VersionChange{ID: id, From: lock.Modules[id], To: next})
+		}
+	}
+	document, err := registry.Decode(documentBody)
+	if lock.Starter != "workspace" || documentBody == nil || err != nil {
+		return report
+	}
+	listed := slices.Concat(document.Collections, document.Agents, document.Editors)
+	for _, id := range slices.Sorted(slices.Values(listed)) {
+		if _, installed := lock.Modules[id]; !installed {
+			report.Offered = append(report.Offered, id)
+		}
+	}
+	for _, id := range slices.Sorted(maps.Keys(lock.Modules)) {
+		kind, _ := catalogue.KindOf(id)
+		if kind != catalogue.KindBase && !slices.Contains(listed, id) && !required(id, lock) {
+			report.Unlisted = append(report.Unlisted, id)
+		}
+	}
+	return report
+}
+
+// required reports whether another installed module requires id, so it is
+// installed without being listed.
+func required(id string, lock Lock) bool {
+	for other := range lock.Modules {
+		for _, module := range catalogue.Modules() {
+			if module.ID == other && slices.Contains(module.Requires, id) {
+				return true
+			}
+		}
+	}
+	return false
 }
