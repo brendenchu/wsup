@@ -24,11 +24,6 @@ func terminalSession(stdout io.Writer) session {
 	return session{in: os.Stdin, interactive: ok && isTerminal(os.Stdin) && isTerminal(file)}
 }
 
-func isTerminal(file *os.File) bool {
-	info, err := file.Stat()
-	return err == nil && info.Mode()&os.ModeCharDevice != 0
-}
-
 // errCancelled reports end of input during init questions; nothing is written.
 var errCancelled = errors.New("init cancelled; nothing was written")
 

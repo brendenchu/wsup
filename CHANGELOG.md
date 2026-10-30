@@ -31,7 +31,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
   previews or applies regenerating just that file.
 - In a terminal, `wsup init` asks for the preset, agents, and editors that
   flags leave open (a project: agents only), re-asking after an invalid
-  answer. `--yes`, or running without a terminal, uses the defaults.
+  answer. `--yes`, or running without a terminal (including with `/dev/null`
+  as input or output), uses the defaults.
 - `wsup init --preset NAME` selects a preset of collections; explicit
   `--collection` choices add to it. `--preset none` creates a base-only
   workspace. Unknown presets fail before anything is written.
