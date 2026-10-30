@@ -155,7 +155,7 @@ func LoadDocument(root string) (Document, Registry, error) {
 	filename := filepath.Join(root, DocumentPath)
 	info, err := os.Lstat(filename)
 	if err != nil {
-		return Document{}, Registry{}, err
+		return Document{}, Registry{}, version1Hint(root, err)
 	}
 	if !info.Mode().IsRegular() {
 		return Document{}, Registry{}, fmt.Errorf("wsup.json must be a regular file")
@@ -166,7 +166,7 @@ func LoadDocument(root string) (Document, Registry, error) {
 	}
 	document, err := Decode(body)
 	if err != nil {
-		return Document{}, Registry{}, err
+		return Document{}, Registry{}, version1Hint(root, err)
 	}
 	result := Registry{Name: document.Name, Projects: make([]Project, 0, len(document.Projects))}
 	resolvedPaths := map[string]bool{}
@@ -509,4 +509,13 @@ func objectKeys(raw json.RawMessage) ([]string, error) {
 		}
 	}
 	return names, nil
+}
+
+// version1Hint replaces err with a pointer to wsup migrate when root holds a
+// v0.2.0 workspace.json, whose wsup.json is missing or settings-only.
+func version1Hint(root string, err error) error {
+	if info, statErr := os.Lstat(filepath.Join(root, "workspace.json")); statErr == nil && info.Mode().IsRegular() {
+		return fmt.Errorf("this workspace was created by wsup 0.2.0 (workspace.json, no version 3 wsup.json); wsup migrate converts it")
+	}
+	return err
 }
