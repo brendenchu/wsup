@@ -61,8 +61,8 @@ func runSession(ctx context.Context, args []string, stdout, stderr io.Writer, s 
 func newCommand(s session) *cobra.Command {
 	root := &cobra.Command{
 		Use:              "wsup",
-		Short:            "WSUP portable local workspace tools",
-		Long:             "WSUP portable local workspace tools. Inspect projects and guidance, create workspace/project starters, run explicit Unix checks, add modules, and preview or apply managed-content updates.",
+		Short:            "WSUP: AI-native, local-first workspaces",
+		Long:             "WSUP: AI-native, local-first workspaces. Create workspace and project starters ready for coding agents, register projects in wsup.json, run their tasks and checks, add modules, and preview or apply managed-content updates. wsup never calls an AI service.",
 		Version:          Version,
 		SilenceErrors:    true,
 		SilenceUsage:     true,
@@ -76,15 +76,19 @@ func newCommand(s session) *cobra.Command {
 	root.SetGlobalNormalizationFunc(abbreviatedFlag)
 	root.CompletionOptions.DisableDefaultCmd = true
 	root.Flags().String("root", ".", "Explicit workspace root (before the command)")
-	for _, name := range []string{"validate", "projects", "config"} {
+	for name, short := range map[string]string{
+		"validate": "Validate wsup.json and adapter links without running project code",
+		"projects": "List registered projects",
+		"config":   "Show effective settings and their sources",
+	} {
 		root.AddCommand(&cobra.Command{
 			Use:   name,
-			Short: "Inspect workspace " + name,
+			Short: short,
 			Args:  cobra.NoArgs,
 			RunE:  inspectWorkspace,
 		})
 	}
-	inspect := &cobra.Command{Use: "guidance", Short: "Inspect portable instructions", Args: cobra.NoArgs, RunE: inspectWorkspace}
+	inspect := &cobra.Command{Use: "guidance", Short: "Check AGENTS.md files, skills, markers, and local links", Args: cobra.NoArgs, RunE: inspectWorkspace}
 	inspect.Flags().String("project", "", "Inspect one registered project")
 	root.AddCommand(inspect)
 	vscode := &cobra.Command{
@@ -125,7 +129,7 @@ func newCommand(s session) *cobra.Command {
 	run.Flags().Int("timeout", 0, "Stop the task after this many seconds (1..86400; default: the task's own, or none)")
 	root.AddCommand(run)
 	init := &cobra.Command{
-		Use: "init DESTINATION", Short: "Create a native workspace or project starter",
+		Use: "init DESTINATION", Short: "Create a workspace, or a project with --template project",
 		Args: cobra.ExactArgs(1),
 		RunE: func(command *cobra.Command, args []string) error {
 			kind, err := command.Flags().GetString("template")
@@ -221,7 +225,7 @@ func newCommand(s session) *cobra.Command {
 	init.Flags().StringArray("agent", nil, "Agent adapter ("+strings.Join(catalogue.AgentNames(), ", ")+"; default all; "+catalogue.NoPreset+" for none; repeatable)")
 	root.AddCommand(init)
 	update := &cobra.Command{
-		Use: "update", Short: "Preview native managed-content updates; --apply writes",
+		Use: "update", Short: "Preview managed-content updates; --apply writes them",
 		Args: cobra.NoArgs,
 		RunE: func(command *cobra.Command, args []string) error {
 			root, err := command.Root().Flags().GetString("root")
