@@ -169,6 +169,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Developer Experience
 
+- Built-in modules start at version `1.0.0` in this first module-model release;
+  managed-content updates continue to compare file and section hashes.
+
 - Correct the README's write/preview rules and release verification's skill
   paths. Distinguish published v0.2.0 downloads from the unreleased tutorial
   and document the supported migration in the native binary guide.
