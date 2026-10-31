@@ -62,7 +62,8 @@ cp "$mousetrap/LICENSE" "$package/licenses/mousetrap-LICENSE"
   go version -m "$package/wsup"
 } > "$package/BUILD.txt"
 chmod 755 "$package/wsup"
-tar -czf "$output/$name.tar.gz" -C "$output" "$name"
+# Keep macOS resource-fork metadata out of the portable archive.
+COPYFILE_DISABLE=1 tar -czf "$output/$name.tar.gz" -C "$output" "$name"
 (cd "$output" && shasum -a 256 "$name.tar.gz" > SHA256SUMS)
 (cd "$output" && shasum -a 256 -c SHA256SUMS)
 
