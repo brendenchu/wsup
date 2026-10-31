@@ -6,6 +6,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ## Unreleased
 
+## 0.3.0 (2026-10-31)
+
 ### Added
 
 - New opt-in collections: `sandbox`, `templates`, `forks`, `decisions`,

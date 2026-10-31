@@ -5,7 +5,7 @@ Maintain durable product and contributor documentation here:
 - [Product quick start](../README.md): requirements, invocation, and everyday
   commands.
 - [First-workspace tutorial](getting-started.md): create a workspace, register
-  a project, and run a check with a binary built from this branch until v0.3.0 is published.
+  a project, and run a check with the downloaded binary.
 - [Workspace model](../templates/modules/workspace-base/files/docs/workspace-model.md): glossary, layout, module
   catalogue, presets, ownership, registry, `wsup.lock`, CLI configuration, and
   safe updates.
@@ -24,7 +24,7 @@ Maintain durable product and contributor documentation here:
 
 These documents describe the native CLI, not observed user adoption. macOS ARM64
 is the verified runtime and has a compiled archive in the
-[v0.2.0 release](https://github.com/brendenchu/wsup/releases/tag/v0.2.0).
+[v0.3.0 release](https://github.com/brendenchu/wsup/releases/tag/v0.3.0).
 Other targets are not support claims. Download users need no Go toolchain;
 development verification uses the native Go suite and vet.
 
