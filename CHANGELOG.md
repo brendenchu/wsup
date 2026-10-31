@@ -83,6 +83,11 @@ See the [release guide](docs/releases.md) for version and tag policy.
   registered in `wsup.json`), a module catalogue with each collection's files,
   ignore entries, and skills, presets, and a `wsup.lock` reference.
 
+### Fixed
+
+- Exclude macOS AppleDouble (`._*`) resource-fork metadata from local candidate
+  archives so they contain only the executable, guides, provenance and notices.
+
 ### Changed
 
 - **Breaking.** Workspaces and projects created by wsup 0.2.0 must be
@@ -161,6 +166,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
   keep restricted records outside the workspace.
 
 ### Developer Experience
+
+- Correct the README's write/preview rules and release verification's skill
+  paths. Distinguish published v0.2.0 downloads from the unreleased tutorial
+  and document the supported migration in the native binary guide.
 
 - The repository is no longer run as a wsup workspace: root `AI.md`,
   `guidance/`, `.agents/skills/`, `workspace.json`, and `workbench/` are

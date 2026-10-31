@@ -9,8 +9,12 @@ with a preview first and a backup of everything it replaces.
 
 ## Before you start
 
-1. Get a wsup 0.3.0 binary ([native binary use](native-install.md)) and check
-   `wsup --version`.
+1. Get a binary built from this branch until wsup 0.3.0 assets are published;
+   see [source development](../CONTRIBUTING.md#go-development) and
+   [native binary use](native-install.md). Check `wsup --version` and its
+   source provenance: development builds may still print `0.2.0` before the
+   release version is finalized, but the published v0.2.0 binary has no
+   `migrate` command.
 2. Commit or stash your work so `git status` is clean. The migration backs up
    the files it replaces, but Git is the easiest way to review the result.
 3. Run `wsup --root WORKSPACE validate` with the old 0.2.0 binary if you still

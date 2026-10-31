@@ -86,8 +86,10 @@ parent directories.
 | `vscode` | Preview regenerating `<name>.code-workspace`; `--apply` writes it |
 | `schema` | Print the JSON Schema for `wsup.json` |
 
-Every command that writes previews by default and writes only with
-`--apply`, and only when the plan has no conflicts. See the
+`init` creates a new destination immediately. `run` and `check` execute
+selected tasks, and `check` writes reports. Managed-content commands (`add`,
+`update`, `migrate`, and `vscode`) preview by default and write only with
+`--apply`, when the plan has no conflicts. See the
 [command reference](templates/modules/workspace-base/files/docs/workspace-model.md#command-reference)
 for flags, output, and exit codes.
 

@@ -77,7 +77,7 @@ If the pinned Go toolchain is already on PATH, `bash scripts/package.sh` is
 sufficient. The script runs the full race suite, vet, registry validation and
 guidance checks, compares two release-profile binary builds, packages full
 notices, verifies checksums and extraction, and exercises the extracted binary
-with empty PATH. Smoke coverage includes generation, guidance, collections,
+with empty PATH. Smoke coverage includes generation, guidance, collection addition,
 updates, relocation, and child workspace/project generation.
 
 The printed output directory contains the package, archive, and `SHA256SUMS`.
@@ -105,7 +105,7 @@ Do not substitute a dependency summary for required full notices.
 
 Extract into another fresh directory, verify its inventory and executable mode,
 and run the exact extracted binary outside the checkout with empty PATH.
-Exercise help/version, generation, guidance, relocation, collections, update
+Exercise help/version, generation, guidance, relocation, collection addition, update
 preview/apply, and explicit checks using a separately supplied test executable.
 Confirm reports describe the native runtime and preserve owner customizations.
 Never use a real workspace as a packaging fixture.
@@ -151,8 +151,10 @@ a new version; do not rely on disabling the setting to unlock it.
    update changes, exercise an actual supported schema-2 workspace as well as
    synthetic fixtures: preview must be read-only, conflicts must preserve work,
    and successful apply must leave a stable subsequent preview.
-5. Check that root and bundled skill copies agree, relative references work,
-   and independent repositories remain outside workspace staging. Distinguish
+5. Check the canonical skills in `templates/skills/`, their owning module
+   manifests, and the skills deployed into disposable starters. There is no
+   root skill library in this source repository. Confirm relative references
+   work and independent repositories remain outside workspace staging. Distinguish
    structural checks from any live client-discovery tests.
 6. Review [LICENSE](../LICENSE) and distribution notices. Generated starters
    carry no license file; confirm none has been reintroduced under `templates/`.

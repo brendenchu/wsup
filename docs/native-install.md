@@ -6,6 +6,13 @@ v0.2.0 archive contains the compiled binary; download users do not need Go or a
 source checkout. Only macOS ARM64 currently has runtime verification; other
 target builds are not support claims.
 
+The published v0.2.0 download uses the older layout. This branch documents
+unreleased v0.3.0 behavior, including `wsup.json`, `wsup.lock`, and migration.
+Use a binary built from this branch for those workflows; downloading v0.2.0
+will not provide them. Use the
+[v0.2.0 binary guide](https://github.com/brendenchu/wsup/blob/v0.2.0/docs/native-install.md)
+when running the published binary.
+
 ## Download
 
 Obtain both files from the
@@ -118,10 +125,12 @@ after moving the workspace.
 For a complete create/register/check walkthrough, follow the
 [first-workspace tutorial](https://github.com/brendenchu/wsup/blob/v0.2.0/docs/getting-started.md).
 
-Only schema-2 managed state is supported. Unsupported schemas fail without
-writes; there is no in-place conversion. Never edit schema numbers to bypass
-validation. Create a new destination and explicitly transfer reviewed owner
-content instead, preserving the original workspace and reports.
+The unreleased model uses `wsup.lock` version 1. Convert a workspace or project
+created by wsup 0.2.0 with `wsup migrate`, previewing before `--apply`; see the
+[migration guide](https://github.com/brendenchu/wsup/blob/main/docs/migrating.md).
+Unsupported formats fail without writes.
+Never edit schema numbers to bypass validation. Binary replacement alone does
+not migrate files or state.
 
 ## Replace a binary and recover
 
