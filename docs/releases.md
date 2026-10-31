@@ -2,8 +2,8 @@
 
 ## Current release
 
-[WSUP v0.2.0](https://github.com/brendenchu/wsup/releases/tag/v0.2.0), dated
-2026-10-25, is the published native release. It includes a compiled macOS ARM64
+[WSUP v0.3.0](https://github.com/brendenchu/wsup/releases/tag/v0.3.0), dated
+2026-10-31, is the published native release. It includes a compiled macOS ARM64
 archive and `SHA256SUMS`; see [download and extraction](native-install.md).
 Users do not compile the downloaded binary. Go is needed for source development
 and release packaging, not normal binary use.

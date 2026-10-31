@@ -6,13 +6,9 @@ Git, change PATH, or need a Go toolchain.
 
 ## 1. Prepare the executable
 
-This walkthrough uses the unreleased v0.3.0 layout. Until v0.3.0 assets are
-published, build this branch with its pinned Go toolchain using the
-[source-build instructions](../CONTRIBUTING.md#go-development). Download users
-of v0.2.0 should use the
-[v0.2.0 tutorial](https://github.com/brendenchu/wsup/blob/v0.2.0/docs/getting-started.md).
-See [native binary use](native-install.md) for verification and recovery;
-this tutorial uses an absolute executable path.
+Follow [native binary use](native-install.md) to download both v0.3.0 assets,
+verify the checksum, and extract the package. Optional PATH setup is in that
+guide; this tutorial uses an absolute executable path instead.
 
 In the commands below, replace the `WSUP` value with the verified executable's
 actual path. Choose a new `WORKSPACE` destination that does not already exist;
@@ -20,14 +16,13 @@ do not point it at an existing project or workspace. Run the shell snippets
 in order in the same terminal:
 
 ```sh
-WSUP="/absolute/path/to/current-build/wsup"
+WSUP="/absolute/path/to/wsup_0.3.0_darwin_arm64/wsup"
 WORKSPACE="$HOME/wsup-first-workspace"
 "$WSUP" --version
 ```
 
-Confirm this is the intended trusted executable. Before the release version
-is finalized, a development build may still print `0.2.0`; its source revision
-must include the new layout. The published v0.2.0 binary cannot run this tutorial.
+Expected version: `0.3.0`. Confirm this is the intended trusted executable.
+The published v0.2.0 binary cannot run this tutorial's new-layout commands.
 
 ## 2. Create and inspect a workspace
 

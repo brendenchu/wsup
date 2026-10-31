@@ -6,6 +6,8 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ## Unreleased
 
+## 0.3.0 (2026-10-31)
+
 ### Added
 
 - New opt-in collections: `sandbox`, `templates`, `forks`, `decisions`,
@@ -166,6 +168,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
   keep restricted records outside the workspace.
 
 ### Developer Experience
+
+- Built-in modules start at version `1.0.0` in this first module-model release;
+  managed-content updates continue to compare file and section hashes.
 
 - Correct the README's write/preview rules and release verification's skill
   paths. Distinguish published v0.2.0 downloads from the unreleased tutorial

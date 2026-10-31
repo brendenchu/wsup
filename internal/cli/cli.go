@@ -23,7 +23,7 @@ import (
 )
 
 // Version is the product version shared by the CLI, templates, and reports.
-const Version = "0.2.0"
+const Version = "0.3.0"
 
 // statusError carries findings already printed as structured output, not operational errors.
 type statusError struct{ code int }

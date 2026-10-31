@@ -2,24 +2,21 @@
 
 WSUP runs as a separately supplied executable with embedded starter templates.
 There is no installer, remote updater, or automatic PATH change. The published
-v0.2.0 archive contains the compiled binary; download users do not need Go or a
+v0.3.0 archive contains the compiled binary; download users do not need Go or a
 source checkout. Only macOS ARM64 currently has runtime verification; other
 target builds are not support claims.
 
-The published v0.2.0 download uses the older layout. This branch documents
-unreleased v0.3.0 behavior, including `wsup.json`, `wsup.lock`, and migration.
-Use a binary built from this branch for those workflows; downloading v0.2.0
-will not provide them. Use the
-[v0.2.0 binary guide](https://github.com/brendenchu/wsup/blob/v0.2.0/docs/native-install.md)
-when running the published binary.
+Version 0.3.0 uses `wsup.json` and `wsup.lock` and includes migration from
+v0.2.0. For the older binary, use the
+[v0.2.0 binary guide](https://github.com/brendenchu/wsup/blob/v0.2.0/docs/native-install.md).
 
 ## Download
 
 Obtain both files from the
-[WSUP v0.2.0 release](https://github.com/brendenchu/wsup/releases/tag/v0.2.0):
+[WSUP v0.3.0 release](https://github.com/brendenchu/wsup/releases/tag/v0.3.0):
 
-- [wsup_0.2.0_darwin_arm64.tar.gz](https://github.com/brendenchu/wsup/releases/download/v0.2.0/wsup_0.2.0_darwin_arm64.tar.gz)
-- [SHA256SUMS](https://github.com/brendenchu/wsup/releases/download/v0.2.0/SHA256SUMS)
+- [wsup_0.3.0_darwin_arm64.tar.gz](https://github.com/brendenchu/wsup/releases/download/v0.3.0/wsup_0.3.0_darwin_arm64.tar.gz)
+- [SHA256SUMS](https://github.com/brendenchu/wsup/releases/download/v0.3.0/SHA256SUMS)
 
 Download the archive and manifest together. If replacing an earlier download,
 keep the old package separately and use a fresh directory for the new pair.
@@ -31,11 +28,11 @@ On macOS ARM64, from the directory containing both downloaded files:
 
 ```sh
 shasum -a 256 -c SHA256SUMS
-tar -tzf wsup_0.2.0_darwin_arm64.tar.gz
+tar -tzf wsup_0.3.0_darwin_arm64.tar.gz
 ```
 
 Stop if checksum verification fails. Review the archive listing:
-it should contain one `wsup_0.2.0_darwin_arm64/` directory, a `wsup` executable,
+it should contain one `wsup_0.3.0_darwin_arm64/` directory, a `wsup` executable,
 `LICENSE`, this guide as `README.md`, `BUILD.txt`, and dependency notices under
 `licenses/`. Extract
 only a trusted archive into a new owner-selected directory. Checksums detect
@@ -47,9 +44,9 @@ For example, from the download directory, create a new extraction destination
 and extract only after completing those checks:
 
 ```sh
-mkdir wsup-0.2.0-extracted
-tar -xzf wsup_0.2.0_darwin_arm64.tar.gz -C wsup-0.2.0-extracted
-./wsup-0.2.0-extracted/wsup_0.2.0_darwin_arm64/wsup --version
+mkdir wsup-0.3.0-extracted
+tar -xzf wsup_0.3.0_darwin_arm64.tar.gz -C wsup-0.3.0-extracted
+./wsup-0.3.0-extracted/wsup_0.3.0_darwin_arm64/wsup --version
 ```
 
 Local candidates use `wsup_VERSION-local_darwin_arm64.tar.gz` and a matching
@@ -90,14 +87,14 @@ its license and notices. Substitute that package's actual absolute directory
 below; do not use a temporary extraction directory you intend to delete:
 
 ```sh
-export PATH="/absolute/path/to/wsup_0.2.0_darwin_arm64:$PATH"
+export PATH="/absolute/path/to/wsup_0.3.0_darwin_arm64:$PATH"
 command -v wsup
 wsup --version
 ```
 
 This changes only the current shell and places the chosen package before other
 PATH entries. Confirm `command -v wsup` selects the intended executable and
-`--version` prints `0.2.0`. No `sudo`, system-directory copy, or Go build is needed.
+`--version` prints `0.3.0`. No `sudo`, system-directory copy, or Go build is needed.
 
 For persistence, manually add the reviewed `export PATH="..."` line, with your
 real package directory, to your shell's startup file. macOS's default zsh login
@@ -123,11 +120,11 @@ executable or copied catalogue. Retain access to a compatible external binary
 after moving the workspace.
 
 For a complete create/register/check walkthrough, follow the
-[first-workspace tutorial](https://github.com/brendenchu/wsup/blob/v0.2.0/docs/getting-started.md).
+[first-workspace tutorial](https://github.com/brendenchu/wsup/blob/v0.3.0/docs/getting-started.md).
 
-The unreleased model uses `wsup.lock` version 1. Convert a workspace or project
+The model uses `wsup.lock` version 1. Convert a workspace or project
 created by wsup 0.2.0 with `wsup migrate`, previewing before `--apply`; see the
-[migration guide](https://github.com/brendenchu/wsup/blob/main/docs/migrating.md).
+[migration guide](https://github.com/brendenchu/wsup/blob/v0.3.0/docs/migrating.md).
 Unsupported formats fail without writes.
 Never edit schema numbers to bypass validation. Binary replacement alone does
 not migrate files or state.

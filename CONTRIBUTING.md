@@ -13,7 +13,7 @@ describe the intended behavior and ownership boundaries before expanding scope.
 
 ## Go development
 
-The [published v0.2.0 release](https://github.com/brendenchu/wsup/releases/tag/v0.2.0)
+The [published v0.3.0 release](https://github.com/brendenchu/wsup/releases/tag/v0.3.0)
 includes a compiled macOS ARM64 binary. Users of that archive need neither Go
 nor this checkout; follow [native binary use](docs/native-install.md).
 Compilation is required for source development and release packaging, not for
@@ -39,8 +39,8 @@ is the verified runtime; cross-compilation does not certify other targets.
 Non-Unix check execution refuses launch until equivalent descendant supervision
 is implemented.
 
-The product version is `Version` in `internal/cli/cli.go`. Version 0.2.0 is the
-published native release, dated 2026-10-25. The release page supplies the archive
+The product version is `Version` in `internal/cli/cli.go`. Version 0.3.0 is the
+published native release, dated 2026-10-31. The release page supplies the archive
 and checksum manifest; a changelog date alone does not establish publication.
 Ordinary changes do not imply a version bump.
 
