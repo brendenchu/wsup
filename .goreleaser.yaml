@@ -1,0 +1,71 @@
+version: 2
+project_name: wsup
+dist: 'dist'
+env:
+  - GOPROXY=off
+  - GOSUMDB=off
+  - GOTOOLCHAIN=local
+before:
+  hooks:
+    - 'go run ./scripts/release prepare ".release-staging" "{{ .Version }}" "{{ .IsSnapshot }}"'
+    - env CGO_ENABLED=1 go test -race ./...
+    - go vet ./...
+builds:
+  - id: wsup
+    main: ./cmd/wsup
+    binary: wsup
+    goos: [darwin]
+    goarch: [arm64]
+    env: [CGO_ENABLED=0]
+    flags: [-trimpath, -buildvcs=false]
+    ldflags: ['']
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    hooks:
+      post:
+        - 'go run ./scripts/release binary "{{ .Path }}" "dist"'
+archives:
+  - id: wsup
+    ids: [wsup]
+    formats: [tar.gz]
+    name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+    wrap_in_directory: true
+    builds_info:
+      mtime: '{{ .CommitDate }}'
+    files:
+      - src: '.release-staging/extra/README.md'
+        dst: .
+        strip_parent: true
+        info: {mtime: '{{ .CommitDate }}', mode: 0644}
+      - src: '.release-staging/extra/LICENSE'
+        dst: .
+        strip_parent: true
+        info: {mtime: '{{ .CommitDate }}', mode: 0644}
+      - src: '.release-staging/extra/BUILD.txt'
+        dst: .
+        strip_parent: true
+        info: {mtime: '{{ .CommitDate }}', mode: 0644}
+      - src: '.release-staging/extra/licenses/*'
+        dst: licenses
+        strip_parent: true
+        info: {mtime: '{{ .CommitDate }}', mode: 0644}
+checksum:
+  name_template: SHA256SUMS
+snapshot:
+  version_template: '{{ .Version }}-local'
+changelog:
+  disable: true
+release:
+  disable: true
+homebrew_casks:
+  - name: wsup
+    ids: [wsup]
+    binaries: [wsup]
+    homepage: https://github.com/brendenchu/wsup
+    description: Maintain independent projects in a local development workspace
+    skip_upload: true
+    url:
+      template: https://github.com/brendenchu/wsup/releases/download/{{ .Tag }}/{{ .ArtifactName }}
+    repository:
+      owner: '{{ if index .Env "WSUP_TAP_OWNER" }}{{ index .Env "WSUP_TAP_OWNER" }}{{ else }}brendenchu{{ end }}'
+      name: homebrew-tap
+    caveats: Unsigned and not notarized. Verify the source and checksum before installation.

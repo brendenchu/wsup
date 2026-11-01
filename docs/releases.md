@@ -57,64 +57,99 @@ actually verified.
 
 ## Local candidate archive
 
-The [native binary guide](native-install.md) covers extraction, explicit-path
-use, owner-selected installation, replacement, uninstall, and recovery. It is
-also the archive's self-contained `README.md`. This procedure builds a local
-macOS ARM64 candidate, not a release, and leaves product `Version` unchanged.
-Use Go 1.27.3 and cached dependencies. Packaging also requires Bash, Git, POSIX
-shell tools, `tar`, `gzip`, and `shasum`; these are not application runtime
-requirements. The command refuses hosts other than macOS ARM64 and a Go version
-different from `go.mod`. It uses offline dependencies and never installs tools.
+[GoReleaser 2.19.0](https://goreleaser.com/) and Go 1.27.3 are pinned in
+`mise.toml`; use those installed tools and cached Go modules. GoReleaser owns
+builds, tar.gz archives, checksums and Homebrew cask generation through
+[.goreleaser.yaml](../.goreleaser.yaml). The
+[release helper](../scripts/release/main.go) prepares the complete notice set,
+records provenance, checks repeated binary bytes and verifies the extracted
+archive. No publishing workflow is installed by this configuration.
 
-Run from the source root. The fresh temporary output directory avoids replacing
-owner files and stays outside the tracked tree:
+From the source root on macOS ARM64:
 
 ```sh
-mise exec go@1.27.3 -- bash scripts/package.sh
+mise exec -- goreleaser check
+mise exec -- goreleaser release --snapshot --clean
+mise exec -- go run ./scripts/release verify dist
 ```
 
-If the pinned Go toolchain is already on PATH, `bash scripts/package.sh` is
-sufficient. The script runs the full race suite, vet, registry validation and
-guidance checks, compares two release-profile binary builds, packages full
-notices, verifies checksums and extraction, and exercises the extracted binary
-with empty PATH. Smoke coverage includes generation, guidance, collection addition,
-updates, relocation, and child workspace/project generation.
+Without Mise, run the same commands using the pinned executables on PATH.
+GoReleaser uses ignored `dist/`; `--clean` replaces that selected output
+directory. The before hook prepares notices in ignored `.release-staging/`,
+which the archive verifier also uses; preserve it until verification finishes.
+Run from an isolated checkout when release output must stay outside the working
+checkout. Keep owner files out of the distribution directory.
 
-The printed output directory contains the package, archive, and `SHA256SUMS`.
-Successful runs remove their disposable verification fixtures; failures retain
-staging for inspection and exit nonzero. The script accepts no arguments,
-does not bump versions, and never tags, pushes, publishes, installs, signs, or
-changes PATH. It can package uncommitted work, recording Git revision/status in
-`BUILD.txt`; such output is a local candidate, not exact-commit release evidence.
-It rejects observed revision/status changes during the run, but does not isolate
-concurrent writes or detect every edit to already-dirty files. Keep source
-unchanged while packaging and use an isolated clean checkout for release work.
+The before hooks check the runtime/toolchain and run the full race suite and vet.
+Builds use cgo disabled, `-trimpath -buildvcs=false`, no time-dependent linker
+values, and the Git commit timestamp for file modification times. The post-build
+hook compares a second binary build and exercises the standalone binary with
+empty PATH. Snapshots may include local changes; BUILD.txt records the source
+revision, dirty status, source-content fingerprint and both artifact/product
+versions. The product version is not changed by packaging. Snapshot archive
+versions follow the latest tag plus `-local` and may differ from an untagged
+working product version; they are not published releases.
 
-`-trimpath` removes source paths and `-buildvcs=false` avoids implicit VCS metadata;
-the separate build record supplies provenance. Cgo is disabled. Native acceptance
-checks identical binary bytes from repeated builds of the same isolated source
-with this profile and toolchain. This is not a guarantee across Go versions or
-different source inputs. Tar metadata/compression can vary: archive hashes
-identify the actual artifact, not reproducible archive bytes.
+The verifier is mandatory after GoReleaser finishes: it validates SHA256SUMS,
+rejects any archive inventory other than the expected 17 regular files, verifies
+prepared notices/README/provenance byte identity, extracts exclusively into a
+fresh temporary directory, and repeats the extracted-binary smoke checks.
+Coverage includes init, validate, guidance, collection addition, update, relocation
+and child workspace/project generation with empty PATH. It also rejects source
+changes since preparation. These are local artifact checks, not installed-client
+skill discovery or certification for other platforms.
 
-The notice set conservatively includes the pinned Go toolchain's vendored
-components and all declared external runtime modules, even modules not linked
-on macOS. Recheck it against `go list -deps ./cmd/wsup`, other selected targets,
-and upstream LICENSE/NOTICE requirements whenever toolchain/dependencies change.
-Do not substitute a dependency summary for required full notices.
+GoReleaser OSS has no post-archive verification hook in this configuration, so
+archive verification is an explicit second command. Successful generation alone
+is not final acceptance. Failures retain the selected artifact directory for
+inspection; temporary smoke/build fixtures are removed by the helper. Source
+fingerprints detect changes to tracked and unignored source bytes during a run;
+this is not filesystem isolation or power-loss durability. Use a clean, isolated
+checkout for final release work.
 
-Extract into another fresh directory, verify its inventory and executable mode,
-and run the exact extracted binary outside the checkout with empty PATH.
-Exercise help/version, generation, guidance, relocation, collection addition, update
-preview/apply, and explicit checks using a separately supplied test executable.
-Confirm reports describe the native runtime and preserve owner customizations.
-Never use a real workspace as a packaging fixture.
+Archives keep the existing layout: `wsup_VERSION_darwin_arm64/` with the
+executable, LICENSE, the [native guide](native-install.md) as README.md,
+BUILD.txt and thirteen full dependency notice files. No root source README,
+repository metadata or extended-attribute sidecar files belong in the archive.
+Notice inventory conservatively includes the pinned toolchain's vendored
+components and declared runtime modules; re-review it when dependencies change.
+Repeated binary identity is scoped to the same source and toolchain; archive
+byte identity across different runs is not claimed.
 
-Keep outputs only as long as needed; remove only the specific disposable files
-and directories created for this exercise. A final release must rebuild from
-the selected clean commit with its newly chosen version, omit the `-local`
-candidate suffix, and repeat all target verification. Local candidates do not
-authorize a version bump, tag, installation, signing, or publication.
+## Homebrew definition and publication boundary
+
+GoReleaser generates `dist/homebrew/Casks/wsup.rb` for the same archive.
+It uses the supported `homebrew_casks` integration; upstream's old prebuilt-binary
+`brews` formula integration is deprecated/removed. `skip_upload: true` keeps
+that definition local. The default provisional destination is
+`brendenchu/homebrew-tap`; set `WSUP_TAP_OWNER` to the owner approved during the
+publisher/namespace decision. A tap owner is a GitHub user or organization,
+independent of the Go module domain. Creating, publishing or changing a remote
+tap remains separately authorized WSUP installation work.
+
+The cask refers to the release asset URL, so a local snapshot test substitutes
+only the download URL with the exact local snapshot archive, retaining the
+generated version, checksum and binary stanza. Use an isolated Homebrew prefix
+and local tap for the test; preserve the normal installed wsup and tap state.
+No automatic quarantine-removal hook is generated. Packages remain unsigned and
+not notarized; establish the intended trusted install experience before public
+Homebrew announcement. The local prebuilt-cask test installed and removed the
+package, but Gatekeeper blocked launching its quarantined ad-hoc-signed binary.
+Installed execution is therefore not accepted yet. Developer ID signing and
+notarization, or a separately verified source-built formula, need an explicit
+installation decision before public Homebrew launch. Do not infer a usable
+installed path from successful archive or extraction checks.
+
+Full tap distribution, upgrade/uninstall checks and
+canonical source installation are the installation milestone, not implied by
+local cask generation.
+
+`release.disable: true` and cask `skip_upload: true` prevent remote publication,
+even on a non-snapshot command. A separately authorized release builds from its
+clean annotated tag with `goreleaser release --clean`, runs the mandatory verifier,
+reviews every asset, then uploads a draft and publishes using the manual gates
+below. GoReleaser's local configuration does not grant write permission to any
+remote repository or release.
 
 ## Manual release checklist
 
@@ -143,7 +178,8 @@ a new version; do not rely on disabling the setting to unlock it.
    macOS ARM64 is currently verified. Cross-compilation is build evidence, not
    runtime certification; non-Unix checks remain unsupported. Report unavailable targets as
    missing coverage; claim client support only to the extent actually tested.
-4. Follow the local archive procedure, including required notices and checksums.
+4. Follow the GoReleaser archive procedure and mandatory verifier, including
+   required notices and checksums.
    Build a standalone binary outside the tracked tree. Generate a disposable
    workspace outside the checkout. Run validation/guidance and child generation
    with that external binary and empty PATH. Workspaces carry state/reports, not
@@ -172,8 +208,9 @@ a new version; do not rely on disabling the setting to unlock it.
    does not publish a release. If pushing is approved, specify the intended
    remote and exact tag rather than pushing every local tag.
 
-9. Build the final archive from the exact clean tagged commit, without the
-   `-local` suffix. Include the binary, full notices, native binary guide, and a
+9. Build with `goreleaser release --clean` from the exact clean tagged commit
+   (the helper rejects dirty or mismatched-version releases), then run
+   `go run ./scripts/release verify dist`. The archive has no `-local` suffix. Include the binary, full notices, native binary guide, and a
    build record identifying the tag, commit, toolchain and build metadata.
    Repeat extracted-binary verification and generate `SHA256SUMS` for that exact
    archive. With publication authorization, create a draft GitHub release for
@@ -186,7 +223,7 @@ a new version; do not rely on disabling the setting to unlock it.
     the release tag resolves to the tested commit and the release is not a
     draft. Do not declare download-back verification complete if it was blocked.
 
-Local candidate verification and packaging are automated; there is no automatic
+GoReleaser and its verifier automate local candidate checks and packaging; there is no automatic
 release publication, package-manager publication, or remote self-update service.
 GitHub binary release assets are published manually. Keep development notes
 and release-preparation drafts outside this repository. Publish

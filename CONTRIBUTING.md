@@ -69,8 +69,9 @@ Ordinary changes do not imply a version bump.
   Starters carry only generated-owner documentation, agent instructions,
   configuration, and scaffold files.
 - Never implement source changes by editing generated output.
-- Keep generated workspaces/projects, executables, release archives, and checksum
-  manifests outside this checkout; tests use disposable temporary destinations.
+- Keep generated workspaces/projects and test fixtures outside this checkout.
+  GoReleaser uses ignored `dist/` and `.release-staging/`; run from an isolated
+  checkout when artifacts must remain outside the working checkout.
   Development-only ignore rules guard common accidental root build outputs.
   Generated owners must track their own state for managed updates. Authored files under
   `templates/` are build inputs, not generated output.
@@ -145,7 +146,12 @@ full `go test -race ./...` run covers it. Standalone
 generation, inspection, collection additions, updates, and child generation
 also run with empty PATH.
 Build and verify a local candidate with
-`mise exec go@1.27.3 -- bash scripts/package.sh` on macOS ARM64.
+the pinned GoReleaser and Go tools on macOS ARM64:
+
+```sh
+mise exec -- goreleaser release --snapshot --clean
+mise exec -- go run ./scripts/release verify dist
+```
 See [local candidate archives](docs/releases.md#local-candidate-archive) for
 prerequisites, notices, checksum verification, output, and separate release gates.
 
@@ -157,7 +163,8 @@ prove client discovery or invocation; see [AI guidance](docs/ai-guidance.md).
 
 ## Preparing a contribution
 
-Open a pull request targeting `main`. The repository's solo-maintainer policy
+Before editing, create or reuse a feature branch from the intended base; main
+is protected. Open a pull request targeting `main`. The repository's solo-maintainer policy
 requires a PR without requiring another person's approval. Resolve review
 conversations and keep the branch up to date before merging. Reviews remain
 welcome; the required approval count can increase when another maintainer joins.

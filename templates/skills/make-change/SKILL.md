@@ -7,7 +7,11 @@ description: Implement or repair code in its owning project while preserving rep
 
 1. Identify the owning project from the source path (and wsup.json in a
    workspace). Read its README and the nearest AGENTS.md; inspect staged,
-   unstaged and untracked work before choosing the edit location.
+   unstaged and untracked work before choosing the edit location. Check the
+   current/default branch and the owner's PR/protection policy before editing.
+   Reuse an appropriate feature branch or create one when the default branch is
+   protected or PRs are required. If protection cannot be verified, use a feature
+   branch conservatively and report that uncertainty; do not bypass protections.
 2. Establish expected behaviour from the task, source and callers. For a defect,
    reproduce it with the narrowest reliable existing test or command.
 3. Make a coherent change in the owner. Keep public interfaces and unrelated

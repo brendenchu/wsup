@@ -1,7 +1,7 @@
 {
   "id": "packages",
   "kind": "collection",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Reusable libraries and packages.",
   "applies_to": [
     "workspace"

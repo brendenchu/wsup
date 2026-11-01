@@ -4,6 +4,8 @@
 /wsup_*.tar.gz
 /wsup_*.zip
 /SHA256SUMS
+/dist/
+/.release-staging/
 
 .env
 .env.*

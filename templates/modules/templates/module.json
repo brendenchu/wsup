@@ -1,7 +1,7 @@
 {
   "id": "templates",
   "kind": "collection",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Project starters and scaffolds other projects are created from.",
   "applies_to": [
     "workspace"
