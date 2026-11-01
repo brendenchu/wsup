@@ -1,7 +1,7 @@
 {
   "id": "infra",
   "kind": "collection",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Provisioning, deployment, and operations code.",
   "applies_to": [
     "workspace"

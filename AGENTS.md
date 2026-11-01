@@ -17,7 +17,8 @@ This repository is the wsup CLI: Go source, tests, and the starter content that
   served from the repository. Change it with `internal/registry/document.go`;
   a test keeps their fields in step.
 - `docs/`: the product manual (install, getting started, releases, AI guidance).
-- `scripts/package.sh`: local macOS ARM64 release candidate packaging.
+- `.goreleaser.yaml`: native build/archive/cask configuration; `scripts/release/`
+  prepares notices and verifies binary/archive acceptance.
 
 This repository is not itself a wsup workspace: it has no registry, workspace
 guidance, or skills of its own.
@@ -30,6 +31,8 @@ guidance, or skills of its own.
   for registry, CLI, or update changes.
 - Generated output must work without this checkout: no machine paths, client,
   provider, framework, or organization assumptions in `templates/`.
+- Main is protected. Make changes on a feature branch and follow the PR/CI
+  procedure in [CONTRIBUTING.md](CONTRIBUTING.md#preparing-a-contribution).
 - Preserve unrelated work. Commit, push, tag, or publish only when asked.
 - Record user-visible changes in `CHANGELOG.md` under Unreleased.
 

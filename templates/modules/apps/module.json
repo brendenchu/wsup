@@ -1,7 +1,7 @@
 {
   "id": "apps",
   "kind": "collection",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Applications and user-facing deliverables.",
   "applies_to": [
     "workspace"

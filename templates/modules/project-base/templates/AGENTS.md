@@ -17,6 +17,8 @@ Describe this project's purpose in one sentence.
 
 - Inspect source, callers, and local instructions first; stay within the request.
 - Preserve unrelated edits and staging; check Git status before any Git action.
+- Follow the owning repository's branch/PR policy; use a feature branch for
+  changes targeting a protected default branch.
 - Keep formatting separate from behaviour changes. Existing diagnostics are an
   inventory, not a specification; never weaken rules or widen exclusions just
   to make a check pass.

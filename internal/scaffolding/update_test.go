@@ -118,7 +118,7 @@ func TestUpdateReportsModuleVersionsOffersAndUnlisted(t *testing.T) {
 
 	plan, err := Update(root, "0.1.0", nil, false)
 	want := &ModuleReport{
-		Updated:  []VersionChange{{ID: "apps", From: "0.9.0", To: "1.0.0"}},
+		Updated:  []VersionChange{{ID: "apps", From: "0.9.0", To: "1.0.1"}},
 		Offered:  []string{"journal"},
 		Unlisted: []string{"tools"},
 	}
@@ -129,7 +129,7 @@ func TestUpdateReportsModuleVersionsOffersAndUnlisted(t *testing.T) {
 		t.Fatal(err)
 	}
 	after, err := LoadLock(root)
-	if err != nil || after.Lock.Modules["apps"] != "1.0.0" || after.Lock.Modules["tools"] == "" {
+	if err != nil || after.Lock.Modules["apps"] != "1.0.1" || after.Lock.Modules["tools"] == "" {
 		t.Fatalf("apply must record the new version and keep unlisted modules: %+v %v", after.Lock.Modules, err)
 	}
 	if _, installed := after.Lock.Modules["journal"]; installed {

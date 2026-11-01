@@ -6,6 +6,24 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ## Unreleased
 
+### Added
+
+- Pinned GoReleaser configuration for verified macOS ARM64 builds, wrapped
+  archives, SHA-256 manifests and locally generated Homebrew casks. Publishing
+  is disabled; final release/tap writes remain explicit maintainer actions.
+- Release helpers preserve full dependency notices, source provenance, repeated
+  binary checks and exact-inventory/extracted-binary acceptance.
+
+### Changed
+
+- Replace the custom candidate-packaging script with GoReleaser and an explicit
+  archive verification step. Select a different GitHub tap owner with
+  `WSUP_TAP_OWNER` without changing the Go module namespace.
+- Generated workspace/project rules and the make-change skill direct agents to
+  feature branches when the default branch is protected or PRs are required.
+  Affected built-in modules move to 1.0.1; existing owner customizations survive
+  the ordinary managed-update rules.
+
 ## 0.3.0 (2026-10-31)
 
 ### Added

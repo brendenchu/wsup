@@ -1,7 +1,7 @@
 {
   "id": "sandbox",
   "kind": "collection",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Experiments, spikes, and throwaway prototypes.",
   "applies_to": [
     "workspace"
