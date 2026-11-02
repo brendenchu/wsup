@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/catalogue"
 )
 
 func put(t *testing.T, root, name, body string) {

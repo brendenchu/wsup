@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/catalogue"
 )
 
 // session is how a command reaches its user: interactive only when both stdin

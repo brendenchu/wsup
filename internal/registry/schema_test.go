@@ -6,7 +6,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/brendenchu/wsup/schema"
+	"github.com/wavykit/wsup/schema"
 )
 
 // schemaObject is the part of a JSON Schema object definition the test reads.

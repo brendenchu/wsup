@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/brendenchu/wsup/internal/cli"
+	"github.com/wavykit/wsup/internal/cli"
 )
 
 func main() {

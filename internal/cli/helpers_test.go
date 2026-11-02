@@ -3,8 +3,8 @@ package cli
 import (
 	"testing"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
-	"github.com/brendenchu/wsup/internal/scaffolding"
+	"github.com/wavykit/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/scaffolding"
 )
 
 // checkTasks turns check definitions (argument lists or policy objects) into

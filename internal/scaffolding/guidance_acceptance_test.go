@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brendenchu/wsup/internal/guidance"
+	"github.com/wavykit/wsup/internal/guidance"
 )
 
 func TestNativeGuidanceIsSelfContainedAndRoutesEveryCanonicalSkill(t *testing.T) {

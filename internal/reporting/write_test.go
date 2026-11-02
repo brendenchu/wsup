@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brendenchu/wsup/internal/configuration"
-	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/configuration"
+	"github.com/wavykit/wsup/internal/registry"
 )
 
 var fixedTime = time.Date(2026, 10, 25, 17, 0, 0, 0, time.UTC)

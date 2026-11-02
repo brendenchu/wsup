@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brendenchu/wsup/internal/configuration"
-	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/configuration"
+	"github.com/wavykit/wsup/internal/registry"
 )
 
 // Evidence deliberately has no command, environment, stdout, or stderr fields.

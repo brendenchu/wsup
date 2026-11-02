@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/catalogue"
 )
 
 // olderWorkspace initializes a workspace with the given collections, then

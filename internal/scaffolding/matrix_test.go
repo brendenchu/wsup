@@ -12,9 +12,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
-	"github.com/brendenchu/wsup/internal/guidance"
-	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/guidance"
+	"github.com/wavykit/wsup/internal/registry"
 )
 
 // The tables below restate the v0.3.0 contract (sections 1–4 and 7). They are

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/registry"
 )
 
 // Skill identifies valid metadata found at an owner-relative path.

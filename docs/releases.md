@@ -16,6 +16,14 @@ the immutable-tag policy below, not the normal release procedure.
 
 ## One product version
 
+Development source has migrated to `github.com/wavykit/wsup`, but v0.3.0 still
+declares the historical module. Follow the
+[source module transition](native-install.md#source-module-transition) and leave
+published tags/assets untouched. Before advertising the next source release,
+verify the released canonical module through direct and proxy installs, pinned
+version and `@latest`, with isolated caches and binary output. A checkout build
+or local packaging snapshot is not this acceptance.
+
 WSUP uses one version for its CLI, bundled workspace/project templates, and
 portable skills. The native authoritative value is `Version` in
 [internal/cli/cli.go](../internal/cli/cli.go). It supplies CLI

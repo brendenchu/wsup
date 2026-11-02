@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
-	"github.com/brendenchu/wsup/internal/configuration"
-	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/configuration"
+	"github.com/wavykit/wsup/internal/registry"
 )
 
 const (

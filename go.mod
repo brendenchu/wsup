@@ -1,4 +1,4 @@
-module github.com/brendenchu/wsup
+module github.com/wavykit/wsup
 
 go 1.27.3
 

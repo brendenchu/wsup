@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/catalogue"
 )
 
 const (

@@ -6,8 +6,8 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
-	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/registry"
 )
 
 // Update renders the executable's embedded catalogue for the modules wsup.lock

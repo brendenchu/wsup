@@ -11,8 +11,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
-	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/registry"
 )
 
 // Action describes a proposed same-path change. Planning never applies it.
