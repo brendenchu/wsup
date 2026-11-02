@@ -12,14 +12,14 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/wavykit/wsup/internal/catalogue"
 	"github.com/wavykit/wsup/internal/configuration"
 	"github.com/wavykit/wsup/internal/guidance"
 	"github.com/wavykit/wsup/internal/registry"
 	"github.com/wavykit/wsup/internal/scaffolding"
 	"github.com/wavykit/wsup/schema"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 // Version is the product version shared by the CLI, templates, and reports.
@@ -78,7 +78,6 @@ func newCommand(s session) *cobra.Command {
 	root.Flags().String("root", ".", "Explicit workspace root (before the command)")
 	for name, short := range map[string]string{
 		"validate": "Validate wsup.json and adapter links without running project code",
-		"projects": "List registered projects",
 		"config":   "Show effective settings and their sources",
 	} {
 		root.AddCommand(&cobra.Command{
@@ -88,6 +87,7 @@ func newCommand(s session) *cobra.Command {
 			RunE:  inspectWorkspace,
 		})
 	}
+	root.AddCommand(projectsCommand())
 	inspect := &cobra.Command{Use: "guidance", Short: "Check AGENTS.md files, skills, markers, and local links", Args: cobra.NoArgs, RunE: inspectWorkspace}
 	inspect.Flags().String("project", "", "Inspect one registered project")
 	root.AddCommand(inspect)

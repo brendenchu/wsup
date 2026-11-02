@@ -8,6 +8,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Added
 
+- `projects ID` shows a readable project view, or a version-1 envelope with
+  `--json`: owner, location, configured tasks, direct relationships and bounded
+  instruction/skill presence. No tasks, instructions or skills are executed;
+  the existing no-ID JSON listing remains unchanged.
 - Pinned GoReleaser configuration for verified macOS ARM64 builds, wrapped
   archives, SHA-256 manifests and locally generated Homebrew casks. Publishing
   is disabled; final release/tap writes remain explicit maintainer actions.
