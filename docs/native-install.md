@@ -6,15 +6,68 @@ v0.3.0 archive contains the compiled binary; download users do not need Go or a
 source checkout. Only macOS ARM64 currently has runtime verification; other
 target builds are not support claims.
 
+Version 0.4.0 is a published source-only release with no uploaded binaries.
+Use the source procedure below for project inspection and current behavior;
+the download sections retain the historical v0.3.0 binary procedure.
+
+## Source installation
+
+On macOS ARM64, Go 1.27.3 and Git were used to verify both pinned `v0.4.0`
+and `@latest` installation through `GOPROXY=direct` and
+`GOPROXY=https://proxy.golang.org`, each with fresh module/build caches and
+binary output, checksum verification enabled, and no global Go/PATH changes.
+Both version selectors resolved module `github.com/wavykit/wsup` at `v0.4.0`
+on 2026-11-02. `@latest` can change with future releases; pin for repeatability.
+
+Choose a new absolute `INSTALL` directory. Run with Go 1.27.3 available:
+
+```sh
+INSTALL="/absolute/path/to/new/wsup-0.4.0"
+mkdir -p "$INSTALL"
+env GOENV=off GOWORK=off GOTOOLCHAIN=local CGO_ENABLED=0 \
+  GOPATH="$INSTALL/gopath" GOMODCACHE="$INSTALL/modules" \
+  GOCACHE="$INSTALL/cache" GOBIN="$INSTALL/bin" \
+  GOPROXY=https://proxy.golang.org GOSUMDB=sum.golang.org \
+  GOPRIVATE= GONOPROXY= GONOSUMDB= GOFLAGS= \
+  go install github.com/wavykit/wsup/cmd/wsup@v0.4.0
+"$INSTALL/bin/wsup" --version
+go version -m "$INSTALL/bin/wsup"
+"$INSTALL/bin/wsup" --help
+```
+
+Expected CLI version: `0.4.0`; build metadata must identify command
+`github.com/wavykit/wsup/cmd/wsup` and module
+`github.com/wavykit/wsup` at `v0.4.0`. For the verified latest selector,
+substitute `@latest`; for direct discovery, substitute `GOPROXY=direct`.
+Use separate new installation directories to repeat cold-cache checks.
+Cold-cache installation needs network access; offline installation is not
+certified. Go is not needed to run the compiled executable.
+
+Invoke the absolute binary path to avoid selecting another version on PATH.
+This does not replace an existing `wsup`. For workspace creation and project
+inspection, follow the [tutorial](getting-started.md). Project tasks need their
+own tools; installation never supplies them.
+
+Upgrade into a new directory, verify the version/build identity and workspace
+smokes, then deliberately select the new executable. Keep the prior binary for
+recovery. Optional PATH setup is separate; use `command -v wsup` to inspect
+which executable a bare command selects.
+
+To uninstall this isolated copy, remove its exact `bin/wsup` file. Dedicated
+`gopath`, `modules` and `cache` directories may be removed separately after
+checking that they contain only this installation's disposable data. Do not
+delete workspaces or ordinary shared Go caches. No new binary download,
+curl installer or Homebrew channel is established by this source release.
+
 Version 0.3.0 uses `wsup.json` and `wsup.lock` and includes migration from
 v0.2.0. For the older binary, use the
 [v0.2.0 binary guide](https://github.com/brendenchu/wsup/blob/v0.2.0/docs/native-install.md).
 
 ## Source module transition
 
-Development source uses `github.com/wavykit/wsup`; published v0.3.0 source
+Version 0.4.0 uses `github.com/wavykit/wsup`; published v0.3.0 source
 declares `github.com/brendenchu/wsup`. The module-path change is incompatible
-for Go source consumers and belongs in the next appropriate 0.x minor release.
+for Go source consumers and shipped in the 0.4.0 minor release.
 It does not rename the executable or require workspace data/layout migration.
 Existing downloaded binaries and published tags/assets are unchanged.
 
@@ -35,11 +88,9 @@ Conversely, do not assume old-path `@latest` follows future releases declaring
 the new module: GitHub repository redirects do not reconcile Go module identity.
 Pin the historical command above rather than relying on that behavior.
 
-After an authorized release declaring the new module exists, maintainers must
-verify pinned-version and `@latest` installs from clean caches using both direct
-discovery and the selected Go proxy before documenting a released install channel.
-Until then, use the [commit-pinned candidate procedure](#source-candidate-installation)
-below, or a reviewed source checkout and the
+Released pinned-version and `@latest` installation checks passed for v0.4.0;
+use the [source installation procedure](#source-installation). To develop from
+a reviewed checkout, use the
 [source development procedure](../CONTRIBUTING.md#go-development).
 The CLI's `--version` is a source constant, not the module version or proof of a
 published release; candidate builds may still report `0.3.0`. Use `go version -m`

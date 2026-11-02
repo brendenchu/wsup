@@ -31,23 +31,25 @@ macOS ARM64 is the verified runtime. Unix tasks run under process-group
 supervision; on other systems tasks refuse to launch until equivalent cleanup
 exists. Cross-compilation does not establish runtime support.
 
-Download the macOS ARM64 binary from the
-[releases page](https://github.com/wavykit/wsup/releases). See
+Version 0.4.0 is a source-only release; use Go 1.27.3 and the
+[source installation guide](docs/native-install.md#source-installation) for
+verified pinned-version and `@latest` commands. Go is needed to build, not to
+run the installed executable.
+
+The historical v0.3.0 macOS ARM64 binary remains available from its
+[release page](https://github.com/wavykit/wsup/releases/tag/v0.3.0). See
 [native binary use](docs/native-install.md) for checksum verification,
 extraction, invocation by path, replacement, and recovery. There is no
 installer, automatic updater, or PATH change.
 
-To build from source, use Go 1.27.3 (pinned in `mise.toml`); see
-[Go development](CONTRIBUTING.md#go-development).
+For source development, see [Go development](CONTRIBUTING.md#go-development).
 
 The canonical repository is [wavykit/wsup](https://github.com/wavykit/wsup).
-Development source now uses the Go module `github.com/wavykit/wsup`.
-This path change is unreleased; it is not yet a verified released install channel.
+Version 0.4.0 uses the Go module `github.com/wavykit/wsup`.
 See the [source module transition](docs/native-install.md#source-module-transition)
-for historical v0.3.0 installs and release-dependent verification.
-Maintainers evaluating current source can use the
-[verified commit-pinned candidate procedure](docs/native-install.md#source-candidate-installation);
-it is not a released or verified `@latest` channel.
+for historical v0.3.0 installs and compatibility limits.
+Maintainers evaluating the earlier development commit can use the
+[historical commit-pinned candidate procedure](docs/native-install.md#source-candidate-installation).
 
 ## Try it
 
@@ -76,10 +78,10 @@ workspace, register a project, and run a check.
 
 ## Work on registered projects
 
-The tutorial's [multi-project example](docs/getting-started.md#6-inspect-and-maintain-multiple-projects-source-candidate)
+The tutorial's [multi-project example](docs/getting-started.md#6-inspect-and-maintain-multiple-projects)
 registers `readme-demo` and `docs-demo` with explicit ownership and documentation
-checks. With the verified source candidate, inspect the configuration before
-choosing what to execute:
+checks. With the source-installed v0.4.0 executable, inspect the configuration
+before choosing what to execute:
 
 ```sh
 wsup --root /path/to/workspace projects
@@ -100,7 +102,7 @@ Review conflicts and keep a matched backup before applying. Existing project
 directories can be registered manually after deciding their Git ownership;
 `init` creates new destinations, never adopts or overwrites an existing one.
 
-`projects ID` requires the source candidate; the published v0.3.0 binary
+`projects ID` requires v0.4.0; the published v0.3.0 binary
 supports the no-ID listing, explicit checks and managed-update previews.
 
 ## Commands

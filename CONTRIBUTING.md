@@ -24,8 +24,10 @@ Use Go 1.27.3, pinned in `mise.toml`. Mise is optional if that toolchain is
 already available. Development tests also require Git for ownership and reporting
 assertions. The repository is [wavykit/wsup](https://github.com/wavykit/wsup),
 and development source uses Go module `github.com/wavykit/wsup`. Keep internal
-imports on that module path. This migration is unreleased; repository ownership
-and a development build do not establish a published source-install channel.
+imports on that module path. Version 0.4.0 is the published source-only release;
+its pinned/latest install checks passed through direct and Go proxy discovery.
+A development build alone
+does not establish released module identity.
 See the [module transition](docs/native-install.md#source-module-transition).
 From this root:
 
@@ -44,8 +46,9 @@ is the verified runtime; cross-compilation does not certify other targets.
 Non-Unix check execution refuses launch until equivalent descendant supervision
 is implemented.
 
-The product version is `Version` in `internal/cli/cli.go`, currently prepared as
-0.4.0 but not published. Version 0.3.0 remains the published native release,
+The product version is `Version` in `internal/cli/cli.go`, currently 0.4.0,
+published as a source-only release on 2026-11-02.
+Version 0.3.0 remains the published prebuilt native release,
 dated 2026-10-31. The release page supplies the archive
 and checksum manifest; a changelog date alone does not establish publication.
 Ordinary changes do not imply a version bump.

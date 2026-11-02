@@ -2,6 +2,15 @@
 
 ## Current release
 
+[wsup v0.4.0](https://github.com/wavykit/wsup/releases/tag/v0.4.0), published
+2026-11-02, is an immutable source-only release from
+`dc256e46b41c26a8591c064f49b74295e37d5cef`. It has no uploaded binary assets.
+Pinned `v0.4.0` and `@latest` canonical Go installs passed direct and selected
+proxy discovery with fresh caches on macOS ARM64; see
+[source installation](native-install.md#source-installation).
+
+### Historical prebuilt release
+
 [WSUP v0.3.0](https://github.com/wavykit/wsup/releases/tag/v0.3.0), dated
 2026-10-31, is the published native release. It includes a compiled macOS ARM64
 archive and `SHA256SUMS`; see [download and extraction](native-install.md).
@@ -16,17 +25,17 @@ the immutable-tag policy below, not the normal release procedure.
 
 ## One product version
 
-### Preparing 0.4.0
+### Source-only 0.4.0 acceptance
 
-Development source reports `0.4.0`; this is local release preparation, not a
-published release. The v0.4 scope is canonical Go source installation and the
-bounded readable/JSON project view, with local packaging verification. Owner
-feedback on project-view usefulness is not yet available.
+Source reports `0.4.0`. The release scope is canonical Go source installation
+and bounded readable/JSON project inspection, with local packaging verification.
+Owner feedback confirms the view provided needed information; no quantified
+or recurring productivity benefit is claimed.
 
 The tested commit-pinned procedure in the
 [native guide](native-install.md#source-candidate-installation) remains tied
 to its exact earlier commit and correctly reports `0.3.0`. Do not substitute
-`@v0.4.0` or `@latest` in user-facing install commands before release acceptance.
+`@v0.4.0` or `@latest` when reproducing that historical candidate's evidence.
 The published v0.3.0 binary and its tutorial remain unchanged.
 
 For a source-only v0.4 release, follow the version, clean-commit, checks and
@@ -37,17 +46,17 @@ verify the tag/commit and intended empty binary-asset inventory, then publish
 only with authorization. The generic binary upload/download-back steps below
 apply only if binary distribution is separately selected and accepted.
 
-After source publication and before announcement, install the exact released
-version and `@latest` through both `GOPROXY=direct` and the selected Go proxy,
-each with fresh module/build caches and GOBIN. Verify CLI version `0.4.0`,
-module build metadata and workspace/project-view smokes. Record any discovery
-delay or failure explicitly; do not treat a commit-pinned candidate as this gate.
-Then update the canonical install guide, tutorial and current-release heading
-with only the verified released commands.
+After source publication, the exact released version and `@latest` were each
+installed through `GOPROXY=direct` and `GOPROXY=https://proxy.golang.org`, with
+fresh module/build caches and GOBIN. All four resolved module version `v0.4.0`
+and reported CLI version `0.4.0`. Version/help, workspace initialization,
+validation/guidance, child-project generation, readable/JSON project inspection
+and explicitly selected checks passed. No discovery failure was observed.
+These checks are separate from earlier commit-pinned candidate evidence.
 
 ### Module transition
 
-Development source has migrated to `github.com/wavykit/wsup`, but v0.3.0 still
+Version 0.4.0 migrated to `github.com/wavykit/wsup`, but v0.3.0 still
 declares the historical module. Follow the
 [source module transition](native-install.md#source-module-transition) and leave
 published tags/assets untouched. Before advertising the next source release,
