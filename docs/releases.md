@@ -2,7 +2,7 @@
 
 ## Current release
 
-[WSUP v0.3.0](https://github.com/brendenchu/wsup/releases/tag/v0.3.0), dated
+[WSUP v0.3.0](https://github.com/wavykit/wsup/releases/tag/v0.3.0), dated
 2026-10-31, is the published native release. It includes a compiled macOS ARM64
 archive and `SHA256SUMS`; see [download and extraction](native-install.md).
 Users do not compile the downloaded binary. Go is needed for source development
@@ -121,9 +121,10 @@ byte identity across different runs is not claimed.
 GoReleaser generates `dist/homebrew/Casks/wsup.rb` for the same archive.
 It uses the supported `homebrew_casks` integration; upstream's old prebuilt-binary
 `brews` formula integration is deprecated/removed. `skip_upload: true` keeps
-that definition local. The default provisional destination is
-`brendenchu/homebrew-tap`; set `WSUP_TAP_OWNER` to the owner approved during the
-publisher/namespace decision. A tap owner is a GitHub user or organization,
+that definition local. The selected future destination defaults to
+`wavykit/homebrew-tap`; `WSUP_TAP_OWNER` can override the owner for a separately
+authorized destination. This selection does not establish that the tap exists
+or is published. A tap owner is a GitHub user or organization,
 independent of the Go module domain. Creating, publishing or changing a remote
 tap remains separately authorized WSUP installation work.
 

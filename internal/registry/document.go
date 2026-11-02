@@ -16,7 +16,7 @@ const (
 	// DocumentVersion is the wsup.json schema version that Decode accepts.
 	DocumentVersion = 3
 	// SchemaURL is written as $schema so editors validate wsup.json.
-	SchemaURL = "https://raw.githubusercontent.com/brendenchu/wsup/main/schema/wsup-3.json"
+	SchemaURL = "https://raw.githubusercontent.com/wavykit/wsup/main/schema/wsup-3.json"
 )
 
 // moduleID matches built-in module ids. It mirrors the catalogue's id rule,

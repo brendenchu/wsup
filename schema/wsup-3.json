@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/brendenchu/wsup/main/schema/wsup-3.json",
+  "$id": "https://raw.githubusercontent.com/wavykit/wsup/main/schema/wsup-3.json",
   "title": "wsup.json",
   "description": "A wsup workspace: its name, selected modules, shared settings, projects, and VS Code passthrough. wsup validate checks paths and dependencies beyond this schema.",
   "type": "object",

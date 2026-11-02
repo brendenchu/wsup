@@ -13,7 +13,7 @@ describe the intended behavior and ownership boundaries before expanding scope.
 
 ## Go development
 
-The [published v0.3.0 release](https://github.com/brendenchu/wsup/releases/tag/v0.3.0)
+The [published v0.3.0 release](https://github.com/wavykit/wsup/releases/tag/v0.3.0)
 includes a compiled macOS ARM64 binary. Users of that archive need neither Go
 nor this checkout; follow [native binary use](docs/native-install.md).
 Compilation is required for source development and release packaging, not for
@@ -22,7 +22,9 @@ covers project registration and an explicit check without a development setup.
 
 Use Go 1.27.3, pinned in `mise.toml`. Mise is optional if that toolchain is
 already available. Development tests also require Git for ownership and reporting
-assertions. The module is `github.com/brendenchu/wsup`. From this root:
+assertions. The repository is [wavykit/wsup](https://github.com/wavykit/wsup),
+but the Go module remains `github.com/brendenchu/wsup`. Keep imports on that
+module path until a separately verified module migration. From this root:
 
 ```sh
 go test -race ./...

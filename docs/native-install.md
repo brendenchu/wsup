@@ -13,10 +13,10 @@ v0.2.0. For the older binary, use the
 ## Download
 
 Obtain both files from the
-[WSUP v0.3.0 release](https://github.com/brendenchu/wsup/releases/tag/v0.3.0):
+[WSUP v0.3.0 release](https://github.com/wavykit/wsup/releases/tag/v0.3.0):
 
-- [wsup_0.3.0_darwin_arm64.tar.gz](https://github.com/brendenchu/wsup/releases/download/v0.3.0/wsup_0.3.0_darwin_arm64.tar.gz)
-- [SHA256SUMS](https://github.com/brendenchu/wsup/releases/download/v0.3.0/SHA256SUMS)
+- [wsup_0.3.0_darwin_arm64.tar.gz](https://github.com/wavykit/wsup/releases/download/v0.3.0/wsup_0.3.0_darwin_arm64.tar.gz)
+- [SHA256SUMS](https://github.com/wavykit/wsup/releases/download/v0.3.0/SHA256SUMS)
 
 Download the archive and manifest together. If replacing an earlier download,
 keep the old package separately and use a fresh directory for the new pair.

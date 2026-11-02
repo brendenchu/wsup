@@ -16,6 +16,11 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- Point current repository/download links, generated schema URLs and local
+  packaging metadata at `wavykit/wsup`, with `wavykit` as the default future tap
+  owner. Go module/import paths remain `github.com/brendenchu/wsup`; published
+  tags/assets and historical references are unchanged. Existing owner registries
+  are not automatically rewritten.
 - Replace the custom candidate-packaging script with GoReleaser and an explicit
   archive verification step. Select a different GitHub tap owner with
   `WSUP_TAP_OWNER` without changing the Go module namespace.

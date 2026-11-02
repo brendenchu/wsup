@@ -50,6 +50,14 @@ func TestNativeWorkspaceInventoryStateAndGuidance(t *testing.T) {
 	if err != nil || len(data.Projects) != 0 || data.Name != "My workspace" {
 		t.Fatalf("invalid generated registry: %+v %v", data, err)
 	}
+	body, err := os.ReadFile(filepath.Join(destination, registry.DocumentPath))
+	if err != nil {
+		t.Fatal(err)
+	}
+	document, err := registry.Decode(body)
+	if err != nil || document.Schema != "https://raw.githubusercontent.com/wavykit/wsup/main/schema/wsup-3.json" {
+		t.Fatalf("generated registry schema: %q %v", document.Schema, err)
+	}
 	result, err := guidance.Inspect(destination)
 	if err != nil || len(result.Errors) != 0 || len(result.Skills) != 7 {
 		t.Fatalf("workspace guidance: %+v %v", result, err)

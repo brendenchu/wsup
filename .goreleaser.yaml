@@ -60,12 +60,12 @@ homebrew_casks:
   - name: wsup
     ids: [wsup]
     binaries: [wsup]
-    homepage: https://github.com/brendenchu/wsup
+    homepage: https://github.com/wavykit/wsup
     description: Maintain independent projects in a local development workspace
     skip_upload: true
     url:
-      template: https://github.com/brendenchu/wsup/releases/download/{{ .Tag }}/{{ .ArtifactName }}
+      template: https://github.com/wavykit/wsup/releases/download/{{ .Tag }}/{{ .ArtifactName }}
     repository:
-      owner: '{{ if index .Env "WSUP_TAP_OWNER" }}{{ index .Env "WSUP_TAP_OWNER" }}{{ else }}brendenchu{{ end }}'
+      owner: '{{ if index .Env "WSUP_TAP_OWNER" }}{{ index .Env "WSUP_TAP_OWNER" }}{{ else }}wavykit{{ end }}'
       name: homebrew-tap
     caveats: Unsigned and not notarized. Verify the source and checksum before installation.
