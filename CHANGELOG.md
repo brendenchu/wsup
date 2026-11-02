@@ -20,6 +20,10 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- Lead README, CLI help and the tutorial with project registration, bounded
+  inspection, explicitly selected checks and preview-first managed updates.
+  Keep coding-agent use optional and distinguish source-candidate commands
+  from the published v0.3.0 binary.
 - Document verified commit-pinned source candidate installation with isolated
   caches/output, build-identity checks, upgrade and removal boundaries.
   Published canonical pinned-version and `@latest` acceptance remains separate.

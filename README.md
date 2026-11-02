@@ -1,17 +1,18 @@
 # WSUP
 
-WSUP sets up AI-native, local-first workspaces for projects that live in one
-or many repositories. Every workspace and project it creates is ready for
-coding agents from the first commit: an `AGENTS.md` with the workspace's rules
-and layout, portable skills in `.agents/skills/`, and pointer files for agents
-that look elsewhere. A `wsup.json` registry describes the projects, their
-owners, and their tasks.
+Know what is in your workspace, how to work on each project, and what you have
+actually verified.
 
-**AI-native** means the generated files are written for agents as well as
-people, in the formats agents already read. It does not mean the CLI uses AI:
-`wsup` never calls an AI service, needs no provider, account, or credential,
-and runs entirely on your machine. Agent instructions are plain Markdown that
-any assistant, or person, can follow.
+wsup is a local-first CLI for understanding and maintaining projects that live
+in one or many repositories. A `wsup.json` registry records project locations,
+owners, relationships and literal task commands. Inspect one project's setup,
+run explicitly selected checks, and preview updates to wsup-managed content
+without treating independent projects as one build or release.
+
+Starters establish that structure for new workspaces and projects, including
+`AGENTS.md`, portable skills and optional agent adapters. Coding-agent use is
+optional: wsup never invokes a skill or an AI service and needs no provider,
+account or credential. People and assistants use the same local project facts.
 
 **Local-first and independent.** Each workspace knows only itself and its
 descendants. Its documentation, guidance, registry, and commands are rooted
@@ -72,6 +73,35 @@ template and works without this checkout; a workspace holds `wsup.json`,
 
 Follow the [first-workspace tutorial](docs/getting-started.md) to create a
 workspace, register a project, and run a check.
+
+## Work on registered projects
+
+The tutorial's [multi-project example](docs/getting-started.md#6-inspect-and-maintain-multiple-projects-source-candidate)
+registers `readme-demo` and `docs-demo` with explicit ownership and documentation
+checks. With the verified source candidate, inspect the configuration before
+choosing what to execute:
+
+```sh
+wsup --root /path/to/workspace projects
+wsup --root /path/to/workspace projects docs-demo
+wsup --root /path/to/workspace check --project docs-demo --task readme
+wsup --root /path/to/workspace update
+```
+
+The project view shows the registered owner, task arguments, direct
+dependencies/dependents and instruction/skill paths. It does not run anything
+or prove a task's tools are installed. Selecting `docs-demo` does not implicitly
+check its `readme-demo` dependency; select both explicitly when needed.
+
+The check report records what the selected task actually returned, not the
+health of every project. `update` only previews changes to managed starter
+content; it does not upgrade the executable or application dependencies.
+Review conflicts and keep a matched backup before applying. Existing project
+directories can be registered manually after deciding their Git ownership;
+`init` creates new destinations, never adopts or overwrites an existing one.
+
+`projects ID` requires the source candidate; the published v0.3.0 binary
+supports the no-ID listing, explicit checks and managed-update previews.
 
 ## Commands
 
