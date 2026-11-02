@@ -20,6 +20,9 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- Document verified commit-pinned source candidate installation with isolated
+  caches/output, build-identity checks, upgrade and removal boundaries.
+  Published canonical pinned-version and `@latest` acceptance remains separate.
 - Migrate development Go module/imports to `github.com/wavykit/wsup`. The path
   change is unreleased and requires source consumers to update imports. Keep
   historical v0.3.0 installs pinned to `github.com/brendenchu/wsup`; repository

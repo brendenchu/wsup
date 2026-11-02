@@ -37,12 +37,75 @@ Pin the historical command above rather than relying on that behavior.
 
 After an authorized release declaring the new module exists, maintainers must
 verify pinned-version and `@latest` installs from clean caches using both direct
-discovery and the selected Go proxy before documenting the new path as available.
-Until then, use a reviewed source checkout and the
+discovery and the selected Go proxy before documenting a released install channel.
+Until then, use the [commit-pinned candidate procedure](#source-candidate-installation)
+below, or a reviewed source checkout and the
 [source development procedure](../CONTRIBUTING.md#go-development).
 The CLI's `--version` is a source constant, not the module version or proof of a
 published release; candidate builds may still report `0.3.0`. Use `go version -m`
 on the binary to inspect its module identity as well.
+
+## Source candidate installation
+
+This is a reviewed development candidate, not a released version or a verified
+`@latest` channel. On macOS ARM64, Go 1.27.3 and Git were used to install commit
+`7fc6725e726451bebf43c882eddae6817c1cecc6` through both direct discovery and
+`https://proxy.golang.org`, with fresh caches and checksum verification enabled.
+Other platforms are not certified by these checks.
+
+Run this in a terminal with the supported Go toolchain available. Choose a new
+absolute `INSTALL` directory; do not reuse an existing installation or put caches
+inside a workspace:
+
+```sh
+INSTALL="/absolute/path/to/new/wsup-candidate"
+mkdir -p "$INSTALL"
+env GOENV=off GOWORK=off GOTOOLCHAIN=local CGO_ENABLED=0 \
+  GOPATH="$INSTALL/gopath" GOMODCACHE="$INSTALL/modules" \
+  GOCACHE="$INSTALL/cache" GOBIN="$INSTALL/bin" \
+  GOPROXY=https://proxy.golang.org GOSUMDB=sum.golang.org \
+  GOPRIVATE= GONOPROXY= GONOSUMDB= GOFLAGS= \
+  go install github.com/wavykit/wsup/cmd/wsup@7fc6725e726451bebf43c882eddae6817c1cecc6
+"$INSTALL/bin/wsup" --version
+go version -m "$INSTALL/bin/wsup"
+"$INSTALL/bin/wsup" --help
+```
+
+For direct discovery, substitute `GOPROXY=direct` and use a separate new install
+directory to avoid reusing proxy-populated caches. Both routes require network
+access on a cold cache; this is not an offline installation procedure. No Go
+configuration is changed globally, and no existing `wsup` on PATH is replaced.
+
+For this exact candidate, CLI version output is `0.3.0`; Go build metadata shows
+module `github.com/wavykit/wsup` at
+`v0.3.1-0.20261102073605-7fc6725e7264`. That pseudo-version identifies the commit,
+not an announced patch release. The candidate includes `projects ID` and
+`projects ID --json`, which are absent from the published v0.3.0 binary.
+
+Use the explicit executable path for workspace operations. For example, choose
+a new destination and run:
+
+```sh
+"$INSTALL/bin/wsup" init /absolute/path/to/new/workspace --yes
+"$INSTALL/bin/wsup" --root /absolute/path/to/new/workspace validate
+"$INSTALL/bin/wsup" --root /absolute/path/to/new/workspace guidance
+```
+
+After registering a project, inspect it with `projects ID` or
+`projects ID --json`; these commands do not execute its tasks. The
+[first-workspace tutorial](getting-started.md) explains registration.
+
+For an upgrade, install a separately reviewed revision into a new directory and
+repeat version/build-metadata and smoke checks before choosing the executable
+to use. Keep the prior binary for recovery. Do not substitute `@latest` or claim
+release acceptance until the new module's published version has been verified.
+Optional PATH setup is a separate choice; inspect `command -v wsup` before
+assuming which installation a bare command selects.
+
+To remove this candidate, remove its exact `bin/wsup` file. Its dedicated
+`gopath`, `modules` and `cache` directories may be removed separately after
+checking they contain only this installation's disposable data. Workspace
+contents and the ordinary Go caches are independent; do not delete them.
 
 ## Download
 

@@ -2,13 +2,19 @@
 
 This macOS ARM64 walkthrough creates a new workspace, adds one workspace-owned
 project, and runs an explicit check. It does not install dependencies, initialize
-Git, change PATH, or need a Go toolchain.
+Git, change PATH, or need a Go toolchain when using the downloaded binary.
 
 ## 1. Prepare the executable
 
 Follow [native binary use](native-install.md) to download both v0.3.0 assets,
 verify the checksum, and extract the package. Optional PATH setup is in that
 guide; this tutorial uses an absolute executable path instead.
+
+Alternatively, follow the
+[source candidate procedure](native-install.md#source-candidate-installation)
+with Go 1.27.3 and use its explicit installed executable path below. That
+commit-pinned development candidate is not a released source channel, even
+though its CLI version still reports `0.3.0`.
 
 In the commands below, replace the `WSUP` value with the verified executable's
 actual path. Choose a new `WORKSPACE` destination that does not already exist;

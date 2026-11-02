@@ -41,9 +41,12 @@ To build from source, use Go 1.27.3 (pinned in `mise.toml`); see
 
 The canonical repository is [wavykit/wsup](https://github.com/wavykit/wsup).
 Development source now uses the Go module `github.com/wavykit/wsup`.
-This path change is unreleased; do not use it as an available install command yet.
+This path change is unreleased; it is not yet a verified released install channel.
 See the [source module transition](docs/native-install.md#source-module-transition)
 for historical v0.3.0 installs and release-dependent verification.
+Maintainers evaluating current source can use the
+[verified commit-pinned candidate procedure](docs/native-install.md#source-candidate-installation);
+it is not a released or verified `@latest` channel.
 
 ## Try it
 
