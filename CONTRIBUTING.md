@@ -44,8 +44,9 @@ is the verified runtime; cross-compilation does not certify other targets.
 Non-Unix check execution refuses launch until equivalent descendant supervision
 is implemented.
 
-The product version is `Version` in `internal/cli/cli.go`. Version 0.3.0 is the
-published native release, dated 2026-10-31. The release page supplies the archive
+The product version is `Version` in `internal/cli/cli.go`, currently prepared as
+0.4.0 but not published. Version 0.3.0 remains the published native release,
+dated 2026-10-31. The release page supplies the archive
 and checksum manifest; a changelog date alone does not establish publication.
 Ordinary changes do not imply a version bump.
 

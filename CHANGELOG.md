@@ -6,6 +6,16 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ## Unreleased
 
+## 0.4.0 (release candidate; not published)
+
+Source-installation and project-view release. The version is prepared locally;
+no v0.4.0 tag or released install channel is established by this entry.
+macOS ARM64 is the verified runtime. Published canonical pinned-version and
+`@latest` installs must be verified before announcement. New public binary
+assets, signing, curl installation and Homebrew distribution remain deferred.
+Project-view usefulness has not yet been evaluated by the owner; fixture and
+candidate checks do not establish productivity gains.
+
 ### Added
 
 - `projects ID` shows a readable project view, or a version-1 envelope with
