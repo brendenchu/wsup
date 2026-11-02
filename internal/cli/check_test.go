@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brendenchu/wsup/internal/reporting"
+	"github.com/wavykit/wsup/internal/reporting"
 )
 
 func checkTool(t *testing.T, mode string, args ...string) []string {

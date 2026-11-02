@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/catalogue"
 )
 
 // TestAddMatchesInitWithTheSameSelection adds each module kind to a bare

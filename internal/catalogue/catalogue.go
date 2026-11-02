@@ -9,7 +9,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brendenchu/wsup/templates"
+	"github.com/wavykit/wsup/templates"
 )
 
 const (

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brendenchu/wsup/internal/scaffolding"
+	"github.com/wavykit/wsup/internal/scaffolding"
 )
 
 func TestProjectInitCLIAndRejectedArguments(t *testing.T) {

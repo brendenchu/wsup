@@ -8,8 +8,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
-	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/registry"
 )
 
 // AddPlan previews adding modules: the requested ids, every module the addition

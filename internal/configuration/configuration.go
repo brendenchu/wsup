@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/registry"
 )
 
 // Config contains validated workspace defaults; individual checks may override timeout.

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/brendenchu/wsup/internal/jsoncompat"
-	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/jsoncompat"
+	"github.com/wavykit/wsup/internal/registry"
 )
 
 // Workspace is the fixed, read-only input generators see: the decoded

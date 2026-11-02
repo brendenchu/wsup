@@ -12,12 +12,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
-	"github.com/brendenchu/wsup/internal/configuration"
-	"github.com/brendenchu/wsup/internal/guidance"
-	"github.com/brendenchu/wsup/internal/registry"
-	"github.com/brendenchu/wsup/internal/scaffolding"
-	"github.com/brendenchu/wsup/schema"
+	"github.com/wavykit/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/configuration"
+	"github.com/wavykit/wsup/internal/guidance"
+	"github.com/wavykit/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/scaffolding"
+	"github.com/wavykit/wsup/schema"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

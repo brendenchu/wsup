@@ -10,6 +10,40 @@ Version 0.3.0 uses `wsup.json` and `wsup.lock` and includes migration from
 v0.2.0. For the older binary, use the
 [v0.2.0 binary guide](https://github.com/brendenchu/wsup/blob/v0.2.0/docs/native-install.md).
 
+## Source module transition
+
+Development source uses `github.com/wavykit/wsup`; published v0.3.0 source
+declares `github.com/brendenchu/wsup`. The module-path change is incompatible
+for Go source consumers and belongs in the next appropriate 0.x minor release.
+It does not rename the executable or require workspace data/layout migration.
+Existing downloaded binaries and published tags/assets are unchanged.
+
+To build the historical v0.3.0 source, use Go 1.27.3 and Git. For an isolated
+install, choose a new absolute directory for `GOBIN`:
+
+```sh
+GOBIN=/absolute/path/to/new/bin go install github.com/brendenchu/wsup/cmd/wsup@v0.3.0
+/absolute/path/to/new/bin/wsup --version
+```
+
+The expected CLI version is `0.3.0`. Invoke that explicit binary path; do not
+assume it replaced another executable on PATH. Removing that installed binary
+removes this isolated installation, not any workspaces it created.
+
+The new path is not a way to install historical tags declaring the old module.
+Conversely, do not assume old-path `@latest` follows future releases declaring
+the new module: GitHub repository redirects do not reconcile Go module identity.
+Pin the historical command above rather than relying on that behavior.
+
+After an authorized release declaring the new module exists, maintainers must
+verify pinned-version and `@latest` installs from clean caches using both direct
+discovery and the selected Go proxy before documenting the new path as available.
+Until then, use a reviewed source checkout and the
+[source development procedure](../CONTRIBUTING.md#go-development).
+The CLI's `--version` is a source constant, not the module version or proof of a
+published release; candidate builds may still report `0.3.0`. Use `go version -m`
+on the binary to inspect its module identity as well.
+
 ## Download
 
 Obtain both files from the

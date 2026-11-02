@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/registry"
 )
 
 func TestCodeWorkspaceUsesStableASCIIEncoding(t *testing.T) {

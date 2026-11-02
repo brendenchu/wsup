@@ -16,11 +16,15 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ### Changed
 
+- Migrate development Go module/imports to `github.com/wavykit/wsup`. The path
+  change is unreleased and requires source consumers to update imports. Keep
+  historical v0.3.0 installs pinned to `github.com/brendenchu/wsup`; repository
+  redirects do not make module identities interchangeable. No workspace data
+  migration or executable rename is required.
 - Point current repository/download links, generated schema URLs and local
   packaging metadata at `wavykit/wsup`, with `wavykit` as the default future tap
-  owner. Go module/import paths remain `github.com/brendenchu/wsup`; published
-  tags/assets and historical references are unchanged. Existing owner registries
-  are not automatically rewritten.
+  owner. Published tags/assets and historical references are unchanged.
+  Existing owner registries are not automatically rewritten.
 - Replace the custom candidate-packaging script with GoReleaser and an explicit
   archive verification step. Select a different GitHub tap owner with
   `WSUP_TAP_OWNER` without changing the Go module namespace.

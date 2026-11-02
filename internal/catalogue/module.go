@@ -12,7 +12,7 @@ import (
 	"sync"
 	"text/template"
 
-	"github.com/brendenchu/wsup/templates"
+	"github.com/wavykit/wsup/templates"
 )
 
 // Module kinds. Every installable unit is a module; kinds only change how the

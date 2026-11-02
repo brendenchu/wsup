@@ -23,8 +23,11 @@ covers project registration and an explicit check without a development setup.
 Use Go 1.27.3, pinned in `mise.toml`. Mise is optional if that toolchain is
 already available. Development tests also require Git for ownership and reporting
 assertions. The repository is [wavykit/wsup](https://github.com/wavykit/wsup),
-but the Go module remains `github.com/brendenchu/wsup`. Keep imports on that
-module path until a separately verified module migration. From this root:
+and development source uses Go module `github.com/wavykit/wsup`. Keep internal
+imports on that module path. This migration is unreleased; repository ownership
+and a development build do not establish a published source-install channel.
+See the [module transition](docs/native-install.md#source-module-transition).
+From this root:
 
 ```sh
 go test -race ./...

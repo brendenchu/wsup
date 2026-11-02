@@ -12,8 +12,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
-	"github.com/brendenchu/wsup/internal/scaffolding"
+	"github.com/wavykit/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/scaffolding"
 )
 
 func workspaceBytes(t *testing.T, root string) map[string]string {

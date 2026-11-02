@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"unicode/utf8"
 
-	"github.com/brendenchu/wsup/internal/jsoncompat"
+	"github.com/wavykit/wsup/internal/jsoncompat"
 )
 
 // SchemaVersion identifies the runtime metadata and evidence format.

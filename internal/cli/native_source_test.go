@@ -77,6 +77,9 @@ func TestNativeSourceBuildAndGenerationAreSelfContained(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if info.Main.Path != "github.com/wavykit/wsup" || info.Path != "github.com/wavykit/wsup/cmd/wsup" {
+		t.Fatalf("native source build module/command: %q %q", info.Main.Path, info.Path)
+	}
 	settings := map[string]string{}
 	for _, setting := range info.Settings {
 		settings[setting.Key] = setting.Value

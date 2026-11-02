@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/catalogue"
 )
 
 func TestCollectionAdditionPreservesUnrelatedDirectoryContents(t *testing.T) {

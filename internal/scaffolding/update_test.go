@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/brendenchu/wsup/internal/catalogue"
-	"github.com/brendenchu/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/catalogue"
+	"github.com/wavykit/wsup/internal/registry"
 )
 
 func TestEmbeddedUpdatePreservesInstalledModulesAndBaselines(t *testing.T) {

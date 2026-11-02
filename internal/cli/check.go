@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brendenchu/wsup/internal/configuration"
-	"github.com/brendenchu/wsup/internal/execution"
-	"github.com/brendenchu/wsup/internal/registry"
-	"github.com/brendenchu/wsup/internal/reporting"
+	"github.com/wavykit/wsup/internal/configuration"
+	"github.com/wavykit/wsup/internal/execution"
+	"github.com/wavykit/wsup/internal/registry"
+	"github.com/wavykit/wsup/internal/reporting"
 	"github.com/spf13/cobra"
 )
 
