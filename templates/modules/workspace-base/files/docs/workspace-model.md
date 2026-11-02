@@ -44,7 +44,7 @@ for product changes. Binary replacement and managed-content updates are separate
 | Command | Options and result |
 | --- | --- |
 | `validate` | Validates `wsup.json`, settings, and adapter links without executing tasks; prints a summary. |
-| `projects` | Prints project entries as JSON. |
+| `projects [ID]` | Without ID, prints the existing project-entry JSON array. With ID, shows readable owner/location/tasks, direct relationships and local instruction/skill presence; `--json` prints a version-1 result/error envelope and requires ID. Nothing is executed. |
 | `config` | Prints effective settings and their sources as JSON. |
 | `guidance` | Prints structural findings as JSON; optional `--project ID` selects a registered owner. |
 | `vscode` | Previews regenerating the `vscode` adapter's `<name>.code-workspace` from `wsup.json`; `--apply` writes it unless hand-edited; other files are left to `update`. |
@@ -58,6 +58,67 @@ for product changes. Binary replacement and managed-content updates are separate
 | `schema` | Prints the JSON Schema for `wsup.json` (the file `$schema` names). |
 
 Use `--help`, `COMMAND --help`, and `--version` for options and product version.
+
+### Single-project inspection
+
+`wsup projects ID` describes one registered project without executing tasks or
+probing tools. Use `wsup projects ID --json` for a version-1 envelope:
+
+```json
+{
+  "version": 1,
+  "command": "projects",
+  "ok": true,
+  "result": {
+    "workspace": {"name": "Example"},
+    "project": {
+      "id": "api", "path": "apps/api", "kind": "app",
+      "repository": "independent", "purpose": "API", "owner": "Team"
+    },
+    "tasks": [],
+    "dependencies": [],
+    "dependents": [],
+    "instructions": ["AGENTS.md", "apps/AGENTS.md", "apps/api/AGENTS.md"],
+    "skills": []
+  },
+  "errors": []
+}
+```
+
+Tasks preserve declared order with `name`, literal `command` arguments, `cwd`,
+`check` and `check_policy`. `cwd` is project-relative; empty means project root.
+Non-check tasks have null `check_policy`; checks include `mode`, `enabled`,
+`reason`, `timeout_seconds` and `finding_exit_codes`. A null timeout defers to
+workspace settings. These are configured policies, not observed task results or
+proof that prerequisites are installed.
+
+Dependencies are direct IDs in declaration order; dependents are direct IDs in
+registry order. Instructions are existing regular `AGENTS.md` paths along the
+selected workspace-to-project chain, ancestor first. Skills are only direct
+`.agents/skills/<name>/SKILL.md` candidates from the workspace and selected
+project, with `name`, `path` and `owner` (dot means workspace). Skills sort by
+owner/name/path; duplicate names from different owners are retained without
+claiming precedence. All collection fields are arrays, never null. Paths are
+workspace-relative forward-slash paths, not machine-absolute locations.
+
+Inspection does not read instruction contents, follow links/imports, load
+parent/sibling guidance, execute skills, access the network or write reports.
+Presence does not prove that an AI client loads anything. Missing instruction
+files or skill roots are absent; malformed/present candidates, broken or escaping
+symlinks and nonregular candidates fail explicitly. Descendant workspaces are
+boundaries: select one explicitly with `--root`; a project starter's `wsup.lock`
+alone is not such a boundary. Containment checks are point-in-time checks, not
+protection against concurrent filesystem replacement. Registry validation still
+checks all registered paths, so an unrelated invalid registration can block
+inspection.
+
+Success exits 0. After parsing an ID invocation with `--json`, lookup, registry,
+configuration, containment and metadata failures exit 2 with exactly one envelope:
+`{"version":1,"command":"projects","ok":false,"result":null,"errors":["message"]}`.
+Readable errors use stderr and empty stdout. Argument/flag parsing errors and
+output-writer failures keep the ordinary stderr/exit-2 convention, not a JSON
+envelope. `--json` without an ID is a usage error. The no-ID `projects` command
+retains its existing bare JSON array and error behavior.
 Invalid options fail even when help/version is also present. Unambiguous long
 option prefixes are supported. Normal operational errors print handled stderr.
 

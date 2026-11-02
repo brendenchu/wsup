@@ -80,7 +80,7 @@ parent directories.
 | --- | --- |
 | `init DESTINATION` | Create a workspace, or a project with `--template project` |
 | `validate` | Validate `wsup.json` and adapter links without running project code |
-| `projects` | List registered projects |
+| `projects [ID]` | List registered projects, or inspect one project's configured metadata (`--json` for a versioned result) |
 | `config` | Show effective settings and their sources |
 | `guidance` | Check `AGENTS.md` files, skills, markers, and local links (`--project ID` for one project) |
 | `modules [ID]` | List built-in modules, or show one module's files and skills |
@@ -98,6 +98,19 @@ selected tasks, and `check` writes reports. Managed-content commands (`add`,
 `--apply`, when the plan has no conflicts. See the
 [command reference](templates/modules/workspace-base/files/docs/workspace-model.md#command-reference)
 for flags, output, and exit codes.
+
+To see how one project is configured without running anything:
+
+```sh
+wsup projects api
+wsup projects api --json
+```
+
+The view shows owner/location, configured tasks, direct relationships and local
+instruction/skill paths. It does not check task prerequisites or prove that an
+AI client loads the guidance. See
+[single-project inspection](templates/modules/workspace-base/files/docs/workspace-model.md#single-project-inspection)
+for scope, versioned JSON and errors.
 
 Tasks marked `"check": true` in `wsup.json` run under `wsup check`. Commands
 run locally with your permissions, without a shell or argument substitution;

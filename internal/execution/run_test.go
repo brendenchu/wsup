@@ -215,15 +215,23 @@ func TestRetainedPipesAndCancellationStopDescendantHeartbeats(t *testing.T) {
 			}()
 			deadline := time.Now().Add(3 * time.Second)
 			var pid int
+			ready := false
 			for time.Now().Before(deadline) {
 				body, _ := os.ReadFile(filepath.Join(root, "descendant.pid"))
 				pid, _ = strconv.Atoi(string(body))
 				if pid > 0 {
-					break
+					if _, err := os.Stat(filepath.Join(root, "heartbeat")); err == nil {
+						ready = true
+						break
+					} else if !os.IsNotExist(err) {
+						cancel()
+						<-done
+						t.Fatal(err)
+					}
 				}
 				time.Sleep(10 * time.Millisecond)
 			}
-			if pid == 0 {
+			if !ready {
 				cancel()
 				<-done
 				t.Fatal("descendant did not become ready")
