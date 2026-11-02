@@ -1,8 +1,10 @@
 # Your first workspace
 
 This macOS ARM64 walkthrough creates a new workspace, adds one workspace-owned
-project, and runs an explicit check. It does not install dependencies, initialize
-Git, change PATH, or need a Go toolchain when using the downloaded binary.
+project, and runs an explicit check. An optional second-project exercise uses
+the source candidate to inspect registered work before selecting checks and
+previewing managed updates. It does not install project dependencies,
+initialize Git or change PATH. The downloaded binary needs no Go toolchain.
 
 ## 1. Prepare the executable
 
@@ -121,6 +123,71 @@ To observe a required-check failure, use your editor to temporarily rename
 `## Setup` in the project's README and rerun the final command. It should return
 1 and write a failure report. Restore that heading and rerun to get a pass.
 A missing tool or invalid configuration is an error, not a successful check.
+
+## 6. Inspect and maintain multiple projects (source candidate)
+
+This section requires the
+[verified source candidate](native-install.md#source-candidate-installation);
+the downloaded v0.3.0 binary has no `projects ID` command. Use the candidate's
+absolute path for `WSUP`. This is a runnable documentation-check example, not
+evidence of application health or demonstrated productivity gains.
+
+Create a second project:
+
+```sh
+"$WSUP" init "$WORKSPACE/tools/docs-demo" --template project
+```
+
+Append the following entry to the existing `projects` array in `wsup.json`,
+keeping `readme-demo` and the other workspace fields:
+
+```json
+{
+  "id": "docs-demo",
+  "path": "tools/docs-demo",
+  "kind": "tool",
+  "repository": "workspace",
+  "purpose": "Document the readme-demo workflow",
+  "owner": "Workspace owner",
+  "dependencies": ["readme-demo"],
+  "tasks": {
+    "readme": {"command": ["/usr/bin/grep", "-q", "^## Setup$", "README.md"], "check": true}
+  }
+}
+```
+
+Inspect before running:
+
+```sh
+"$WSUP" --root "$WORKSPACE" validate
+"$WSUP" --root "$WORKSPACE" projects docs-demo
+"$WSUP" --root "$WORKSPACE" projects readme-demo --json
+"$WSUP" --root "$WORKSPACE" check --project docs-demo --task readme
+"$WSUP" --root "$WORKSPACE" update
+```
+
+The readable view shows `docs-demo`'s registered owner, location, task arguments,
+direct dependency and applicable instruction/skill paths. The JSON view for
+`readme-demo` lists `docs-demo` as a dependent. These are configuration facts,
+not executed instructions or proof that a task tool is available.
+
+Only `docs-demo` is checked above. Dependencies are not automatic selections;
+to check both, use:
+
+```sh
+"$WSUP" --root "$WORKSPACE" check --project readme-demo --project docs-demo --task readme
+```
+
+Review the report for the selected tasks and their results. Passing this example
+means the two starter READMEs contain the checked heading, not that every
+project or application behavior was verified.
+
+`update` previews differences against the invoked binary's embedded starter
+content. It neither downloads an executable nor upgrades project dependencies.
+The source candidate may propose changes to content created by an older binary;
+review the plan rather than expecting an empty result. Keep a matched backup
+of files and `wsup.lock` before any `update --apply`; do not apply merely to
+complete this tutorial. Owner-edited managed files require explicit resolution.
 
 ## Next steps
 

@@ -60,9 +60,14 @@ func runSession(ctx context.Context, args []string, stdout, stderr io.Writer, s 
 
 func newCommand(s session) *cobra.Command {
 	root := &cobra.Command{
-		Use:              "wsup",
-		Short:            "WSUP: AI-native, local-first workspaces",
-		Long:             "WSUP: AI-native, local-first workspaces. Create workspace and project starters ready for coding agents, register projects in wsup.json, run their tasks and checks, add modules, and preview or apply managed-content updates. wsup never calls an AI service.",
+		Use:   "wsup",
+		Short: "wsup: understand and maintain local workspaces",
+		Long: "wsup: understand and maintain local workspaces.\n\n" +
+			"Register project owners, locations and tasks in wsup.json. Inspect how to work\n" +
+			"on one project, run explicitly selected checks, and preview managed-content\n" +
+			"updates. Inspection does not execute tasks; check reports record selected results.\n\n" +
+			"Create workspace and project starters when needed. Coding agents and skill\n" +
+			"workflows are optional; wsup never invokes a skill or an AI service.",
 		Version:          Version,
 		SilenceErrors:    true,
 		SilenceUsage:     true,

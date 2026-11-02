@@ -18,7 +18,7 @@ func TestHelpVersionAndErrors(t *testing.T) {
 		output string
 		error  string
 	}{
-		{"help", []string{"--help"}, 0, "WSUP: AI-native, local-first workspaces", ""},
+		{"help", []string{"--help"}, 0, "wsup: understand and maintain local workspaces", ""},
 		{"empty", nil, 2, "", "a command is required"},
 		{"version", []string{"--version"}, 0, Version + "\n", ""},
 		{"unknown command", []string{"unknown"}, 2, "", "unknown command"},
