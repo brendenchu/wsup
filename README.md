@@ -31,13 +31,17 @@ supervision; on other systems tasks refuse to launch until equivalent cleanup
 exists. Cross-compilation does not establish runtime support.
 
 Download the macOS ARM64 binary from the
-[releases page](https://github.com/brendenchu/wsup/releases). See
+[releases page](https://github.com/wavykit/wsup/releases). See
 [native binary use](docs/native-install.md) for checksum verification,
 extraction, invocation by path, replacement, and recovery. There is no
 installer, automatic updater, or PATH change.
 
 To build from source, use Go 1.27.3 (pinned in `mise.toml`); see
 [Go development](CONTRIBUTING.md#go-development).
+
+The canonical repository is [wavykit/wsup](https://github.com/wavykit/wsup).
+The Go module remains `github.com/brendenchu/wsup`; transferring repository
+ownership does not migrate Go imports or establish a new source-install path.
 
 ## Try it
 

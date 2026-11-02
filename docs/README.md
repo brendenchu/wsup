@@ -24,7 +24,7 @@ Maintain durable product and contributor documentation here:
 
 These documents describe the native CLI, not observed user adoption. macOS ARM64
 is the verified runtime and has a compiled archive in the
-[v0.3.0 release](https://github.com/brendenchu/wsup/releases/tag/v0.3.0).
+[v0.3.0 release](https://github.com/wavykit/wsup/releases/tag/v0.3.0).
 Other targets are not support claims. Download users need no Go toolchain;
 development verification uses the native Go suite and vet.
 
