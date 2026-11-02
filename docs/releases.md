@@ -16,6 +16,37 @@ the immutable-tag policy below, not the normal release procedure.
 
 ## One product version
 
+### Preparing 0.4.0
+
+Development source reports `0.4.0`; this is local release preparation, not a
+published release. The v0.4 scope is canonical Go source installation and the
+bounded readable/JSON project view, with local packaging verification. Owner
+feedback on project-view usefulness is not yet available.
+
+The tested commit-pinned procedure in the
+[native guide](native-install.md#source-candidate-installation) remains tied
+to its exact earlier commit and correctly reports `0.3.0`. Do not substitute
+`@v0.4.0` or `@latest` in user-facing install commands before release acceptance.
+The published v0.3.0 binary and its tutorial remain unchanged.
+
+For a source-only v0.4 release, follow the version, clean-commit, checks and
+explicit tag/publication authorization gates below. Keep the local archive and
+cask as verification artifacts; do not upload new binary assets or advertise
+curl/Homebrew channels. Create a draft with user-facing source-release notes,
+verify the tag/commit and intended empty binary-asset inventory, then publish
+only with authorization. The generic binary upload/download-back steps below
+apply only if binary distribution is separately selected and accepted.
+
+After source publication and before announcement, install the exact released
+version and `@latest` through both `GOPROXY=direct` and the selected Go proxy,
+each with fresh module/build caches and GOBIN. Verify CLI version `0.4.0`,
+module build metadata and workspace/project-view smokes. Record any discovery
+delay or failure explicitly; do not treat a commit-pinned candidate as this gate.
+Then update the canonical install guide, tutorial and current-release heading
+with only the verified released commands.
+
+### Module transition
+
 Development source has migrated to `github.com/wavykit/wsup`, but v0.3.0 still
 declares the historical module. Follow the
 [source module transition](native-install.md#source-module-transition) and leave
