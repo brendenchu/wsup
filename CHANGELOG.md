@@ -6,15 +6,13 @@ See the [release guide](docs/releases.md) for version and tag policy.
 
 ## Unreleased
 
-## 0.4.0 (release candidate; not published)
+## 0.4.0 (2026-11-02)
 
-Source-installation and project-view release. The version is prepared locally;
-no v0.4.0 tag or released install channel is established by this entry.
-macOS ARM64 is the verified runtime. Published canonical pinned-version and
-`@latest` installs must be verified before announcement. New public binary
-assets, signing, curl installation and Homebrew distribution remain deferred.
-Project-view usefulness has not yet been evaluated by the owner; fixture and
-candidate checks do not establish productivity gains.
+Published source-only release: canonical pinned `v0.4.0` and `@latest` installs
+passed direct and Go proxy discovery with fresh caches on macOS ARM64.
+No prebuilt binaries are uploaded. Signing, curl installation and Homebrew
+distribution remain deferred. Owner feedback confirms the project view supplied
+needed information; no quantified or recurring productivity benefit is claimed.
 
 ### Added
 
@@ -33,12 +31,13 @@ candidate checks do not establish productivity gains.
 - Lead README, CLI help and the tutorial with project registration, bounded
   inspection, explicitly selected checks and preview-first managed updates.
   Keep coding-agent use optional and distinguish source-candidate commands
-  from the published v0.3.0 binary.
+  from the historical v0.3.0 binary.
 - Document verified commit-pinned source candidate installation with isolated
   caches/output, build-identity checks, upgrade and removal boundaries.
-  Published canonical pinned-version and `@latest` acceptance remains separate.
+  Released canonical pinned-version and `@latest` installs are also verified
+  and documented, with historical candidate evidence kept separate.
 - Migrate development Go module/imports to `github.com/wavykit/wsup`. The path
-  change is unreleased and requires source consumers to update imports. Keep
+  change requires source consumers to update imports. Keep
   historical v0.3.0 installs pinned to `github.com/brendenchu/wsup`; repository
   redirects do not make module identities interchangeable. No workspace data
   migration or executable rename is required.

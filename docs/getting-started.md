@@ -2,7 +2,7 @@
 
 This macOS ARM64 walkthrough creates a new workspace, adds one workspace-owned
 project, and runs an explicit check. An optional second-project exercise uses
-the source candidate to inspect registered work before selecting checks and
+source-installed v0.4.0 to inspect registered work before selecting checks and
 previewing managed updates. It does not install project dependencies,
 initialize Git or change PATH. The downloaded binary needs no Go toolchain.
 
@@ -12,11 +12,10 @@ Follow [native binary use](native-install.md) to download both v0.3.0 assets,
 verify the checksum, and extract the package. Optional PATH setup is in that
 guide; this tutorial uses an absolute executable path instead.
 
-Alternatively, follow the
-[source candidate procedure](native-install.md#source-candidate-installation)
-with Go 1.27.3 and use its explicit installed executable path below. That
-commit-pinned development candidate is not a released source channel, even
-though its CLI version still reports `0.3.0`.
+For current behavior, follow the
+[source installation procedure](native-install.md#source-installation)
+with Go 1.27.3 and use its explicit installed executable path below.
+Version 0.4.0 is source-only; it has no uploaded prebuilt binary.
 
 In the commands below, replace the `WSUP` value with the verified executable's
 actual path. Choose a new `WORKSPACE` destination that does not already exist;
@@ -29,7 +28,8 @@ WORKSPACE="$HOME/wsup-first-workspace"
 "$WSUP" --version
 ```
 
-Expected version: `0.3.0`. Confirm this is the intended trusted executable.
+Expected version: `0.3.0` for the historical downloaded binary, or `0.4.0`
+for the released source installation. Confirm the intended trusted executable.
 The published v0.2.0 binary cannot run this tutorial's new-layout commands.
 
 ## 2. Create and inspect a workspace
@@ -124,11 +124,11 @@ To observe a required-check failure, use your editor to temporarily rename
 1 and write a failure report. Restore that heading and rerun to get a pass.
 A missing tool or invalid configuration is an error, not a successful check.
 
-## 6. Inspect and maintain multiple projects (source candidate)
+## 6. Inspect and maintain multiple projects
 
 This section requires the
-[verified source candidate](native-install.md#source-candidate-installation);
-the downloaded v0.3.0 binary has no `projects ID` command. Use the candidate's
+[source-installed v0.4.0](native-install.md#source-installation);
+the downloaded v0.3.0 binary has no `projects ID` command. Use the installed
 absolute path for `WSUP`. This is a runnable documentation-check example, not
 evidence of application health or demonstrated productivity gains.
 
@@ -184,7 +184,7 @@ project or application behavior was verified.
 
 `update` previews differences against the invoked binary's embedded starter
 content. It neither downloads an executable nor upgrades project dependencies.
-The source candidate may propose changes to content created by an older binary;
+Version 0.4.0 may propose changes to content created by an older binary;
 review the plan rather than expecting an empty result. Keep a matched backup
 of files and `wsup.lock` before any `update --apply`; do not apply merely to
 complete this tutorial. Owner-edited managed files require explicit resolution.
